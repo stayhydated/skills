@@ -1,0 +1,4 @@
+interface:
+  display_name: "Rust Best Practices"
+  short_description: "Write, refactor, review, and document idiomatic Rust"
+  default_prompt: "Use $rust-best-practices to write, refactor, review, optimize, or document idiomatic Rust code on the repository Rust baseline."

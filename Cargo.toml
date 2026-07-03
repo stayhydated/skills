@@ -1,0 +1,26 @@
+[workspace]
+members = [ "xtask" ]
+resolver = "3"
+
+[workspace.package]
+edition = "2024"
+license = "MIT OR Apache-2.0"
+rust-version = "1.96"
+version = "0.1.0"
+
+[workspace.lints.rust]
+unexpected_cfgs = { level = "deny" }
+
+[workspace.lints.clippy]
+dbg_macro = "deny"
+derive_partial_eq_without_eq = "warn"
+err_expect = "warn"
+incompatible_msrv = "deny"
+iter_on_single_items = "warn"
+needless_bool = "warn"
+redundant_clone = "warn"
+todo = "deny"
+type_complexity = "allow"
+uninlined_format_args = "allow"
+unused_trait_names = "warn"
+useless_conversion = "warn"

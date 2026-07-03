@@ -1,0 +1,29 @@
+name: Check Rust stable release
+
+on:
+  schedule:
+    - cron: "17 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check-rust-stable:
+    name: Check Rust stable release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Compare tracked Rust baseline with stable
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RUST_STABLE_MANIFEST: https://static.rust-lang.org/dist/channel-rust-stable.toml
+        run: |
+          cargo run --locked -p xtask -- check-rust-stable --create-issue

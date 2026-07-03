@@ -1,0 +1,26 @@
+[package]
+name = "xtask"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+version.workspace = true
+publish = false
+
+[dependencies]
+anyhow = "1"
+clap = { features = [ "derive", "env" ], version = "4" }
+octocrab = { default-features = false, features = [
+  "default-client",
+  "jwt-rust-crypto",
+  "rustls",
+  "rustls-ring",
+], version = "0.53.1" }
+regex = "1"
+reqwest = { default-features = false, features = [ "rustls-tls" ], version = "0.12" }
+serde = { features = [ "derive" ], version = "1" }
+tokio = { features = [ "macros", "rt-multi-thread" ], version = "1" }
+toml = "0.8"
+walkdir = "2"
+
+[dev-dependencies]
+tempfile = "3"

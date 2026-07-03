@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pre-1.0 Forward Only"
+  short_description: "Keep pre-1.0 Rust docs and APIs current-only"
+  default_prompt: "Use $pre-1-0-forward-only to keep pre-1.0 Rust crate or workspace docs and APIs forward-only, avoiding absent-surface negative prose and legacy compatibility obligations."

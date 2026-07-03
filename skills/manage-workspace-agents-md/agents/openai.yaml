@@ -1,0 +1,4 @@
+interface:
+  display_name: "Manage Workspace AGENTS.md"
+  short_description: "Create, patch, refactor, audit, and align repository AGENTS.md guidance from evidence"
+  default_prompt: "Use $manage-workspace-agents-md to create, patch, refactor, audit, or align repository AGENTS.md guidance from evidence."
