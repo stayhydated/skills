@@ -47,6 +47,8 @@ Read only the chapters relevant to the task. For broad reviews or refactors, rea
 several relevant chapters together before giving feedback.
 
 * [Coding Styles and Idioms](references/coding-styles-and-idioms.md)
+* [Code Generation Templates](references/code-generation-templates.md)
+* [Enum String Conversions](references/enum-string-conversions.md)
 * [Clippy and Linting Discipline](references/clippy-and-linting-discipline.md)
 * [Performance Mindset](references/performance-mindset.md)
 * [Error Handling](references/error-handling.md)
