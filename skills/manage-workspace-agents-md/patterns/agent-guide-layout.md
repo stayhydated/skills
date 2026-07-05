@@ -95,8 +95,6 @@ These labels describe the package, crate, app, tool, or surface itself, not the 
 
 Treat these as public contracts when present: CLI flags and output, configuration files, schemas, protocols, macro syntax, diagnostics, public examples, package exports, facade APIs, plugin interfaces, SDKs, and API docs.
 
-For Rust repositories with evidenced crate or workspace versions below `1.0.0`, do not create a legacy-compatibility requirement for public API changes unless local docs or existing guidance explicitly require it. When the API shape breaks, write guidance so code, tests, examples, generated outputs, API docs, and user-facing docs move to the current API shape together. For crates at or above `1.0.0`, or repositories with explicit compatibility promises, preserve the evidenced compatibility policy.
-
 ## Documentation placement rules
 
 Include these rules only when the repository has the named surfaces:

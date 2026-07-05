@@ -59,7 +59,6 @@ Use this checklist before finalizing a generated or patched `AGENTS.md` guide, r
 - [ ] Evidence-backed high-risk or restricted edit surfaces are named with short mechanical boundaries.
 - [ ] The guide uses “when X changes, update Y” rather than vague “keep docs updated.”
 - [ ] Public contracts are identified when present: CLI behavior, config shape, schemas, protocols, macro syntax, diagnostics, package exports, SDKs, plugin APIs, and public examples.
-- [ ] For Rust crates or workspaces with evidenced versions below `1.0.0`, breaking API changes are routed as updates to the current API shape in code, tests, examples, docs, fixtures, generated outputs, and guidance, not as legacy/backward-compatibility obligations unless local docs explicitly require them.
 
 ## Tests and validation
 

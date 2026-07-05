@@ -71,13 +71,6 @@ When comparing guidance against repository truth, check:
 | Testing guidance | Test directories, snapshot files, UI-test harnesses, runner files, package scripts, and CI jobs. |
 | Scoped guidance | Nested `AGENTS.md` guidance. |
 | Public contracts | CLI behavior, config, schemas, macro syntax, diagnostics, plugin interfaces, package exports, and API docs. |
-| Rust API compatibility expectations | `Cargo.toml`, workspace package metadata, crate READMEs, changelogs, public API docs, existing guidance, and release policy docs. |
-
-## Rust pre-1.0 compatibility
-
-When repository evidence shows a Rust crate or workspace package version below `1.0.0`, treat backward/legacy compatibility as not required unless explicit repository docs say otherwise. For generated guidance, a breaking API change should be documented as the current API shape and synchronized through implementation, tests, fixtures, examples, API docs, user-facing docs, generated outputs, and existing guidance that name the affected API.
-
-If versions differ across crates, apply this only to the crates whose evidenced versions are below `1.0.0`; do not extend the rule to `1.0.0` or later crates, or to crates with an explicit compatibility promise. If version evidence is missing, mark compatibility expectations `Not checked` instead of guessing.
 
 ## Conflict precedence
 

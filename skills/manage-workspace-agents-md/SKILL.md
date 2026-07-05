@@ -116,8 +116,6 @@ Generated guidance should contain only repository-specific instructions that con
 
 When repository evidence identifies high-risk edit surfaces, include a short boundary note: generated outputs should be changed through their generator when one exists; release, deployment, migration, or production configuration files may require extra approval when local guidance says so; secrets, credentials, and vendored dependencies must not be edited as ordinary source. Do not invent restricted areas that are not evidenced by repository files or existing guidance.
 
-When repository evidence shows Rust crate or workspace package versions below `1.0.0` (for example, `version = "0.x.y"` in `Cargo.toml` or `workspace.package.version`), do not add backward- or legacy-compatibility obligations to `AGENTS.md` guidance unless local docs explicitly require them. Treat breaking API changes as the current API shape: update implementation, tests, examples, API docs, READMEs, fixtures, generated outputs, and existing guidance that describe the API, rather than preserving old shapes only for compatibility. For crates at or above `1.0.0`, or when local docs promise compatibility, follow the repository's evidenced compatibility policy instead of inferring one.
-
 Prefer a root `AGENTS.md` under 220 lines. Split into nested `AGENTS.md` or local docs when a procedure is path-specific, generated-output-heavy, release-only, troubleshooting-oriented, or longer than a short checklist. If the target agent has an evidenced instruction-size or truncation limit, keep the applicable guidance under that limit or split path-specific material closer to the files it governs.
 
 ## Terminology boundary

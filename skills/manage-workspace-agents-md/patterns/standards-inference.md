@@ -18,7 +18,6 @@ A repository standard is a repeated or canonical local practice that agents must
 - Infer package-manager standards from lockfiles, install docs, CI setup, and existing scripts. Do not recommend switching managers.
 - Infer workspace ownership from manifests, package metadata, README links, exported modules, docs, examples, and directory layout.
 - Infer public contract surfaces from user-facing docs, CLI behavior, schemas, protocols, macro diagnostics, examples, package exports, SDKs, and API docs.
-- Infer Rust crate or workspace compatibility expectations from `Cargo.toml`, workspace package versions, and explicit compatibility docs; for evidenced versions below `1.0.0`, do not infer backward/legacy compatibility unless repository docs explicitly require it.
 - Infer synchronization rules only for docs, examples, generated outputs, fixtures, snapshots, and `AGENTS.md` guidance that exist.
 - Infer local code standards only when repeated practice affects how agents should route, validate, or synchronize edits.
 
@@ -33,7 +32,6 @@ Keep these out of generated guidance unless already evidenced or explicitly requ
 - migrations from one library or workflow to another;
 - language-specific style rules not visible in the repository;
 - broad modernization advice;
-- backward/legacy compatibility for Rust crates or workspaces with evidenced versions below `1.0.0` unless explicitly documented.
 
 ## Evidence ledger shape
 
