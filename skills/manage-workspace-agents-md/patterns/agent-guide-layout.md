@@ -41,6 +41,12 @@ Prefer concise root guidance unless repository complexity clearly justifies more
 - Common commands: point to the evidenced runner file when it is the canonical
   command list; do not duplicate the whole runner.
 - Sync rules: only surfaces that exist and routinely need synchronized edits.
+- Manifests, lockfiles, dependency automation config, package-manager config,
+  runner files, and CI files: use as evidence; omit from the guide unless an
+  exact file has a documented, non-obvious editing procedure that agents must
+  follow during ordinary work. In existing guides, remove entries that only say
+  to keep lockfiles aligned, update dependency automation schedules/groups, or
+  route ordinary dependency metadata edits.
 - Long procedures: move to nested `AGENTS.md` or docs.
 - Target-platform limits: when an evidenced agent runtime has an instruction size or truncation limit, keep the applicable root and nested guidance below that limit or split local procedures closer to the files they govern.
 
@@ -130,10 +136,11 @@ For generated output:
 - Prefer changing the source generator, schema, inventory, metadata, template, or registry over hand-editing generated output.
 - Keep generator tests, snapshots, golden files, fixtures, and user-facing docs aligned.
 - State exact regeneration commands only after confirming they exist.
-- Do not create a standalone generated or ignored-output section merely to
-  restate `.gitignore` or build-output paths. Mention generated outputs only
-  where they change editing behavior: in a sync rule, workspace-map entry, or
-  short boundary note that names the owning generator or source.
+- Do not create a standalone generated or ignored-output section,
+  workspace-map entry, or validation/editing rule merely to restate
+  `.gitignore` or build-output paths. Mention generated outputs only where they
+  change editing behavior: in a sync rule, workspace-map entry, or short
+  boundary note that names the owning generator or source.
 
 ## Edit boundary notes
 
@@ -147,7 +154,7 @@ Do not add broad safety language that does not help an agent route edits in this
 
 ## Workspace map pattern
 
-The workspace map is the highest-value part of the file. Keep it accurate and terse. Map owned editing surfaces, not every important file.
+The workspace map is the highest-value part of the file. Keep it accurate and terse. Map owned editing surfaces, not every important file. Exclude routine manifests, lockfiles, dependency automation config, package-manager config, runner files, and CI files unless the repository documents a non-obvious editing procedure for that exact file. Remove existing workspace-map entries for these files when they only describe standard dependency metadata, lockfile synchronization, update schedules, grouping, labels, or ordinary CI/dependency routing.
 
 <!-- EXAMPLE ONLY: use real repository paths and omit sections that do not apply. -->
 

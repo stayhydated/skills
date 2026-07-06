@@ -5,7 +5,7 @@ use std::{
     str::FromStr,
 };
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Context as _, Result, bail};
 use clap::{Args, Parser, Subcommand};
 use octocrab::{Octocrab, params};
 use regex::Regex;
@@ -338,7 +338,7 @@ fn append_step_summary(
             )
         })?;
 
-    use std::io::Write;
+    use std::io::Write as _;
     writeln!(summary, "Latest Rust stable: **{}**\n", state.latest_full)?;
     writeln!(
         summary,

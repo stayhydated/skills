@@ -42,13 +42,20 @@ Use this checklist before finalizing a generated or patched `AGENTS.md` guide, r
 - [ ] Common commands appear early only when they are evidenced and useful for
   most edits, or the guide points early to an evidenced runner file such as
   `justfile` when that is the canonical command list.
-- [ ] The guide does not duplicate a canonical command index, `.gitignore`, or
-  build-output inventory unless the duplicated item adds routing or validation
-  value.
+- [ ] The guide does not duplicate a canonical command index, `.gitignore`,
+  ignored build/cache paths, or build-output inventory unless the duplicated
+  item adds routing or validation value.
 - [ ] Root guidance is short enough to scan, usually under 220 lines.
 - [ ] Known target-platform size or truncation limits are respected, or local procedures are split closer to the files they govern.
 - [ ] Long or path-specific procedures are moved to nested `AGENTS.md` or local docs.
 - [ ] Workspace map entries describe owned editing surfaces, not every manifest or workflow file.
+- [ ] Generic manifests, lockfiles, dependency automation config,
+  package-manager config, runner files, and CI files are used as evidence, not
+  listed as guide content unless an exact file has a documented, non-obvious
+  editing procedure.
+- [ ] Existing entries that only describe lockfile synchronization, dependency
+  automation schedules/groups/labels, or ordinary dependency metadata routing
+  were removed or shortened to a higher-value rule.
 - [ ] Placeholder names, copied template paths, and unchecked links are removed.
 
 ## Synchronization and public contracts

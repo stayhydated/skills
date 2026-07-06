@@ -54,7 +54,9 @@ For repository-specific work:
 8. Draft sync rules only for surfaces that exist.
 9. Final-check every command and path used in the output.
 
-Use manifests, runner files, and CI as evidence for workspace shape, package manager, and validation. Do not list generic root manifests, runner files, or workflow YAML as workspace-map entries merely because they exist. Include them only when they are named public configuration, generated-output sources, workflow products, or non-obvious contributor-maintained tool surfaces.
+Use manifests, lockfiles, dependency automation config, runner files, and CI as evidence for workspace shape, package manager, dependency tooling, commands, and validation. Do not list generic root manifests, lockfiles, dependency metadata, dependency automation config, package-manager config, runner files, or workflow YAML as workspace-map entries merely because they exist or own configuration. Include them only when repository guidance or docs define a non-obvious editing procedure for that exact surface that agents must follow during ordinary work. In Patch, Alignment, and Checklist modes, remove existing entries that only say to keep lockfiles aligned, update dependency automation schedules/groups/labels, or route ordinary dependency metadata edits.
+
+Use `.gitignore` as exclusion evidence, not as an inventory to repeat in `AGENTS.md`. Ignored build outputs, cache directories, dependency caches, and tool output directories are not source surfaces by default; name them only when another repository-owned workflow makes the path relevant to editing, synchronization, cleanup, or validation.
 
 ## Alignment drift checks
 
@@ -111,6 +113,8 @@ When repository evidence identifies restricted or sensitive edit surfaces, inclu
 - do not edit secrets, credentials, vendored dependencies, or checked-in third-party artifacts as ordinary source.
 
 Do not invent high-risk areas that are not evidenced by repository files or existing guidance. Keep boundary notes short enough to help routing rather than turning the guide into a policy document.
+
+Do not treat ignored build, cache, dependency, or tool-output paths as high-risk edit surfaces merely because `.gitignore` names them. Omit these paths from guide text unless they require a non-obvious generator, cleanup step, validation step, or edit-routing rule.
 
 ## Limited-evidence mode
 

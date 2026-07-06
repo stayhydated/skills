@@ -10,13 +10,13 @@ fmt:
     rumdl fmt .
 
 clippy:
-    cargo clippy --workspace --all-features --all-targets -- -D warnings
+    cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 
 check:
-    cargo check --workspace --all-features
+    cargo check --workspace --all-features --locked
 
 test:
-    cargo test --workspace --all-features --all-targets
+    cargo test --workspace --all-features --all-targets --locked
 
 cov:
     cargo llvm-cov --workspace --all-features --all-targets
