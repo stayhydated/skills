@@ -63,6 +63,8 @@ For pre-1.0 crates and workspaces without an explicit compatibility promise:
 
 - Treat the current API, command surface, route shape, generated output, and
   documented workflow as the contract.
+- Apply this as task procedure; do not add a standing pre-1.0 policy sentence to
+  durable docs or `AGENTS.md` solely because a manifest version is below `1.0`.
 - Move implementation, public exports, tests, examples, generated outputs,
   README text, crate docs, and `AGENTS.md` guidance to the current shape in the
   same change when they name the changed surface.

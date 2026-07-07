@@ -23,6 +23,37 @@ Use `--all-features` when features are additive and compatible. If features are
 mutually exclusive, test the documented feature matrix instead of pretending all
 features can be enabled together.
 
+## Workspace Profiles
+
+For Rust 1.96 workspaces, prefer a root-level profile baseline that keeps local
+builds debuggable while avoiding slow unoptimized dependency code:
+
+```toml
+[profile.dev]
+codegen-units = 16
+debug = "limited"
+opt-level = 1
+split-debuginfo = "unpacked"
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+codegen-units = 1
+lto = "thin"
+opt-level = 3
+```
+
+Use `debug = "limited"` instead of full debug info when stack traces and module
+context are enough. Optimize non-workspace dependencies in dev profiles for UI,
+graphics, parser, and async-heavy projects where dependency hot paths dominate
+runtime behavior.
+
+Prefer ThinLTO for the default release profile. It gives whole-program
+optimization without the link-time cost of fat LTO. Add `panic = "abort"` or
+`strip = true` only for deliverable binaries that intentionally trade panic
+unwinding or symbols for size.
+
 ## Workspace Lints
 
 Prefer central lint policy in the workspace root, with crates opting in through
@@ -30,23 +61,30 @@ Prefer central lint policy in the workspace root, with crates opting in through
 
 ```toml
 [workspace.lints.rust]
-future-incompatible = "deny"
+future_incompatible = "deny"
 nonstandard_style = "deny"
+unexpected_cfgs = { level = "deny", check-cfg = ["cfg(coverage)"] }
 unsafe_op_in_unsafe_fn = "deny"
 unused_must_use = "deny"
 
 [workspace.lints.rustdoc]
-broken_intra_doc_links = "deny"
 bare_urls = "deny"
+broken_intra_doc_links = "deny"
 
 [workspace.lints.clippy]
-all = "deny"
-clone_on_copy = "deny"
-large_enum_variant = "deny"
-manual_ok_or = "deny"
-needless_collect = "deny"
-redundant_clone = "deny"
-unnecessary_wraps = "deny"
+all = { level = "warn", priority = -1 }
+dbg_macro = "deny"
+derive_partial_eq_without_eq = "warn"
+err_expect = "warn"
+incompatible_msrv = "deny"
+iter_on_single_items = "warn"
+needless_bool = "warn"
+redundant_clone = "warn"
+todo = "deny"
+type_complexity = "allow"
+uninlined_format_args = "allow"
+unused_trait_names = "warn"
+useless_conversion = "warn"
 ```
 
 In member crates:
@@ -59,6 +97,11 @@ workspace = true
 Consider `clippy::pedantic` and `clippy::nursery` as review aids, not automatic
 policy for every repository. Avoid `clippy::restriction` as a group; enable only
 specific restriction lints that match team policy.
+
+In Rust 1.96, new Clippy lints such as `manual_noop_waker`,
+`manual_option_zip`, and `manual_pop_if` are already covered by `clippy::all`.
+Add individual entries only when raising a lint level, documenting a local
+allowance, or making a policy choice that differs from the default Clippy group.
 
 ## Fix Warnings Before Suppressing Them
 
@@ -100,6 +143,13 @@ reason. Local `#[expect]` is usually easier to audit.
 | `large_enum_variant` | Enum layout may waste stack or cache space. |
 | `unnecessary_wraps` | The function's return type may overstate fallibility. |
 | `missing_errors_doc` | A public fallible API needs better caller guidance. |
+| `derive_partial_eq_without_eq` | A type may be able to advertise `Eq`. |
+| `err_expect` | `expect_err` communicates intent more directly. |
+| `incompatible_msrv` | Code may exceed the crate's declared `rust-version`. |
+| `iter_on_single_items` | Iterator construction may hide a simpler expression. |
+| `needless_bool` | Boolean control flow can be simplified. |
+| `unused_trait_names` | Imports can likely be narrowed or made explicit. |
+| `useless_conversion` | Conversion calls may be obscuring the actual type. |
 
 Treat lints as prompts for design review, not as mechanical chores.
 
