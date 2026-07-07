@@ -62,6 +62,14 @@ impl FromStr for RustMinorVersion {
         let Some(minor) = parts.next() else {
             bail!("missing Rust minor version in `{value}`");
         };
+        if let Some(patch) = parts.next() {
+            patch
+                .parse::<u64>()
+                .with_context(|| format!("invalid Rust patch version in `{value}`"))?;
+        }
+        if parts.next().is_some() {
+            bail!("Rust version must be in `major.minor` or `major.minor.patch` form: `{value}`");
+        }
 
         Ok(Self {
             major: major
@@ -426,6 +434,16 @@ mod tests {
             "1.96.1".parse::<RustMinorVersion>().unwrap().to_string(),
             "1.96"
         );
+    }
+
+    #[test]
+    fn rejects_malformed_minor_versions() {
+        for version in ["1", "1.96.beta", "1.96.0.1", "1..96"] {
+            assert!(
+                version.parse::<RustMinorVersion>().is_err(),
+                "{version} should be rejected"
+            );
+        }
     }
 
     #[test]
