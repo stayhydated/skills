@@ -24,6 +24,12 @@ Coverage is a poor fit for:
 
 Use repository-standard coverage commands when present. Generic LLVM coverage or `cargo-llvm-cov` commands should be recommended only when the repository already uses them, the user requested coverage setup, or the recommendation is clearly labeled as **Recommended**.
 
+For GitHub Actions coverage workflows, install auxiliary Cargo tools through the
+repository-standard installer, such as `cargo-binstall` when that is already CI
+policy. Prefer publishing coverage from the job that generated the report; add
+upload/download artifact handoffs only when a separate job genuinely needs that
+artifact boundary.
+
 ## Mutation-testing guidance
 
 Mutation testing is useful for:

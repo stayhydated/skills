@@ -23,6 +23,26 @@ Use `--all-features` when features are additive and compatible. If features are
 mutually exclusive, test the documented feature matrix instead of pretending all
 features can be enabled together.
 
+## CI Quality Jobs
+
+Prefer explicit CI jobs for documentation and package validation instead of
+burying those checks inside a broad test script:
+
+```sh
+cargo doc --workspace --all-features --no-deps --locked
+cargo publish --workspace --dry-run --locked
+```
+
+For virtual workspaces with release-order tooling, use the repository's release
+plan or package dry-run command instead of forcing a plain workspace publish. For
+intentionally unpublished workspaces, use the narrow package assembly check that
+matches the repository's packaging contract.
+
+Do not add Linux mold linker setup as a default CI or `.cargo/config.toml`
+requirement. Keep linker overrides opt-in and repository-evidenced; CI should
+prefer the stock runner toolchain unless the repository documents a real linker
+requirement.
+
 ## Workspace Profiles
 
 For Rust 1.96 workspaces, prefer a root-level profile baseline that keeps local
