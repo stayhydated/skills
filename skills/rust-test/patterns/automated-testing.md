@@ -61,11 +61,11 @@ fn sample_batch() -> Batch {
 
 ## Prefer `assert_matches!` for Variant Checks
 
-On a Rust 1.96+ MSRV, prefer stable `assert_matches!` when the test contract is a
-single structured pattern: enum variants, typed errors, state-machine phases,
+On the Rust 1.97 baseline, prefer stable `assert_matches!` when the test contract
+is a single structured pattern: enum variants, typed errors, state-machine phases,
 parse outcomes, or other values where the mismatched debug shape should appear in
-the failure. Import the macro explicitly from `std` in ordinary tests or from
-`core` in `no_std` test contexts.
+the failure. The repository MSRV must be Rust 1.96 or newer. Import the macro
+explicitly from `std` in ordinary tests or from `core` in `no_std` test contexts.
 
 ```rust
 use std::assert_matches;
@@ -141,8 +141,8 @@ fn normalizes_whitespace(#[case] input: &str, #[case] expected: &str) {
 
 Rustdoc examples are compiled and run by `cargo test` unless marked otherwise.
 Use hidden lines (`#`) to make examples self-contained without distracting the
-reader. When a doctest uses a test-only macro such as `assert_matches!`, hide the
-macro import unless the import itself teaches the public API.
+reader. When a doctest uses a macro such as `assert_matches!`, hide the macro
+import unless the import itself teaches the public API.
 
 ````rust
 /// Normalizes an external marker into the canonical lowercase form.
@@ -173,6 +173,9 @@ Use rustdoc block attributes intentionally:
 * `ignore`: avoid unless the example cannot be compiled in CI.
 
 If using `cargo nextest`, run doc tests separately with `cargo test --doc`.
+When the repository uses Rust 1.97 rustdoc `--emit` or `--remap-path-prefix`,
+preserve the repository's rustdoc command and review emitted or remapped paths
+when documentation output is part of the contract.
 
 ## Integration Tests
 

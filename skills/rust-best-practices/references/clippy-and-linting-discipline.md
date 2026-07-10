@@ -23,6 +23,23 @@ Use `--all-features` when features are additive and compatible. If features are
 mutually exclusive, test the documented feature matrix instead of pretending all
 features can be enabled together.
 
+## Cargo 1.97 Warning Policy
+
+Cargo 1.97 stabilizes the `build.warnings` configuration key. When a repository
+intentionally requires every ordinary Cargo build, check, or test of local
+packages to reject lint warnings, prefer checked-in configuration over a global
+`RUSTFLAGS=-Dwarnings` override:
+
+```toml
+[build]
+warnings = "deny"
+```
+
+Use this only when Rust 1.97 or newer is the effective toolchain baseline and the
+repository has adopted warning-free builds as policy. Keep the explicit
+`cargo clippy ... -- -D warnings` command for Clippy-specific review, and do not
+assume an older MSRV job enforces this Cargo setting.
+
 ## CI Quality Jobs
 
 Prefer explicit CI jobs for documentation and package validation instead of
@@ -45,7 +62,7 @@ requirement.
 
 ## Workspace Profiles
 
-For Rust 1.96 workspaces, prefer a root-level profile baseline that keeps local
+For Rust 1.97 workspaces, prefer a root-level profile baseline that keeps local
 builds debuggable while avoiding slow unoptimized dependency code:
 
 ```toml
@@ -118,10 +135,10 @@ Consider `clippy::pedantic` and `clippy::nursery` as review aids, not automatic
 policy for every repository. Avoid `clippy::restriction` as a group; enable only
 specific restriction lints that match team policy.
 
-In Rust 1.96, new Clippy lints such as `manual_noop_waker`,
-`manual_option_zip`, and `manual_pop_if` are already covered by `clippy::all`.
-Add individual entries only when raising a lint level, documenting a local
-allowance, or making a policy choice that differs from the default Clippy group.
+On the Rust 1.97 toolchain, lints such as `manual_noop_waker`,
+`manual_option_zip`, and `manual_pop_if` are covered by `clippy::all`. Add
+individual entries only when raising a lint level, documenting a local allowance,
+or making a policy choice that differs from the default Clippy group.
 
 ## Fix Warnings Before Suppressing Them
 

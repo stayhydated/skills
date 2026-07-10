@@ -209,12 +209,12 @@ let checksum = checksum([1, 2, 3].into_iter().map(|byte| byte * 2));
 assert_eq!(checksum, 12);
 ```
 
-## Range APIs in Rust 1.96
+## Range APIs on the Rust 1.97 Baseline
 
-Rust 1.96 introduced new concrete range types under `core::range`. They are useful
-when a range is stored in a small `Copy` value. For public APIs, prefer accepting
-`impl RangeBounds<usize>` so callers can pass both legacy range syntax and new
-concrete range values.
+The concrete range types stabilized under `core::range` in Rust 1.96 are available
+on the Rust 1.97 baseline. They are useful when a range is stored in a small
+`Copy` value. For public APIs, prefer accepting `impl RangeBounds<usize>` so
+callers can pass both legacy range syntax and concrete range values.
 
 ```rust
 use core::range::Range;
@@ -260,6 +260,44 @@ where
 
 assert_eq!(select_window(b"abcdef", 2..=4), b"cde");
 ```
+
+## Integer Bit Inspection in Rust 1.97
+
+Use the stable integer methods introduced in Rust 1.97 when the domain is about
+bit positions or one-bit masks. They make the zero case and return shape explicit
+and avoid hand-written shift arithmetic.
+
+```rust
+let flags = 0b0010_1100_u8;
+
+assert_eq!(flags.bit_width(), 6);
+assert_eq!(flags.highest_one(), Some(5));
+assert_eq!(flags.lowest_one(), Some(2));
+assert_eq!(flags.isolate_highest_one(), 0b0010_0000);
+assert_eq!(flags.isolate_lowest_one(), 0b0000_0100);
+
+assert_eq!(0_u8.highest_one(), None);
+assert_eq!(0_u8.isolate_lowest_one(), 0);
+```
+
+Use the corresponding `NonZero` methods when zero is already excluded by the type.
+Do not raise a library's MSRV solely to replace clear existing bit operations
+unless that change is part of the release policy.
+
+## Prefer `char` Associated Items
+
+Rust 1.97 deprecates constants and functions reached through the `std::char`
+module. Use the primitive type's associated items instead:
+
+```rust
+let replacement = char::REPLACEMENT_CHARACTER;
+let decoded = char::from_u32(0x1F980);
+
+assert_eq!(replacement, '\u{FFFD}');
+assert_eq!(decoded, Some('🦀'));
+```
+
+Preserve an older spelling only when required by a declared pre-1.97 MSRV.
 
 ## Imports
 

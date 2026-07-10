@@ -20,6 +20,7 @@ Use fixtures and golden files when the input/output relationship is clearer as f
 - Add or update focused tests for the generator behavior that caused the output change.
 - For generated Rust or proc-macro output, test the public behavior first. Snapshot expanded or generated code only when the generated shape is itself review-relevant, stable, and normalized.
 - Do not snapshot compiler-expanded output that includes unstable formatting, incidental hygiene, nondeterministic spans, or machine-local paths unless the repository already normalizes and reviews that output.
+- On Rust 1.97, account for v0 symbol mangling, linker warnings, and rustdoc path remapping before accepting changes to backtrace, symbol, stderr, or documentation goldens.
 
 ## Assertion style
 
@@ -27,7 +28,7 @@ Prefer the clearest assertion for the contract:
 
 - exact equality for small deterministic values;
 - structural assertions for typed data where only selected fields matter;
-- Rust 1.96+ `assert_matches!` for single-pattern variants or typed errors where mismatch debug output matters;
+- `assert_matches!` on the Rust 1.97 baseline for single-pattern variants or typed errors where mismatch debug output matters, provided the repository MSRV is Rust 1.96 or newer;
 - structural error assertions for multi-field typed errors, error kinds, spans, exit codes, and machine-readable fields;
 - snapshots for large or nested deterministic output;
 - property tests when invariants matter across many generated cases and the repository already uses or requests that style;

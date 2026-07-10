@@ -1,6 +1,6 @@
 ---
 name: rust-test
-description: Design, patch, audit, or align Rust tests with evidence-based guidance for unit tests, integration/e2e tests, doctests, insta snapshots, compile-fail/UI tests, golden files, fixtures, property tests, fuzz tests, async/concurrency tests, unsafe-code validation, Criterion benchmarks, Cargo test semantics, Rust 1.96 test idioms, feature/target/MSRV matrices, flaky-test triage, coverage/mutation evidence, and focused validation.
+description: Design, patch, audit, or align Rust tests with evidence-based guidance for unit tests, integration/e2e tests, doctests, insta snapshots, compile-fail/UI tests, golden files, fixtures, property tests, fuzz tests, async/concurrency tests, unsafe-code validation, Criterion benchmarks, Cargo test semantics, Rust 1.97 test idioms, feature/target/MSRV matrices, flaky-test triage, coverage/mutation evidence, and focused validation.
 ---
 
 # rust-test
@@ -17,15 +17,16 @@ Do not add mock-centric test strategies as a default. When behavior depends on c
 
 Keep this skill test-scoped. Use it for assertion choice, test harness shape, doctest behavior, UI/diagnostic expectations, snapshot/golden review, fuzz/property/benchmark harnesses, async/concurrency validation, unsafe-code evidence, and Cargo validation semantics. Do not use it to give broad implementation style guidance such as API ownership, generic dispatch, error type design, builder/type-state selection, comment policy, lint policy, or production performance refactors unless those choices are the explicit test contract. When the user asks for overall Rust code patterns, route that work to `rust-best-practices`; when the user asks whether tests prove the behavior, stay here.
 
-## Rust 1.96 test-specific baseline
+## Rust 1.97 test-specific baseline
 
-Assume Rust 1.96 stable only when the repository does not declare a stricter MSRV. The Rust 1.96 guidance in this skill is limited to testing surfaces:
+Assume Rust 1.97 stable only when the repository does not declare a stricter MSRV. The Rust 1.97 guidance in this skill is limited to testing surfaces:
 
-- prefer stable `assert_matches!` for enum variants, typed errors, state transitions, parse outcomes, and other structured pattern assertions when the repository MSRV allows it;
+- prefer stable `assert_matches!` for enum variants, typed errors, state transitions, parse outcomes, and other structured pattern assertions when the repository MSRV is Rust 1.96 or newer;
 - import `std::assert_matches` in ordinary tests and doctests, or `core::assert_matches` for `no_std` contexts;
-- do not replace clear `assert_eq!`, boolean `assert!` checks with useful messages, structural assertions, or snapshots/goldens just to use a new macro;
+- do not replace clear `assert_eq!`, boolean `assert!` checks with useful messages, structural assertions, or snapshots/goldens just to use a macro;
 - do not use `debug_assert_matches!` as the normal test assertion; reserve it for debug-only internal invariants or existing repository style;
-- treat Rust 1.96 Cargo, rustdoc, compiler, target, and compatibility changes as test-selection evidence, not as permission to refactor production code under this skill.
+- inspect Cargo 1.97 configuration such as `build.warnings` and `resolver.lockfile-path` before interpreting command failures or claiming which lockfile a test used;
+- treat Rust 1.97 Cargo, rustdoc, compiler, target, symbol-mangling, linker-warning, `pin!`, and deprecation changes as test-selection or expectation-file evidence, not as permission to refactor production code under this skill.
 
 ## When to use this skill
 
@@ -64,8 +65,8 @@ Do not use it for non-Rust testing unless the repository explicitly routes that 
 14. Treat feature flags, mutually exclusive features, `cfg` gates, target triples, MSRV, and `no_std`/WASM/embedded constraints as part of the tested contract when they affect behavior or compilation.
 15. For async, concurrent, time-sensitive, or background-task behavior, prefer deterministic synchronization, fake or paused time, joined tasks, and repository-standard runtime patterns over sleeps and timing assumptions.
 16. For unsafe, FFI, atomics, custom allocators, or memory-invariant changes, pair public functional tests with invariant-focused regressions and use Miri, sanitizers, loom, or fuzzing only when configured, requested, or clearly labeled as recommended.
-17. Prefer structural assertions for typed errors, variants, spans, exit codes, and machine-readable fields. On Rust 1.96+ with compatible MSRV, use `assert_matches!` for single-pattern variant assertions that should print the mismatched value. Assert exact text only when wording is part of the public contract.
-18. Keep Rust 1.96 guidance test-specific. Do not drift into broad implementation style choices covered by `rust-best-practices` unless the code pattern itself is being tested.
+17. Prefer structural assertions for typed errors, variants, spans, exit codes, and machine-readable fields. On the Rust 1.97 baseline, use `assert_matches!` for single-pattern variant assertions when the repository MSRV is Rust 1.96 or newer and the mismatched value should be printed. Assert exact text only when wording is part of the public contract.
+18. Keep Rust 1.97 guidance test-specific. Do not drift into broad implementation style choices covered by `rust-best-practices` unless the code pattern itself is being tested.
 19. In workspaces, identify the affected package graph before selecting validation. Prefer package-scoped commands first, then dependent package tests when public APIs or shared fixtures changed.
 20. Account for Cargo test semantics before claiming what a command proves: package selection, target selection, doctests, examples, feature flags, test filters, and libtest arguments all matter.
 21. Treat retries and serial execution as flake triage tools, not correctness fixes. Prefer root-cause repairs such as deterministic synchronization, isolated temp resources, explicit task joins, and stable ordering.
@@ -75,7 +76,7 @@ Do not use it for non-Rust testing unless the repository explicitly routes that 
 Before patching or recommending test changes, inspect the relevant subset of:
 
 - `Cargo.toml`, workspace manifests, dev-dependencies, feature flags, feature matrices, bench targets, fuzz manifests, and workspace dependency policy;
-- `rust-toolchain.toml`, package `rust-version`, `.cargo/config.toml`, MSRV policy, target matrix, `no_std`/WASM/embedded support, platform-specific `cfg`s, Rust 1.96-sensitive doctest or target configuration, and feature-combination expectations affected by the change;
+- `rust-toolchain.toml`, package `rust-version`, `.cargo/config.toml`, Cargo 1.97 `build.warnings` or `resolver.lockfile-path`, MSRV policy, target matrix, `no_std`/WASM/embedded support, platform-specific `cfg`s, Rust 1.97-sensitive doctest or target configuration, and feature-combination expectations affected by the change;
 - existing `tests/`, `src/**/tests`, `benches/`, `examples/`, `fixtures/`, `snapshots/`, `fuzz/`, corpus directories, UI-test directories, generated outputs, and e2e harnesses;
 - CI workflows, `justfile`, `Makefile`, `cargo-nextest` config, `cargo-insta` config, benchmark scripts, fuzz scripts, target-specific jobs, feature-matrix jobs, MSRV jobs, coverage/mutation jobs, or other runner files;
 - existing `insta`, `trybuild`, UI-test, golden-file, fixture, property-test, fuzz, doctest, Criterion, `cargo bench`, `cargo-fuzz`, `nextest`, `cargo hack`, async-runtime, fake-time, concurrency, Miri, sanitizer, loom, coverage, mutation-testing, or e2e usage;
@@ -119,7 +120,7 @@ When ambiguous, choose Audit for existing tests and Strategy for a planned chang
 Use these support files as source material, not default output. Summarize only the relevant pattern unless the user asks for a full checklist or patch:
 
 - `patterns/automated-testing.md`: core unit, integration, doctest, assertion, parameterized, and snapshot test shape.
-- `patterns/rust-1-96-testing-baseline.md`: Rust 1.96 test-specific assertion, doctest, Cargo/rustdoc, target, and compatibility guidance without broad code-style overlap.
+- `patterns/rust-1-97-testing-baseline.md`: Rust 1.97 test-specific assertion, doctest, Cargo/rustdoc, target, and compatibility guidance without broad code-style overlap.
 - `patterns/cargo-test-semantics.md`: Cargo package/target/feature/doctest/libtest command semantics and what a validation command proves.
 - `patterns/boundary-and-e2e.md`: public seams, integration/e2e tests, CLI binary integration, and avoiding mock-centric verification.
 - `patterns/doctests-and-examples.md`: doctests, README examples, rustdoc mechanics, `no_run`, `compile_fail`, and public API samples.

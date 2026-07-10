@@ -28,7 +28,7 @@ Use rustdoc `compile_fail` for documentation examples, not as a replacement for 
 - Update `.stderr` or diagnostic snapshots only when the diagnostic change is intentional.
 - Prefer generated `.stderr` updates through the established harness workflow, then review the diff rather than handwriting large compiler output.
 - Keep public docs, examples, and diagnostics aligned when public macro behavior changes.
-- Treat Rust version changes as expectation-file risk: a new stable compiler can alter accepted syntax, warnings, path rendering, or diagnostic wording even when the public contract is unchanged.
+- Treat Rust version changes as expectation-file risk: a new stable compiler can alter accepted syntax, warnings, path rendering, symbol spelling, or diagnostic wording even when the public contract is unchanged.
 
 ## trybuild workflow
 
@@ -43,11 +43,17 @@ When the repository uses `trybuild`:
 - Keep fixtures independent of rustc wording that is likely to churn unless the wording itself is the public diagnostic contract.
 - Do not add compile-fail fixtures merely to call every public API incorrectly; protect meaningful diagnostics and type-level contracts.
 
-## Rust 1.96-sensitive compiler contracts
+## Rust 1.97-sensitive compiler contracts
 
-Use Rust 1.96-specific compile-fail guidance only for compiler-facing contracts. Examples include a public API that must reject invalid trait, type-state, macro, target, or feature combinations; a proc macro whose diagnostic changed with the compiler; or a target support claim that changed compile/link behavior. Do not add UI fixtures merely to enforce broad style guidance that belongs to `rust-best-practices`.
+Use Rust 1.97-specific compile-fail guidance only for compiler-facing contracts. Examples include a public API that must reject invalid trait, type-state, macro, target, or feature combinations; a proc macro whose diagnostic changed with the compiler; or a target support claim that changed compile/link behavior. Do not add UI fixtures merely to enforce broad style guidance that belongs to `rust-best-practices`.
 
-If the repository MSRV is lower than Rust 1.96, keep fixtures and expected diagnostics compatible with the declared MSRV unless the user explicitly asks to raise or audit the MSRV.
+Rust 1.97 compatibility changes can affect fixtures involving `pin!` coercions,
+generic arguments on module path segments, tuple-index shorthands in struct
+patterns, malformed `link_name`/`link` attributes, empty `export_name` values, or
+invalid Mach-O `link_section` specifiers. Update expectations only when the
+changed acceptance or diagnostic is relevant to the repository's contract.
+
+If the repository MSRV is lower than Rust 1.97, keep fixtures and expected diagnostics compatible with the declared MSRV unless the user explicitly asks to raise or audit the MSRV. Remember that `assert_matches!` itself requires Rust 1.96 or newer.
 
 ## Doctest compile-fail boundary
 

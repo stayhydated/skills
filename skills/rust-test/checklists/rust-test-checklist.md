@@ -4,8 +4,8 @@
 
 - [ ] The evidence tier matched the request size: brief command advice, focused patch, cross-surface audit, or tool-adoption strategy.
 - [ ] Relevant manifests, dev-dependencies, feature flags, feature matrices, bench targets, fuzz manifests, runner files, and CI were inspected.
-- [ ] Cargo test semantics were considered: package selection, target selection, features, doctests, examples, test filters, libtest arguments, build parallelism, and runtime test threads.
-- [ ] MSRV policy, package `rust-version`, `rust-toolchain.toml`, `.cargo/config.toml`, target triples, platform-specific `cfg`s, `no_std`/WASM/embedded support, Rust 1.96-sensitive doctest or target configuration, and feature-combination expectations were inspected when affected.
+- [ ] Cargo test semantics were considered: package selection, target selection, features, doctests, examples, test filters, libtest arguments, build parallelism, runtime test threads, warning policy, and selected lockfile.
+- [ ] MSRV policy, package `rust-version`, `rust-toolchain.toml`, `.cargo/config.toml`, Cargo 1.97 `build.warnings` or `resolver.lockfile-path`, target triples, platform-specific `cfg`s, `no_std`/WASM/embedded support, Rust 1.97-sensitive doctest or target configuration, and feature-combination expectations were inspected when affected.
 - [ ] Existing test, fixture, snapshot, benchmark, fuzz, doctest, async/concurrency, unsafe-code, and e2e layouts were preserved.
 - [ ] New test, fuzzing, benchmark, snapshot, async-runtime, fake-time, Miri, sanitizer, loom, coverage, mutation-testing, cargo-hack, or command-runner dependencies were added only when evidenced, requested, or clearly labeled as recommendations.
 - [ ] Public docs, README examples, CLI behavior, generated output, diagnostics, protocols, schemas, target/platform guarantees, performance claims, or compatibility files affected by the tests were inspected.
@@ -28,13 +28,13 @@
 - [ ] Fixtures are small, named by behavior, and not coupled across unrelated tests.
 - [ ] Golden/generated outputs are produced from the source of truth, not hand-edited without reason.
 - [ ] Generated Rust or proc-macro output is tested through public behavior first; snapshots of generated shape are used only when stable, normalized, and review-relevant.
-- [ ] Structural assertions are preferred for typed errors, variants, spans, exit codes, and machine-readable fields; on Rust 1.96+ with compatible MSRV, `assert_matches!` is used for single-pattern variant assertions where it improves failure output; exact text is asserted only when wording is part of the public contract.
+- [ ] Structural assertions are preferred for typed errors, variants, spans, exit codes, and machine-readable fields; on the Rust 1.97 baseline, `assert_matches!` is used for single-pattern variant assertions when it improves failure output and the repository MSRV is Rust 1.96 or newer; exact text is asserted only when wording is part of the public contract.
 - [ ] Mock-centric tests were not introduced as the default strategy; boundary behavior is covered through public seams, integration/e2e tests, fixtures, or local fakes only when justified by repository evidence.
 - [ ] The test skill did not drift into broad Rust implementation guidance covered by `rust-best-practices` unless that code pattern was itself the tested contract.
 
 ## Determinism and hygiene
 
-- [ ] Paths, timestamps, random IDs, map order, environment-specific data, hostnames, process IDs, platform-specific separators, scheduling artifacts, and runtime timing are normalized or redacted.
+- [ ] Paths, timestamps, random IDs, map order, environment-specific data, hostnames, process IDs, platform-specific separators, scheduling artifacts, runtime timing, and Rust 1.97 symbol-mangling or path-remapping differences are normalized or intentionally reviewed.
 - [ ] Snapshots, golden files, corpora, benchmark fixtures, generated outputs, and minimized regressions avoid credentials, tokens, private URLs, personal data, secrets, and machine-local paths.
 - [ ] Property strategies and fuzz targets are bounded, reproducible when failing, and free from uncontrolled network/time/environment dependencies.
 - [ ] Async/concurrency tests use deterministic synchronization, fake or paused time, local fakes, and joined tasks where practical.
@@ -46,9 +46,9 @@
 ## Validation
 
 - [ ] The narrowest proving command was run when possible, and the handoff does not overclaim surfaces that command did not exercise.
-- [ ] Workspace package graph, dependent crate impact, feature combinations, MSRV, and target/platform commands were considered when relevant.
+- [ ] Workspace package graph, dependent crate impact, feature combinations, MSRV, Cargo warning policy, selected lockfile, and target/platform commands were considered when relevant.
 - [ ] When nextest is used, doctests were validated separately when affected.
-- [ ] Rust 1.96-specific Cargo/rustdoc/target behavior, such as cfg-specific rustdoc flags or WASM target linking, was validated only with commands that actually exercise that surface.
+- [ ] Rust 1.97-specific Cargo/rustdoc/target behavior, such as `build.warnings`, `resolver.lockfile-path`, rustdoc output/path flags, v0 symbol mangling, or WASM target linking, was validated only with commands that actually exercise that surface.
 - [ ] When `trybuild` is used, missing `wip/` outputs, `TRYBUILD=overwrite`, and changed `.stderr` files were handled intentionally.
 - [ ] Snapshot, golden, diagnostic, corpus, generated-output, or benchmark diffs/results were reviewed or explicitly marked not reviewed.
 - [ ] The handoff distinguishes `Validated with`, `Attempted validation with`, `Reviewed only`, and `Not validated`.

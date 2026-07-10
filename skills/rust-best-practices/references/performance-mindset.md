@@ -143,8 +143,15 @@ fn invalid_checksum_observed(expected: u32, actual: u32) -> String {
 }
 ```
 
-## WebAssembly Note for Rust 1.96
+## Tooling Compatibility on Rust 1.97
 
-Rust 1.96 no longer silently allows undefined linker symbols on WebAssembly
-targets. Treat new wasm link failures as useful build feedback. Re-enable the old
-behavior only when the import is intentional and documented in the wasm boundary.
+Rust 1.97 uses v0 symbol mangling by default. If a profiler, debugger, crash
+reporter, or symbol post-processor stops demangling Rust frames, update that tool
+before adding compiler flags that restore legacy mangling. Treat changed
+backtrace spelling as tooling compatibility evidence rather than an application
+performance regression.
+
+The Rust 1.96 WebAssembly linker behavior remains part of the Rust 1.97 baseline:
+undefined linker symbols are not silently accepted. Treat new wasm link failures
+as useful build feedback. Re-enable the old behavior only when the import is
+intentional and documented in the wasm boundary.

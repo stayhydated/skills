@@ -55,9 +55,7 @@ impl FromStr for RustMinorVersion {
 
     fn from_str(value: &str) -> Result<Self> {
         let mut parts = value.split('.');
-        let Some(major) = parts.next() else {
-            bail!("missing Rust major version in `{value}`");
-        };
+        let major = parts.next().unwrap_or_default();
         let Some(minor) = parts.next() else {
             bail!("missing Rust minor version in `{value}`");
         };
@@ -346,15 +344,14 @@ fn append_step_summary(
         })?;
 
     use std::io::Write as _;
-    writeln!(summary, "Latest Rust stable: **{}**\n", state.latest_full)?;
-    writeln!(
-        summary,
-        "Tracked Rust baseline: **{}**\n",
-        state
-            .tracked_minor
-            .map_or_else(|| "not found".to_owned(), |version| version.to_string())
-    )?;
-    writeln!(summary, "{result}")?;
+    let tracked_minor = state
+        .tracked_minor
+        .map_or_else(|| "not found".to_owned(), |version| version.to_string());
+    let content = format!(
+        "Latest Rust stable: **{}**\n\nTracked Rust baseline: **{tracked_minor}**\n\n{result}\n",
+        state.latest_full
+    );
+    summary.write_all(content.as_bytes())?;
 
     Ok(())
 }
@@ -422,16 +419,16 @@ mod tests {
 
     #[test]
     fn compares_minor_versions() {
-        assert!("1.97.0".parse::<RustMinorVersion>().unwrap() > "1.96".parse().unwrap());
+        assert!("1.98.0".parse::<RustMinorVersion>().unwrap() > "1.97".parse().unwrap());
         assert_eq!(
-            "1.96.1".parse::<RustMinorVersion>().unwrap().to_string(),
-            "1.96"
+            "1.97.1".parse::<RustMinorVersion>().unwrap().to_string(),
+            "1.97"
         );
     }
 
     #[test]
     fn rejects_malformed_minor_versions() {
-        for version in ["1", "1.96.beta", "1.96.0.1", "1..96"] {
+        for version in ["1", "stable.97", "1.97.beta", "1.97.0.1", "1..97"] {
             assert!(
                 version.parse::<RustMinorVersion>().is_err(),
                 "{version} should be rejected"
@@ -442,24 +439,24 @@ mod tests {
     #[test]
     fn detects_when_sync_issue_is_needed() {
         let state = RustSyncState {
-            latest_full: "1.97.0".to_owned(),
-            latest_minor: "1.97".parse().unwrap(),
-            manifest_date: "2026-07-03".to_owned(),
-            tracked_minor: Some("1.96".parse().unwrap()),
+            latest_full: "1.98.0".to_owned(),
+            latest_minor: "1.98".parse().unwrap(),
+            manifest_date: "2026-08-20".to_owned(),
+            tracked_minor: Some("1.97".parse().unwrap()),
             tracked_files: vec!["skills/rust-test/SKILL.md".to_owned()],
         };
 
         assert!(state.should_open_issue());
-        assert_eq!(state.issue_title(), "sync skills: rust 1.97");
+        assert_eq!(state.issue_title(), "sync skills: rust 1.98");
     }
 
     #[test]
     fn patch_release_does_not_require_sync_issue() {
         let state = RustSyncState {
-            latest_full: "1.96.1".to_owned(),
-            latest_minor: "1.96.1".parse().unwrap(),
-            manifest_date: "2026-06-30".to_owned(),
-            tracked_minor: Some("1.96".parse().unwrap()),
+            latest_full: "1.97.1".to_owned(),
+            latest_minor: "1.97.1".parse().unwrap(),
+            manifest_date: "2026-07-16".to_owned(),
+            tracked_minor: Some("1.97".parse().unwrap()),
             tracked_files: vec!["skills/rust-test/SKILL.md".to_owned()],
         };
 
@@ -471,29 +468,115 @@ mod tests {
         let tempdir = tempfile::tempdir().unwrap();
         let skills = tempdir.path().join("skills");
         fs::create_dir(&skills).unwrap();
-        fs::write(skills.join("one.md"), "Assume Rust 1.96 stable.").unwrap();
-        fs::write(skills.join("two.md"), "use rust 1.97 guidance").unwrap();
+        fs::write(skills.join("one.md"), "Assume Rust 1.97 stable.").unwrap();
+        fs::write(skills.join("two.md"), "use rust 1.98 guidance").unwrap();
 
         let tracked_versions = scan_tracked_rust_versions(&skills).unwrap();
 
-        assert!(tracked_versions.contains_key(&"1.96".parse().unwrap()));
         assert!(tracked_versions.contains_key(&"1.97".parse().unwrap()));
+        assert!(tracked_versions.contains_key(&"1.98".parse().unwrap()));
+    }
+
+    #[test]
+    fn missing_skills_root_has_no_tracked_versions() {
+        let tempdir = tempfile::tempdir().unwrap();
+        let missing_root = tempdir.path().join("missing");
+
+        assert!(
+            scan_tracked_rust_versions(&missing_root)
+                .unwrap()
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn scan_skips_files_that_are_not_utf8() {
+        let tempdir = tempfile::tempdir().unwrap();
+        fs::write(tempdir.path().join("binary"), [0xff, 0xfe]).unwrap();
+
+        assert!(
+            scan_tracked_rust_versions(tempdir.path())
+                .unwrap()
+                .is_empty()
+        );
     }
 
     #[test]
     fn issue_body_lists_tracked_files() {
         let state = RustSyncState {
-            latest_full: "1.97.0".to_owned(),
-            latest_minor: "1.97".parse().unwrap(),
-            manifest_date: "2026-07-03".to_owned(),
-            tracked_minor: Some("1.96".parse().unwrap()),
+            latest_full: "1.98.0".to_owned(),
+            latest_minor: "1.98".parse().unwrap(),
+            manifest_date: "2026-08-20".to_owned(),
+            tracked_minor: Some("1.97".parse().unwrap()),
             tracked_files: vec!["skills/rust-test/SKILL.md".to_owned()],
         };
 
         let body = build_issue_body(&state);
 
-        assert!(body.contains("The Rust stable channel is now **Rust 1.97.0**"));
+        assert!(body.contains("The Rust stable channel is now **Rust 1.98.0**"));
         assert!(body.contains("- `skills/rust-test/SKILL.md`"));
+    }
+
+    #[test]
+    fn issue_body_explains_when_no_baseline_is_tracked() {
+        let state = RustSyncState {
+            latest_full: "1.98.0".to_owned(),
+            latest_minor: "1.98".parse().unwrap(),
+            manifest_date: "2026-08-20".to_owned(),
+            tracked_minor: None,
+            tracked_files: Vec::new(),
+        };
+
+        let body = build_issue_body(&state);
+
+        assert!(body.contains("No tracked Rust baseline was detected in `skills/`."));
+    }
+
+    #[test]
+    fn step_summary_reports_missing_baseline() {
+        let tempdir = tempfile::tempdir().unwrap();
+        let summary_path = tempdir.path().join("summary.md");
+        let state = RustSyncState {
+            latest_full: "1.98.0".to_owned(),
+            latest_minor: "1.98".parse().unwrap(),
+            manifest_date: "2026-08-20".to_owned(),
+            tracked_minor: None,
+            tracked_files: Vec::new(),
+        };
+
+        append_step_summary(
+            Some(summary_path.as_os_str()),
+            &state,
+            "No sync issue needed.",
+        )
+        .unwrap();
+
+        let summary = fs::read_to_string(summary_path).unwrap();
+        assert!(summary.contains("Tracked Rust baseline: **not found**"));
+    }
+
+    #[test]
+    fn step_summary_open_errors_include_the_path() {
+        let tempdir = tempfile::tempdir().unwrap();
+        let state = RustSyncState {
+            latest_full: "1.98.0".to_owned(),
+            latest_minor: "1.98".parse().unwrap(),
+            manifest_date: "2026-08-20".to_owned(),
+            tracked_minor: None,
+            tracked_files: Vec::new(),
+        };
+
+        let error = append_step_summary(
+            Some(tempdir.path().as_os_str()),
+            &state,
+            "No sync issue needed.",
+        )
+        .unwrap_err();
+
+        assert!(error.to_string().contains(&format!(
+            "failed to open GitHub step summary at {}",
+            tempdir.path().display()
+        )));
     }
 
     #[test]

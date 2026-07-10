@@ -2,7 +2,7 @@
 
 Use the narrowest command that proves the affected behavior. Do not invent repository-specific commands; inspect manifests, CI, runner files, and docs first. Generic `cargo` commands are appropriate only when they are directly runnable in the repository and match the affected package, target, feature, or test surface.
 
-Before reporting validation, account for Cargo test semantics: package selection, target selection, feature selection, doctests, examples, integration test targets, test filters, arguments after `--`, build parallelism, runtime test parallelism, package `rust-version`, and MSRV. Use `patterns/cargo-test-semantics.md` for command interpretation.
+Before reporting validation, account for Cargo test semantics: package selection, target selection, feature selection, doctests, examples, integration test targets, test filters, arguments after `--`, build parallelism, runtime test parallelism, package `rust-version`, MSRV, and applicable Cargo configuration. Use `patterns/cargo-test-semantics.md` for command interpretation.
 
 ## Command selection
 
@@ -41,7 +41,7 @@ Use only when evidenced or directly runnable in the repository:
 - `cargo miri test ...`, sanitizer commands, or loom commands only when configured, requested, or clearly labeled as recommended.
 - `just <recipe>` or `make <recipe>` when the repository has a fitting recipe.
 
-## Cargo argument boundaries
+## Cargo argument and configuration boundaries
 
 Do not confuse Cargo arguments with test harness arguments:
 
@@ -50,7 +50,13 @@ Do not confuse Cargo arguments with test harness arguments:
 - `-j <n>` controls Cargo build parallelism.
 - `-- --test-threads=<n>` controls libtest runtime test parallelism.
 
-Do not claim a command validates doctests, examples, all packages, all targets, all features, or binary behavior unless those targets are selected and executed or checked.
+On Cargo 1.97, also inspect applicable configuration:
+
+- `build.warnings = "deny"` can turn local-package lint warnings into command failures;
+- `resolver.lockfile-path` changes the lockfile used by resolution and `--locked`;
+- configuration may come from parent directories or the user's Cargo home, not only the repository.
+
+Do not claim a command validates doctests, examples, all packages, all targets, all features, a particular lockfile, or binary behavior unless those surfaces were selected and the applicable configuration was verified.
 
 ## cargo-nextest guidance
 
@@ -64,7 +70,7 @@ When the repository uses cargo-nextest:
 
 ## Feature, target, and MSRV validation
 
-Treat feature flags, `cfg` gates, target triples, `no_std`, WASM, embedded support, Rust 1.96-sensitive doctests, and MSRV as part of the test contract when affected. Useful evidence includes manifests, package `rust-version`, CI matrices, `.cargo/config.toml`, `rust-toolchain.toml`, README support claims, package metadata, and existing target-specific tests.
+Treat feature flags, `cfg` gates, target triples, `no_std`, WASM, embedded support, Rust 1.97-sensitive doctests, and MSRV as part of the test contract when affected. Useful evidence includes manifests, package `rust-version`, CI matrices, `.cargo/config.toml`, `rust-toolchain.toml`, README support claims, package metadata, and existing target-specific tests.
 
 Validation examples, only when applicable:
 
@@ -83,17 +89,19 @@ Use `cargo hack` only when the repository already uses it or the recommendation 
 - `cargo hack check --feature-powerset --depth 2 --no-dev-deps`
 - `cargo hack check --version-range <min>..=<max>`
 
-Disclose mutually exclusive features, missing target toolchains, unavailable linkers, MSRV toolchain gaps, Rust 1.96-only test idioms that were not MSRV-safe, or target tests that could be checked but not executed.
+Disclose mutually exclusive features, missing target toolchains, unavailable linkers, MSRV toolchain gaps, Rust 1.97-only APIs or configuration that were not MSRV-safe, or target tests that could be checked but not executed.
 
-## Rust 1.96-specific validation
+## Rust 1.97-specific validation
 
-Use `patterns/rust-1-96-testing-baseline.md` when the patch or recommendation depends on Rust 1.96. Apply these validation rules narrowly:
+Use `patterns/rust-1-97-testing-baseline.md` when the patch or recommendation depends on Rust 1.97. Apply these validation rules narrowly:
 
-- For assertion-only changes from `assert!(matches!(...))` to `assert_matches!`, run the smallest package/test-target command that exercises the changed tests, and disclose if MSRV was reviewed but not executed.
-- Do not claim `assert_matches!` is available unless the active toolchain or declared MSRV is Rust 1.96 or newer.
+- For assertion-only changes from `assert!(matches!(...))` to `assert_matches!`, run the smallest package/test-target command that exercises the changed tests, and disclose if the repository's Rust 1.96 minimum for that macro was reviewed but not executed.
+- On the Rust 1.97 baseline, `assert_matches!` is available; do not apply it to a crate whose declared MSRV is older than Rust 1.96.
 - For doctests using `assert_matches!`, run or recommend `cargo test --doc ...`; a normal nextest run is not sufficient.
-- For cfg-specific `rustdocflags`, WASM, `no_std`, embedded, or custom target claims, use the repository's documented target command. Host tests do not prove those target contracts.
-- For Rust 1.96 compiler diagnostic or compatibility changes, update UI/diagnostic expectations only through the repository workflow and review the resulting diffs.
+- For cfg-specific `rustdocflags`, rustdoc `--emit` or `--remap-path-prefix`, WASM, `no_std`, embedded, or custom target claims, use the repository's documented command. Host tests do not prove those contracts.
+- When `build.warnings = "deny"` is active, distinguish a lint-policy failure from a test failure.
+- When `resolver.lockfile-path` is active, identify the configured `Cargo.lock` before claiming `--locked` validation.
+- For Rust 1.97 compiler diagnostic or compatibility changes, update UI/diagnostic/symbol expectations only through the repository workflow and review the resulting diffs.
 
 ## Expectation-file handoff
 

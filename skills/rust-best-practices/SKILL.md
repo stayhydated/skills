@@ -2,7 +2,7 @@
 name: rust-best-practices
 description: >
   Guide for writing, refactoring, reviewing, optimizing, and documenting
-  idiomatic Rust code on a Rust 1.96 stable baseline.
+  idiomatic Rust code on a Rust 1.97 stable baseline.
 ---
 
 # Rust Best Practices
@@ -11,12 +11,12 @@ Use this skill when the user asks for Rust code, Rust refactors, code review,
 performance review, error handling, documentation, API design, or lifecycle
 modeling.
 
-Assume **Rust 1.96 stable** and **edition 2024** unless the repository declares a
+Assume **Rust 1.97 stable** and **edition 2024** unless the repository declares a
 stricter MSRV or the user gives a different target. Respect existing
 `rust-toolchain.toml`, CI, `Cargo.toml`, workspace lints, and public API stability
 before introducing a Rust feature that would raise MSRV.
 
-## Rust 1.96 Baseline Guidance
+## Rust 1.97 Baseline Guidance
 
 * Prefer stable Rust. Do not suggest nightly-only features unless the user already
   uses nightly and the reason is explicit.
@@ -28,6 +28,13 @@ before introducing a Rust feature that would raise MSRV.
   range needs to be `Copy`. For public APIs, prefer accepting
   `impl core::ops::RangeBounds<usize>` unless the concrete range type is part of
   the domain model.
+* Use Rust 1.97 integer bit-inspection methods such as `bit_width`,
+  `highest_one`, `lowest_one`, `isolate_highest_one`, and
+  `isolate_lowest_one` when they express the domain more directly than manual
+  shifts and masks.
+* Prefer primitive `char` associated items such as `char::from_u32` and
+  `char::REPLACEMENT_CHARACTER`; Rust 1.97 deprecates the corresponding
+  `std::char` module functions and constants.
 * Prefer borrowing (`&str`, `&[T]`, `&T`) for read-only APIs. Take ownership only
   when the function stores, transforms, or consumes the value.
 * Prefer `impl Trait` for single-use input polymorphism. Use named generics when

@@ -6,7 +6,7 @@ Use doctests when documentation examples are part of the public contract.
 
 - public API examples in rustdoc comments;
 - README examples included by crate docs or validated by the repository's existing workflow;
-- small examples that demonstrate user-facing behavior with `assert!`, `assert_eq!`, or Rust 1.96+ `assert_matches!` when a public enum/error variant is the documented contract;
+- small examples that demonstrate user-facing behavior with `assert!`, `assert_eq!`, or `assert_matches!` on the Rust 1.97 baseline when a public enum/error variant is the documented contract and the repository MSRV is Rust 1.96 or newer;
 - public invalid-usage examples where `compile_fail` communicates a type-level contract;
 - examples that should compile but should not run in CI, using `no_run`.
 
@@ -24,12 +24,13 @@ Prefer ordinary unit, integration, or compile-fail/UI tests for:
 
 - Unmarked Rust code fences in public docs are usually treated as Rust doctests.
 - Ordinary doctests pass when they compile and run without panicking.
-- Use hidden `#` setup lines to keep examples compilable without cluttering rendered documentation, including hidden imports such as `# use std::assert_matches;` when the example uses Rust 1.96+ assertion macros.
+- Use hidden `#` setup lines to keep examples compilable without cluttering rendered documentation, including hidden imports such as `# use std::assert_matches;` when the example uses `assert_matches!`.
 - Examples using `?` often need an explicit `fn main() -> Result<..., ...>` shape or another visible return-value pattern.
 - Prefer `no_run` when an example should compile but not execute in CI.
 - Use `ignore` only when neither compilation nor execution is appropriate in the normal doctest environment, and explain why when practical.
 - Use `compile_fail` only for stable, meaningful invalid-usage examples.
 - Avoid relying on exact rustc wording in doctest `compile_fail`; use a UI-test or `trybuild` harness when exact diagnostics are the contract.
+- Rust 1.97 stabilizes rustdoc `--emit` and `--remap-path-prefix`; when a repository uses those flags, preserve its documented rustdoc command and account for emitted or remapped paths in generated-output review.
 
 ## Idioms
 
@@ -52,4 +53,4 @@ Use the repository's documented doctest command when present. Common focused com
 - `cargo test --doc -p <crate> --target <target>` only when that target can be compiled in the environment and target-specific rustdoc configuration is part of the contract;
 - a repository-specific `just`, `make`, or CI recipe when one is already established.
 
-When the repository uses cargo-nextest, do not assume `cargo nextest run` covers doctests. Run or recommend a separate doctest command when doctests or public examples are affected. If `.cargo/config.toml` uses cfg-specific `rustdocflags`, inspect that configuration before claiming what a doctest command covers.
+When the repository uses cargo-nextest, do not assume `cargo nextest run` covers doctests. Run or recommend a separate doctest command when doctests or public examples are affected. If `.cargo/config.toml` uses cfg-specific `rustdocflags`, or the repository invokes Rust 1.97 rustdoc `--emit` or `--remap-path-prefix`, inspect that configuration before claiming what a doctest command covers.
