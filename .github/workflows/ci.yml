@@ -5,16 +5,42 @@ on:
   push:
     branches: [master]
 
-permissions:
-  contents: read
-
 env:
   CARGO_TERM_COLOR: always
   SCCACHE_GHA_ENABLED: true
   RUSTC_WRAPPER: sccache
 
 jobs:
-  rust-coverage:
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            command: cargo test --workspace --all-features
+          - os: macos-latest
+            command: cargo test --workspace --all-features
+          - os: windows-latest
+            command: cargo test --workspace --all-features
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.10
+
+      - name: Setup mold
+        if: runner.os == 'Linux'
+        uses: rui314/setup-mold@v1
+
+      - name: Run tests
+        run: ${{ matrix.command }}
+
+  fmt:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,10 +48,55 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
         with:
-          components: rust-analyzer, rust-src
+          components: rustfmt
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+  clippy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
 
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.10
+
+      - name: Setup mold
+        uses: rui314/setup-mold@v1
+
+      - name: Lint code
+        run: cargo clippy --workspace --all-features --all-targets -- -D warnings
+
+  machete:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.10
+
+      - name: Machete
+        uses: bnjbvr/cargo-machete@main
+
+  rust-coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.10
+
+      - name: Setup mold
+        uses: rui314/setup-mold@v1
 
       - uses: cargo-bins/cargo-binstall@main
 
