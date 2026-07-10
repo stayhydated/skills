@@ -14,7 +14,6 @@ use serde::Deserialize;
 use walkdir::WalkDir;
 
 const DEFAULT_MANIFEST_URL: &str = "https://static.rust-lang.org/dist/channel-rust-stable.toml";
-const GITHUB_API_VERSION: &str = "2022-11-28";
 const USER_AGENT_VALUE: &str = "skills-rust-stable-check";
 
 #[derive(Debug, Parser)]
@@ -369,12 +368,6 @@ impl GitHubClient {
     fn new(api_url: String, repository: Repository, token: String) -> Result<Self> {
         let client = Octocrab::builder()
             .personal_token(token)
-            .add_header(
-                "x-github-api-version"
-                    .parse()
-                    .context("failed to build GitHub API version header name")?,
-                GITHUB_API_VERSION.to_owned(),
-            )
             .base_uri(api_url)
             .context("failed to configure GitHub API base URI")?
             .build()
@@ -517,5 +510,68 @@ mod tests {
         assert!("owner/repo/extra".parse::<Repository>().is_err());
         assert!("/repo".parse::<Repository>().is_err());
         assert!("owner/".parse::<Repository>().is_err());
+    }
+
+    #[tokio::test]
+    async fn github_client_does_not_duplicate_api_version_header() {
+        use std::{
+            io::{Read as _, Write as _},
+            net::TcpListener,
+            thread,
+            time::Duration,
+        };
+
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let api_url = format!("http://{}", listener.local_addr().unwrap());
+        let server = thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            stream
+                .set_read_timeout(Some(Duration::from_secs(5)))
+                .unwrap();
+
+            let mut request = Vec::new();
+            let mut buffer = [0; 4096];
+            while !request.windows(4).any(|window| window == b"\r\n\r\n") {
+                let bytes_read = stream.read(&mut buffer).unwrap();
+                assert_ne!(bytes_read, 0, "request ended before the headers arrived");
+                request.extend_from_slice(&buffer[..bytes_read]);
+            }
+
+            stream
+                .write_all(
+                    b"HTTP/1.1 200 OK\r\ncontent-type: application/json\r\ncontent-length: 2\r\nconnection: close\r\n\r\n[]",
+                )
+                .unwrap();
+
+            String::from_utf8(request).unwrap()
+        });
+
+        let github = GitHubClient::new(
+            api_url,
+            Repository {
+                owner: "owner".to_owned(),
+                name: "repo".to_owned(),
+            },
+            "test-token".to_owned(),
+        )
+        .unwrap();
+
+        assert!(github.list_open_issues().await.unwrap().is_empty());
+
+        let request = server.join().unwrap();
+        let api_version_headers = request
+            .lines()
+            .filter_map(|line| {
+                let (name, value) = line.split_once(':')?;
+                name.eq_ignore_ascii_case("x-github-api-version")
+                    .then_some(value.trim())
+            })
+            .collect::<Vec<_>>();
+
+        assert!(api_version_headers.len() <= 1, "request was:\n{request}");
+        assert!(
+            api_version_headers.iter().all(|value| !value.contains(',')),
+            "request was:\n{request}"
+        );
     }
 }
