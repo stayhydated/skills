@@ -1,5 +1,14 @@
 # Error Handling
 
+## Contents
+
+- [Prefer `Result`](#prefer-result-avoid-panic)
+- [Avoid production `unwrap` and `expect`](#avoid-unwrap-and-expect-in-production-paths)
+- [Library errors with `thiserror`](#thiserror-for-library-errors)
+- [Application context with `anyhow`](#anyhow-for-binaries-and-operational-boundaries)
+- [Translation and observation](#error-translation-and-observation)
+- [Async errors](#async-errors)
+
 Rust makes fallibility explicit. Good Rust error handling keeps that explicitness
 useful: typed errors for libraries, context at application boundaries, and no
 surprise panics in normal control flow.

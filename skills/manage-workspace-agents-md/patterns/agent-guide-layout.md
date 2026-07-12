@@ -2,6 +2,17 @@
 
 These patterns are source material, not default output. Before using any bullet or section in a generated guide, replace it with repository-specific guidance or omit it. Fenced examples are illustrative only; do not copy them without replacing every path, command, surface, and sync rule with repository evidence.
 
+## Contents
+
+- [Default guide layout](#default-guide-layout-pattern)
+- [Size budget](#size-budget)
+- [Split guidance triggers](#split-guidance-triggers)
+- [Quick decision flow](#quick-decision-flow-pattern)
+- [Audience labels](#audience-labels)
+- [Documentation placement](#documentation-placement-rules)
+- [Synchronization rules](#synchronization-rules)
+- [Edit boundaries and workspace maps](#edit-boundary-notes)
+
 ## Default guide layout pattern
 
 Use this order unless the repository has a strong reason to differ:

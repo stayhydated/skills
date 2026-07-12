@@ -65,4 +65,4 @@ State which axis was validated and which was not:
 - `Validated with: cargo test -p my_crate --no-default-features`
 - `Validated with: cargo check -p my_crate --target wasm32-unknown-unknown`
 - `Reviewed only; not executed because: MSRV toolchain is not installed in this environment.`
-- `Not validated; outside requested scope: full feature powerset would require introducing cargo-hack, which the repository does not currently use.`
+- `Not validated; outside requested scope: full feature powerset requires adopting cargo-hack.`

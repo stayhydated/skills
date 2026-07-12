@@ -1,5 +1,15 @@
 # Type State Pattern
 
+## Contents
+
+* [When type-state fits](#when-type-state-fits)
+* [Statum mental model](#statum-mental-model)
+* [Lifecycle example](#example-upload-session)
+* [Rehydrating state](#rehydrating-persisted-state)
+* [Builder boundary](#type-state-is-not-a-builder)
+* [When to avoid type-state](#avoid-type-state-when)
+* [Cautions](#cautions)
+
 The type-state pattern models lifecycle state at compile time. Instead of storing
 a runtime flag and checking it before every operation, represent each meaningful
 state as a distinct type and expose only the methods valid for that state.

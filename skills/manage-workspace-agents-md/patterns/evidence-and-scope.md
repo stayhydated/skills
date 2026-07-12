@@ -2,6 +2,17 @@
 
 These patterns govern repository claims. Use them as source material; do not paste this file wholesale into a generated guide.
 
+## Contents
+
+- [Claim classes](#claim-classes)
+- [Minimum evidence by mode](#minimum-evidence-by-mode)
+- [Repository inspection playbook](#repository-inspection-playbook)
+- [Alignment drift checks](#alignment-drift-checks)
+- [Conflict and guidance precedence](#conflict-precedence)
+- [Agent platform compatibility](#agent-platform-compatibility)
+- [High-risk and limited-evidence handling](#high-risk-edit-surfaces)
+- [Output hygiene and recommendation boundaries](#placeholder-hygiene)
+
 ## Claim classes
 
 Before adding project-specific instructions, classify each claim:

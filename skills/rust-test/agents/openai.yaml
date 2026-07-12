@@ -1,4 +1,4 @@
 interface:
   display_name: "Rust Tests"
-  short_description: "Design, patch, and audit Rust tests, Cargo test validation, Rust 1.97 test idioms, snapshots, diagnostics, async/concurrency, flake triage, unsafe-code validation, fuzzing, feature/MSRV matrices, coverage evidence, and benchmarks"
+  short_description: "Design and audit Rust tests with focused validation"
   default_prompt: "Use $rust-test to design, patch, or audit Rust tests, including Cargo test command semantics, Rust 1.97 test-specific assertion and doctest idioms, snapshots, diagnostics, async/concurrency and flaky-test triage, unsafe-code validation, feature/target/MSRV matrices, fuzz/property tests, coverage/mutation evidence, and Criterion benchmarks when appropriate. Keep broad implementation style guidance in rust-best-practices."

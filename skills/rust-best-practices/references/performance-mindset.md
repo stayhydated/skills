@@ -1,5 +1,13 @@
 # Performance Mindset
 
+## Contents
+
+* [First checks](#first-checks)
+* [Allocation and cloning](#avoid-redundant-allocation)
+* [Dispatch and layout](#static-dispatch-first)
+* [Inlining](#profile-before-inline)
+* [Rust 1.97 tooling compatibility](#tooling-compatibility-on-rust-197)
+
 The first rule of Rust performance work is still: **do not guess, measure**.
 
 Rust is often fast without manual tuning. Optimize after identifying a bottleneck,

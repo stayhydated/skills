@@ -1,5 +1,14 @@
 # Clippy and Linting Discipline
 
+## Contents
+
+- [Default commands](#default-commands)
+- [Cargo warning policy](#cargo-197-warning-policy)
+- [CI quality jobs](#ci-quality-jobs)
+- [Workspace profiles and lints](#workspace-profiles)
+- [Fixing and suppressing warnings](#fix-warnings-before-suppressing-them)
+- [Design feedback and MSRV](#lints-worth-treating-as-design-feedback)
+
 Clippy is part of the Rust toolchain. Do not hard-code a Clippy version in docs or
 scripts; ask the toolchain what is installed.
 

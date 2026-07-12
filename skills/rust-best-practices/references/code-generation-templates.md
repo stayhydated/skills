@@ -1,5 +1,16 @@
 # Code Generation Templates
 
+## Contents
+
+* [Choose the renderer](#choose-the-smallest-renderer)
+* [Build typed models](#build-a-typed-view-model-or-semantic-model)
+* [Prepare Rust fragments](#prepare-rust-fragments-before-rendering)
+* [Keep file templates structural](#make-templates-own-layout-only)
+* [Keep macro emitters syntactic](#make-macro-emitters-own-syntax-only)
+* [Test generator contracts](#test-the-generator-contract)
+* [Synchronize generated output](#keep-generated-output-and-sources-in-sync)
+* [Adopt templates selectively](#use-templates-when-they-improve-maintenance)
+
 Use a template engine for generated Rust files when correctness and reviewability
 depend on seeing the emitted file shape clearly. Templates are most useful for
 checked-in or human-reviewed `.rs` files with nested modules, repeated item

@@ -1,5 +1,15 @@
 # Automated testing patterns
 
+## Contents
+
+* [Test shape](#test-shape)
+* [One behavior per test](#one-behavior-per-test)
+* [`assert_matches!`](#prefer-assert_matches-for-variant-checks)
+* [Parameterized tests](#parameterized-tests)
+* [Doctests](#doc-tests)
+* [Integration tests](#integration-tests)
+* [Snapshot tests](#snapshot-tests)
+
 Tests are executable documentation. They should show what the unit does, what the
 important states are, and what failures look like.
 

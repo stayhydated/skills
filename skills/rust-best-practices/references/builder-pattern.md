@@ -1,5 +1,13 @@
 # Builder Pattern
 
+## Contents
+
+* [When to use a builder](#when-to-use-a-builder)
+* [Struct, function, and method builders](#struct-builders-with-bonbuilder)
+* [Overwritable setters](#overwritable-setters)
+* [Builder versus type-state](#builder-vs-type-state)
+* [Practical guidance](#practical-guidance)
+
 Use the builder pattern when construction has many inputs, useful defaults,
 optional fields, required-field checking, or call sites that benefit from named
 setters.

@@ -1,5 +1,17 @@
 # Rust test validation patterns
 
+## Contents
+
+- [Command selection](#command-selection)
+- [Common command shapes](#common-command-shapes)
+- [Cargo configuration boundaries](#cargo-argument-and-configuration-boundaries)
+- [Nextest](#cargo-nextest-guidance)
+- [Feature, target, and MSRV validation](#feature-target-and-msrv-validation)
+- [Rust 1.97 validation](#rust-197-specific-validation)
+- [Expectation-file handoff](#expectation-file-handoff)
+- [Coverage and mutation evidence](#coverage-and-mutation-evidence)
+- [Validation wording](#validation-wording)
+
 Use the narrowest command that proves the affected behavior. Do not invent repository-specific commands; inspect manifests, CI, runner files, and docs first. Generic `cargo` commands are appropriate only when they are directly runnable in the repository and match the affected package, target, feature, or test surface.
 
 Before reporting validation, account for Cargo test semantics: package selection, target selection, feature selection, doctests, examples, integration test targets, test filters, arguments after `--`, build parallelism, runtime test parallelism, package `rust-version`, MSRV, and applicable Cargo configuration. Use `patterns/cargo-test-semantics.md` for command interpretation.

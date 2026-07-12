@@ -1,5 +1,14 @@
 # Rust 1.97 testing baseline
 
+## Contents
+
+- [Scope boundary](#scope-boundary)
+- [Assertion idiom](#assertion-idiom)
+- [Cargo configuration](#cargo-197-configuration-effects)
+- [Doctest and rustdoc effects](#doctest-and-rustdoc-effects)
+- [Compiler and expectation compatibility](#compiler-and-expectation-file-compatibility)
+- [Version-sensitive contracts](#rust-version-sensitive-contracts)
+
 Use this pattern when a Rust test, doctest, compile-fail/UI expectation, target
 check, or validation command depends on Rust 1.97 behavior. Keep the guidance
 limited to testing. General implementation idioms belong in

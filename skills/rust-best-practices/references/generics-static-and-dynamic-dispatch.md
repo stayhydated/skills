@@ -1,5 +1,14 @@
 # Generics, Static Dispatch, and Dynamic Dispatch
 
+## Contents
+
+* [Generics](#generics)
+* [`impl Trait` inputs and returns](#impl-trait-for-input-ergonomics)
+* [Static dispatch](#static-dispatch)
+* [Dynamic dispatch](#dynamic-dispatch-with-dyn-trait)
+* [Dyn compatibility](#dyn-compatibility-checklist)
+* [Trade-offs](#trade-off-summary)
+
 > Static where you can, dynamic where you must.
 
 Rust supports polymorphism through generics, `impl Trait`, and trait objects. The

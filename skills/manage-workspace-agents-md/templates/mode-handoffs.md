@@ -4,6 +4,14 @@ Use the smallest template that fits the selected mode. These templates shape the
 
 For validation sections, use only the lines that apply. If a section has no content, write `None.` rather than leaving placeholder bullets. Insert the exact applicable validation line or lines from `SKILL.md` > `Validation wording`; do not restate the validation contract in this template.
 
+## Contents
+
+- [Draft mode](#draft-mode-handoff)
+- [Patch mode](#patch-mode-handoff)
+- [Audit mode](#audit-mode-handoff)
+- [Alignment mode](#alignment-mode-handoff)
+- [Checklist mode](#checklist-mode-handoff)
+
 ## Draft mode handoff
 
 ```md

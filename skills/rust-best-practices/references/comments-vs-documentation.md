@@ -1,5 +1,14 @@
 # Comments vs Documentation
 
+## Contents
+
+* [Comments versus rustdoc](#comments-vs-rustdoc)
+* [Good and bad comments](#good-comments-explain-why)
+* [Replace narration with structure](#replace-long-comments-with-structure)
+* [Track TODOs](#todos-should-become-issues)
+* [Document public APIs](#public-api-documentation)
+* [Rustdoc checklist](#rustdoc-checklist)
+
 Clear code beats comments that explain what the code already says. Use comments
 for context that cannot be represented cleanly in names, types, tests, or public
 documentation.

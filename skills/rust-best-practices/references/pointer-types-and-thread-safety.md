@@ -1,5 +1,14 @@
 # Pointer Types and Thread Safety
 
+## Contents
+
+* [Pointer selection](#pointer-selection-table)
+* [Borrowing and boxes](#borrowing)
+* [`Rc` and `Arc`](#rct-and-arct)
+* [Interior mutability](#interior-mutability)
+* [One-time initialization](#one-time-initialization)
+* [Raw pointers](#raw-pointers)
+
 Rust encodes thread-safety through `Send` and `Sync`:
 
 * `Send`: a value can be moved to another thread.

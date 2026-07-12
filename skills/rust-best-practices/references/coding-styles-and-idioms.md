@@ -1,5 +1,15 @@
 # Coding Styles and Idioms
 
+## Contents
+
+- [Borrowing and copying](#borrow-before-you-clone)
+- [`Option` and `Result` control flow](#option-and-result-choose-the-clearest-control-flow)
+- [Allocation and iteration](#avoid-early-allocation)
+- [Rust 1.97 ranges](#range-apis-on-the-rust-197-baseline)
+- [Rust 1.97 bit inspection](#integer-bit-inspection-in-rust-197)
+- [`char` associated items](#prefer-char-associated-items)
+- [Imports](#imports)
+
 ## Borrow Before You Clone
 
 Rust's ownership model makes borrowing the default shape for read-only code. A

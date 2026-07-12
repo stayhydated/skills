@@ -1,5 +1,15 @@
 # Enum String Conversions
 
+## Contents
+
+* [Choose by contract](#choose-the-conversion-by-contract)
+* [Static English labels](#prefer-strum-for-static-english-labels)
+* [Variant identity](#keep-strum-on-variant-identity)
+* [Display, parsing, and enumeration](#separate-display-text-from-static-labels-and-i18n)
+* [Partial conversions](#avoid-partial-generated-conversions)
+* [Localization boundary](#keep-strum-english-only)
+* [Testing](#test-the-mapping)
+
 String conversion choices should reveal the contract: a static English variant
 label, user-facing English display text, parse input, a label list, a round trip,
 or localized text. Pick the smallest conversion surface that matches that
