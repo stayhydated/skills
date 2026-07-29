@@ -17,6 +17,8 @@ Start here:
   default prompt text.
 - `justfile` is the local command index; run `just --list` before adding or
   changing validation commands.
+- `scripts/check_skills.py` validates every skill bundle against the Agent Skills
+  contract and this repository's required OpenAI display metadata shape.
 - `xtask/src/main.rs` owns the Rust-stable sync command used by
   `.github/workflows/check-rust-stable.yml`.
 
@@ -28,17 +30,32 @@ Start here:
 3. For displayed skill names, short descriptions, or default prompts, keep the
    matching `agents/openai.yaml` aligned with the skill frontmatter and user
    instructions.
-4. For Rust baseline guidance, update all affected `skills/` mentions together;
+4. For skill contract or OpenAI metadata shape changes, keep
+   `scripts/check_skills.py`, the `just skills` recipe, and the CI `skills` job
+   aligned.
+5. For Rust baseline guidance, update all affected `skills/` mentions together;
    the `xtask` sync command scans files under `skills/` for tracked Rust minor
    versions.
-5. For Rust-stable sync tooling changes, keep `xtask/src/main.rs` and
+6. For Rust-stable sync tooling changes, keep `xtask/src/main.rs` and
    `.github/workflows/check-rust-stable.yml` aligned when CLI flags,
    environment variables, issue text, or the workflow invocation changes.
-6. Validate with the smallest evidenced command that proves the edited surface.
+7. Validate with the smallest evidenced command that proves the edited surface.
 
 ## Workspace Map
 
 ### Skill Bundles
+
+- `skills/mdbook-internals/`
+  Role: maintainer-facing mdBook architecture, component, flow, operations, and
+  design-decision documentation guidance.
+  Sync: keep `SKILL.md`, `references/`, `assets/`, and `agents/openai.yaml`
+  aligned when workflow, resource routing, or visible metadata changes.
+
+- `skills/mdbook-user-docs/`
+  Role: user-facing mdBook tutorial, how-to, concept, reference, migration, and
+  troubleshooting guidance.
+  Sync: keep `SKILL.md`, `references/`, `assets/`, and `agents/openai.yaml`
+  aligned when workflow, resource routing, or visible metadata changes.
 
 - `skills/pre-1-0-forward-only/`
   Role: durable guidance for forward-only pre-1.0 Rust workspace edits.
@@ -64,6 +81,15 @@ Start here:
   `agents/openai.yaml` aligned when modes, handoff wording, evidence rules, or
   validation wording change.
 
+### Skill Contract Validation
+
+- `scripts/check_skills.py`
+  Role: validates every immediate directory under `skills/` with the pinned
+  Agent Skills reference validator, then checks progressive-disclosure resources
+  and `agents/openai.yaml` metadata.
+  Sync: keep the `just skills` recipe and the CI `skills` job aligned when the
+  command, dependency pin, or validated metadata shape changes.
+
 ### Rust Maintenance Tooling
 
 - `xtask/`
@@ -86,6 +112,8 @@ Start here:
   is part of the change.
 - Use `just check`, `just clippy`, or `just test` for focused Rust workspace
   validation when the edited surface affects typechecking, lints, or tests.
+- Use `just skills` after changing a skill's `SKILL.md`, bundled resources, or
+  `agents/openai.yaml`.
 - Use `just ci` for the full local suite when a change spans skill text, Rust
   tooling, manifests, and CI wiring.
 - For local Rust-stable sync checks, run

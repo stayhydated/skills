@@ -11,6 +11,20 @@ env:
   RUSTC_WRAPPER: sccache
 
 jobs:
+  skills:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.11.32"
+
+      - name: Validate Agent Skills contracts
+        run: uv run --script scripts/check_skills.py
+
   test:
     name: test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
