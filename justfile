@@ -18,8 +18,11 @@ check:
 test:
     cargo test --workspace --all-features --all-targets --locked
 
+check-skills:
+    uv run --script scripts/check_skills.py
+
 cov:
     cargo llvm-cov --workspace --all-features --all-targets
 
-ci: fmt check clippy test cov
+ci: fmt check clippy test check-skills cov
     cargo machete
