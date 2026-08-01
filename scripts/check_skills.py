@@ -20,6 +20,13 @@ from skills_ref import validate as validate_agent_skill
 REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
 SKILLS_ROOT = REPOSITORY_ROOT / "skills"
 MAX_SKILL_LINES = 500
+ALLOWED_SKILL_FIELDS = {
+    "allowed-tools",
+    "description",
+    "license",
+    "metadata",
+    "name",
+}
 SUPPORTED_RESOURCE_DIRECTORIES = (
     "assets",
     "checklists",
@@ -87,6 +94,13 @@ def validate_skill_shape(skill_dir: Path) -> list[str]:
 
     if not body:
         errors.append(f"{skill_path}: Markdown instruction body must not be empty")
+
+    unexpected_fields = set(frontmatter) - ALLOWED_SKILL_FIELDS
+    if unexpected_fields:
+        errors.append(
+            f"{skill_path}: unsupported frontmatter fields: "
+            f"{', '.join(sorted(unexpected_fields))}"
+        )
 
     line_count = len(skill_path.read_text(encoding="utf-8").splitlines())
     if line_count > MAX_SKILL_LINES:

@@ -1,7 +1,6 @@
 ---
 name: mdbook-user-docs
 description: Creates and revises en-US user-facing documentation in mdBook projects for products, CLIs, libraries, and APIs. Applies to tutorials, how-to guides, concepts, reference pages, migration guidance, and troubleshooting for end users. Excludes architecture and maintainer-only implementation documentation, which belongs in mdbook-internals.
-compatibility: Local build validation requires the mdbook CLI. Mermaid or other extended syntax requires an existing configured preprocessor.
 ---
 
 # User-facing mdBook documentation
@@ -86,7 +85,9 @@ Use length and visual density as diagnostics, not quality scores. Review long pa
 
 ### 8. Validate and inspect the final diff
 
-1. Create or rename chapter files intentionally before building; `mdbook build` can create missing files listed in `SUMMARY.md` when the project allows it.
+1. Check `[build].create-missing` before building. It defaults to `true`, so
+   `mdbook build` can create missing chapter files listed in `SUMMARY.md`;
+   create or rename the intended files first.
 2. Build with the repository wrapper or `mdbook build <book-root>`.
 3. Run the repository's Markdown, link, spelling, and style checks.
 4. Run `mdbook test <book-root>` only for testable Rust snippets. Validate other languages with project-native tooling.

@@ -1,7 +1,6 @@
 ---
 name: mdbook-internals
 description: Creates and revises en-US maintainer-facing mdBook documentation for architecture, components, control and data flows, invariants, failure modes, operations, extension points, contributor workflows, and design decisions. Applies when readers need verified implementation context to modify, debug, operate, or review a system. Excludes end-user task documentation, which belongs in mdbook-user-docs.
-compatibility: Local build validation requires the mdbook CLI. Mermaid or other extended syntax requires an existing configured preprocessor.
 ---
 
 # Internal mdBook documentation
@@ -98,7 +97,9 @@ Read [references/architecture-patterns.md](references/architecture-patterns.md) 
 ### 8. Validate against both source and renderer
 
 1. Re-check every material contract, invariant, state, and failure claim against the cited implementation evidence.
-2. Create or rename chapter files intentionally before building; `mdbook build` can create missing files listed in `SUMMARY.md` when the project allows it.
+2. Check `[build].create-missing` before building. It defaults to `true`, so
+   `mdbook build` can create missing chapter files listed in `SUMMARY.md`;
+   create or rename the intended files first.
 3. Build with the repository wrapper or `mdbook build <book-root>`.
 4. Run repository Markdown, link, spelling, style, schema, and documentation checks.
 5. Run `mdbook test <book-root>` for testable Rust snippets and project-native tests for other languages or schemas.

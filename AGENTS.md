@@ -31,7 +31,7 @@ Start here:
    matching `agents/openai.yaml` aligned with the skill frontmatter and user
    instructions.
 4. For skill contract or OpenAI metadata shape changes, keep
-   `scripts/check_skills.py`, the `just skills` recipe, and the CI `skills` job
+   `scripts/check_skills.py`, the `just check-skills` recipe, and the CI `skills` job
    aligned.
 5. For Rust baseline guidance, update all affected `skills/` mentions together;
    the `xtask` sync command scans files under `skills/` for tracked Rust minor
@@ -87,7 +87,7 @@ Start here:
   Role: validates every immediate directory under `skills/` with the pinned
   Agent Skills reference validator, then checks progressive-disclosure resources
   and `agents/openai.yaml` metadata.
-  Sync: keep the `just skills` recipe and the CI `skills` job aligned when the
+  Sync: keep the `just check-skills` recipe and the CI `skills` job aligned when the
   command, dependency pin, or validated metadata shape changes.
 
 ### Rust Maintenance Tooling
@@ -112,7 +112,7 @@ Start here:
   is part of the change.
 - Use `just check`, `just clippy`, or `just test` for focused Rust workspace
   validation when the edited surface affects typechecking, lints, or tests.
-- Use `just skills` after changing a skill's `SKILL.md`, bundled resources, or
+- Use `just check-skills` after changing a skill's `SKILL.md`, bundled resources, or
   `agents/openai.yaml`.
 - Use `just ci` for the full local suite when a change spans skill text, Rust
   tooling, manifests, and CI wiring.

@@ -96,10 +96,10 @@ Validation examples, only when applicable:
 
 Use `cargo hack` only when the repository already uses it or the recommendation is clearly labeled as **Recommended**. Common recommended shapes include:
 
-- `cargo hack check --each-feature --no-dev-deps`
-- `cargo hack check --feature-powerset --no-dev-deps`
-- `cargo hack check --feature-powerset --depth 2 --no-dev-deps`
-- `cargo hack check --version-range <min>..=<max>`
+- `cargo hack --each-feature --no-dev-deps check`
+- `cargo hack --feature-powerset --no-dev-deps check`
+- `cargo hack --feature-powerset --depth 2 --no-dev-deps check`
+- `cargo hack --version-range <min>..=<max> check`
 
 Disclose mutually exclusive features, missing target toolchains, unavailable linkers, MSRV toolchain gaps, Rust 1.97-only APIs or configuration that were not MSRV-safe, or target tests that could be checked but not executed.
 

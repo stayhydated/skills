@@ -51,10 +51,10 @@ Use `cargo hack` only when the repository already uses it or when clearly labele
 
 Common recommended shapes:
 
-- `cargo hack check --each-feature --no-dev-deps`
-- `cargo hack check --feature-powerset --no-dev-deps`
-- `cargo hack check --feature-powerset --depth 2 --no-dev-deps`
-- `cargo hack check --version-range <min>..=<max>`
+- `cargo hack --each-feature --no-dev-deps check`
+- `cargo hack --feature-powerset --no-dev-deps check`
+- `cargo hack --feature-powerset --depth 2 --no-dev-deps check`
+- `cargo hack --version-range <min>..=<max> check`
 
 Avoid exhaustive feature powersets when they are too slow or semantically invalid. Prefer `--depth`, documented groups, or CI-evidenced combinations.
 

@@ -6,11 +6,11 @@
 
 ## Responsibilities
 
-**Owns**
+### Owns
 
 - [TODO: Responsibility]
 
-**Does not own**
+### Does not own
 
 - [TODO: Neighboring responsibility handled elsewhere]
 
