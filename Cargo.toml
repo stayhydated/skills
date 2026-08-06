@@ -8,6 +8,23 @@ license = "MIT OR Apache-2.0"
 rust-version = "1.97"
 version = "0.1.0"
 
+[workspace.dependencies]
+anyhow = "1"
+clap = { features = [ "derive", "env" ], version = "4" }
+octocrab = { default-features = false, features = [
+  "default-client",
+  "jwt-rust-crypto",
+  "rustls",
+  "rustls-ring",
+], version = "0.54" }
+regex = "1"
+reqwest = { default-features = false, features = [ "rustls" ], version = "0.13" }
+serde = { features = [ "derive" ], version = "1" }
+tokio = { features = [ "macros", "rt-multi-thread" ], version = "1" }
+toml = "1.1"
+walkdir = "2"
+tempfile = "3"
+
 [workspace.lints.rust]
 future_incompatible = "deny"
 nonstandard_style = "deny"
