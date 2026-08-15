@@ -81,6 +81,13 @@ Start here:
   `agents/openai.yaml` aligned when modes, handoff wording, evidence rules, or
   validation wording change.
 
+- `skills/use-windows-vm-computer-use/`
+  Role: SSH-orchestrated, VM-local Codex computer-use in interactive Windows
+  sessions, including forced full-access execution, approval, task lifecycle,
+  and troubleshooting guidance.
+  Sync: keep `SKILL.md` and `agents/openai.yaml` aligned when activation text,
+  workflow boundaries, full-access guidance, or display text changes.
+
 ### Skill Contract Validation
 
 - `scripts/check_skills.py`

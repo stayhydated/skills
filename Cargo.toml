@@ -20,10 +20,10 @@ octocrab = { default-features = false, features = [
 regex = "1"
 reqwest = { default-features = false, features = [ "rustls" ], version = "0.13" }
 serde = { features = [ "derive" ], version = "1" }
+tempfile = "3"
 tokio = { features = [ "macros", "rt-multi-thread" ], version = "1" }
 toml = "1.1"
 walkdir = "2"
-tempfile = "3"
 
 [workspace.lints.rust]
 future_incompatible = "deny"

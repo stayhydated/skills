@@ -8,17 +8,17 @@ publish = false
 
 [dependencies]
 anyhow = { workspace = true }
-clap = { features = [ "derive", "env" ], workspace = true  }
+clap = { features = [ "derive", "env" ], workspace = true }
 octocrab = { default-features = false, features = [
   "default-client",
   "jwt-rust-crypto",
   "rustls",
   "rustls-ring",
-], workspace = true  }
+], workspace = true }
 regex = { workspace = true }
-reqwest = { default-features = false, features = [ "rustls" ], workspace = true  }
-serde = { features = [ "derive" ], workspace = true  }
-tokio = { features = [ "macros", "rt-multi-thread" ], workspace = true  }
+reqwest = { default-features = false, features = [ "rustls" ], workspace = true }
+serde = { features = [ "derive" ], workspace = true }
+tokio = { features = [ "macros", "rt-multi-thread" ], workspace = true }
 toml = { workspace = true }
 walkdir = { workspace = true }
 
