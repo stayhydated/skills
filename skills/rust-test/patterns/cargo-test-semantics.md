@@ -7,12 +7,12 @@ Use this pattern before selecting validation commands or explaining what a Rust 
 - `cargo test` builds and runs selected test targets for selected packages. In common library crates this includes unit tests, integration tests, and doctests unless target selection changes that behavior.
 - Package selection matters in workspaces. Prefer `-p <crate>` for focused validation, and expand to dependents only when a public API, shared fixture, feature, or workspace dependency change can affect them.
 - Feature selection changes the tested contract. `--features`, `--all-features`, and `--no-default-features` can compile different APIs, dependencies, `cfg` branches, doctests, and examples.
-- MSRV and package `rust-version` affect which test idioms are allowed. On the Rust 1.97 baseline, `assert_matches!` is available, but a test-only cleanup using it is invalid for crates that still promise a compiler older than Rust 1.96.
+- MSRV and package `rust-version` affect which test idioms are allowed. `assert_matches!` is available on the Rust 1.98 baseline, but a test-only cleanup must still compile on any explicitly declared lower-MSRV lane.
 - Target selection changes both compilation and executability. Cross-target validation may be limited to `cargo check` when the target cannot run in the current environment.
 - Arguments before `--` are Cargo arguments. Arguments after `--` are test harness arguments, such as a libtest filter option or `--test-threads=1`.
 - `-j <n>` controls Cargo build parallelism. `-- --test-threads=<n>` controls libtest runtime test parallelism.
-- On Cargo 1.97, `build.warnings = "deny"` can turn adjustable lint warnings in local packages into command failures.
-- On Cargo 1.97, `resolver.lockfile-path` can select a non-default `Cargo.lock`; `--locked` applies to that configured lockfile.
+- On Cargo 1.98, `build.warnings = "deny"` can turn adjustable lint warnings in local packages into command failures.
+- On Cargo 1.98, `resolver.lockfile-path` can select a non-default `Cargo.lock`; `--locked` applies to that configured lockfile.
 
 ## Test target selection
 
@@ -41,7 +41,7 @@ For binary crates or crates with CLI targets, first consider Cargo's built-in bi
 - Avoid relying on incidental current-directory behavior when a test can use explicit fixture paths or `CARGO_MANIFEST_DIR`.
 - Keep test environment assumptions visible: environment variables, locale, path separators, target OS, feature flags, and current time can all affect assertions and snapshots.
 - Inspect `.cargo/config.toml`, parent-directory Cargo config, and relevant Cargo-home config when command semantics are material.
-- cfg-specific `rustdocflags`, Rust 1.97 rustdoc `--emit` or `--remap-path-prefix`, warning policy, and lockfile-path configuration can make an apparently ordinary command cover a different contract than a plain host run.
+- cfg-specific `rustdocflags`, rustdoc `--emit` or `--remap-path-prefix`, warning policy, and lockfile-path configuration can make an apparently ordinary command cover a different contract than a plain host run.
 
 ## Handoff discipline
 

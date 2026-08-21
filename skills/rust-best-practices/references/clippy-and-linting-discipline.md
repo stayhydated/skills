@@ -3,7 +3,7 @@
 ## Contents
 
 - [Default commands](#default-commands)
-- [Cargo warning policy](#cargo-197-warning-policy)
+- [Cargo warning policy](#cargo-198-warning-policy)
 - [CI quality jobs](#ci-quality-jobs)
 - [Workspace profiles and lints](#workspace-profiles)
 - [Fixing and suppressing warnings](#fix-warnings-before-suppressing-them)
@@ -32,22 +32,22 @@ Use `--all-features` when features are additive and compatible. If features are
 mutually exclusive, test the documented feature matrix instead of pretending all
 features can be enabled together.
 
-## Cargo 1.97 Warning Policy
+## Cargo 1.98 Warning Policy
 
-Cargo 1.97 stabilizes the `build.warnings` configuration key. When a repository
-intentionally requires every ordinary Cargo build, check, or test of local
-packages to reject lint warnings, prefer checked-in configuration over a global
-`RUSTFLAGS=-Dwarnings` override:
+When a repository intentionally requires every ordinary Cargo build, check, or
+test of local packages to reject lint warnings, use Cargo's `build.warnings`
+configuration instead of a global `RUSTFLAGS=-Dwarnings` override:
 
 ```toml
 [build]
 warnings = "deny"
 ```
 
-Use this only when Rust 1.97 or newer is the effective toolchain baseline and the
-repository has adopted warning-free builds as policy. Keep the explicit
-`cargo clippy ... -- -D warnings` command for Clippy-specific review, and do not
-assume an older MSRV job enforces this Cargo setting.
+Use this when Rust 1.98 is the effective toolchain baseline and the repository has
+adopted warning-free builds as policy. Keep an explicit
+`cargo clippy ... -- -D warnings` command for Clippy-specific review. When a
+separate lower-MSRV lane exists, validate its behavior independently instead of
+assuming it interprets the active Cargo configuration identically.
 
 ## CI Quality Jobs
 
@@ -71,8 +71,8 @@ requirement.
 
 ## Workspace Profiles
 
-For Rust 1.97 workspaces, prefer a root-level profile baseline that keeps local
-builds debuggable while avoiding slow unoptimized dependency code:
+For workspaces targeting Rust 1.98, prefer a root-level profile baseline that
+keeps local builds debuggable while avoiding slow unoptimized dependency code:
 
 ```toml
 [profile.dev]
@@ -107,8 +107,11 @@ Prefer central lint policy in the workspace root, with crates opting in through
 
 ```toml
 [workspace.lints.rust]
+c_void_returns = "warn"
 future_incompatible = "deny"
+invalid_runtime_symbol_definitions = "deny"
 nonstandard_style = "deny"
+suspicious_runtime_symbol_definitions = "warn"
 unexpected_cfgs = { level = "deny", check-cfg = ["cfg(coverage)"] }
 unsafe_op_in_unsafe_fn = "deny"
 unused_must_use = "deny"
@@ -144,10 +147,22 @@ Consider `clippy::pedantic` and `clippy::nursery` as review aids, not automatic
 policy for every repository. Avoid `clippy::restriction` as a group; enable only
 specific restriction lints that match team policy.
 
-On the Rust 1.97 toolchain, lints such as `manual_noop_waker`,
-`manual_option_zip`, and `manual_pop_if` are covered by `clippy::all`. Add
-individual entries only when raising a lint level, documenting a local allowance,
-or making a policy choice that differs from the default Clippy group.
+On the Rust 1.98 toolchain, `clippy::all` includes the new complexity, style,
+and suspicious lints `unnecessary_unwrap_unchecked`,
+`chunks_exact_to_as_chunks`, `by_ref_peekable_peek`,
+`manual_isolate_lowest_one`, and `for_unbounded_range`. The new
+`with_capacity_zero` and `unused_async_trait_impl` lints are `pedantic`, so enable
+them individually or through an intentional `clippy::pedantic` review policy.
+`empty_enums` is now in `nursery`, and `from_iter_instead_of_collect` is
+deprecated; remove stale configuration rather than pinning a deprecated lint
+name.
+
+Keep the compiler's `invalid_runtime_symbol_definitions`,
+`suspicious_runtime_symbol_definitions`, and `c_void_returns` diagnostics active.
+A runtime shim or FFI adapter may use a narrow `#[expect(..., reason = "...")]`,
+but a crate-wide allowance can hide an ABI error. Also expect `unsafe_code` to be
+reported consistently on unsafe attributes; lint policy should account for both
+unsafe blocks and unsafe attributes.
 
 ## Fix Warnings Before Suppressing Them
 

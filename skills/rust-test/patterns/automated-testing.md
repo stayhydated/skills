@@ -71,11 +71,11 @@ fn sample_batch() -> Batch {
 
 ## Prefer `assert_matches!` for Variant Checks
 
-On the Rust 1.97 baseline, prefer stable `assert_matches!` when the test contract
-is a single structured pattern: enum variants, typed errors, state-machine phases,
+On the Rust 1.98 baseline, prefer `assert_matches!` when the test contract is a
+single structured pattern: enum variants, typed errors, state-machine phases,
 parse outcomes, or other values where the mismatched debug shape should appear in
-the failure. The repository MSRV must be Rust 1.96 or newer. Import the macro
-explicitly from `std` in ordinary tests or from `core` in `no_std` test contexts.
+the failure. Import the macro explicitly from `std` in ordinary tests or from
+`core` in `no_std` test contexts.
 
 ```rust
 use std::assert_matches;
@@ -100,9 +100,9 @@ fn empty_frame_is_rejected() {
 ```
 
 Do not use `debug_assert_matches!` as the ordinary test assertion; it is for
-invariant checks that intentionally follow debug-assertion behavior. If the
-repository MSRV is below Rust 1.96, preserve the existing assertion idiom or
-label this as an MSRV-gated recommendation.
+invariant checks that intentionally follow debug-assertion behavior. When the
+repository explicitly declares a lower MSRV, preserve an assertion idiom that
+compiles on that lane.
 
 Use `assert_eq!` when equality is the behavior. Use `assert!` for boolean
 properties with a useful failure message.
@@ -183,9 +183,9 @@ Use rustdoc block attributes intentionally:
 * `ignore`: avoid unless the example cannot be compiled in CI.
 
 If using `cargo nextest`, run doc tests separately with `cargo test --doc`.
-When the repository uses Rust 1.97 rustdoc `--emit` or `--remap-path-prefix`,
-preserve the repository's rustdoc command and review emitted or remapped paths
-when documentation output is part of the contract.
+When the repository uses rustdoc `--emit` or `--remap-path-prefix`, preserve its
+rustdoc command and review emitted or remapped paths when documentation output is
+part of the contract.
 
 ## Integration Tests
 

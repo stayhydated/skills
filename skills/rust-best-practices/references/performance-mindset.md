@@ -6,7 +6,9 @@
 * [Allocation and cloning](#avoid-redundant-allocation)
 * [Dispatch and layout](#static-dispatch-first)
 * [Inlining](#profile-before-inline)
-* [Rust 1.97 tooling compatibility](#tooling-compatibility-on-rust-197)
+* [Buffered integer formatting](#reuse-a-numbuffer-in-allocation-sensitive-code)
+* [Algebraic floating-point operations](#use-algebraic-floating-point-operations-only-with-an-explicit-contract)
+* [Rust 1.98 tooling compatibility](#tooling-compatibility-on-rust-198)
 
 The first rule of Rust performance work is still: **do not guess, measure**.
 
@@ -151,15 +153,67 @@ fn invalid_checksum_observed(expected: u32, actual: u32) -> String {
 }
 ```
 
-## Tooling Compatibility on Rust 1.97
+## Reuse a `NumBuffer` in Allocation-Sensitive Code
 
-Rust 1.97 uses v0 symbol mangling by default. If a profiler, debugger, crash
-reporter, or symbol post-processor stops demangling Rust frames, update that tool
-before adding compiler flags that restore legacy mangling. Treat changed
-backtrace spelling as tooling compatibility evidence rather than an application
-performance regression.
+For decimal integer formatting in a measured hot path, let the caller reuse a
+`core::fmt::NumBuffer` and consume the returned `&str` before formatting the next
+value into that buffer.
 
-The Rust 1.96 WebAssembly linker behavior remains part of the Rust 1.97 baseline:
-undefined linker symbols are not silently accepted. Treat new wasm link failures
-as useful build feedback. Re-enable the old behavior only when the import is
-intentional and documented in the wasm boundary.
+```rust
+use core::fmt::NumBuffer;
+
+fn write_ids(ids: impl IntoIterator<Item = u64>, output: &mut String) {
+    let mut buffer = NumBuffer::new();
+
+    for id in ids {
+        output.push_str(id.format_into(&mut buffer));
+        output.push('\n');
+    }
+}
+
+let mut output = String::new();
+write_ids([7, 42, 9001], &mut output);
+assert_eq!(output, "7\n42\n9001\n");
+```
+
+Use ordinary `format!`, `write!`, or `Display` implementations outside such
+paths. `NumBuffer` is a specialized optimization, not a replacement for the
+formatting ecosystem, and the borrowed text is overwritten by the next mutable
+use of the buffer.
+
+## Use Algebraic Floating-Point Operations Only with an Explicit Contract
+
+The `algebraic_add`, `algebraic_sub`, `algebraic_mul`, `algebraic_div`, and
+`algebraic_rem` methods permit optimizations that ordinary IEEE-style source
+operations do not, including reassociation and reciprocal transformations. They
+can unlock vectorization, but their precision and treatment of NaN, infinity, and
+signed zero are intentionally less constrained.
+
+```rust
+fn relaxed_dot(lhs: &[f32], rhs: &[f32]) -> f32 {
+    lhs.iter()
+        .zip(rhs)
+        .fold(0.0_f32, |sum, (&left, &right)| {
+            sum.algebraic_add(left.algebraic_mul(right))
+        })
+}
+```
+
+Use them only when all of the following are true: profiling shows the ordinary
+operations are a bottleneck; the public contract accepts platform- and
+optimization-dependent results; tests use error bounds or invariants rather than
+exact bit patterns; and no unsafe-code soundness argument depends on the result.
+Do not use them for reproducible serialization, exact threshold decisions,
+financial calculations, or code that assigns semantic meaning to NaN payloads or
+signed zero.
+
+## Tooling Compatibility on Rust 1.98
+
+Rust 1.98 uses v0 symbol mangling by default. If a profiler, debugger, crash
+reporter, or symbol post-processor cannot demangle Rust frames, update that tool
+before restoring legacy mangling. Treat changed backtrace spelling as tooling
+compatibility evidence rather than an application performance regression.
+
+On WebAssembly targets, undefined linker symbols are not silently accepted. Treat
+link failures as boundary feedback. Override that behavior only when the import
+is intentional, documented, and validated by the target-specific build.

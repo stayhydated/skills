@@ -7,6 +7,8 @@
 * [`Rc` and `Arc`](#rct-and-arct)
 * [Interior mutability](#interior-mutability)
 * [One-time initialization](#one-time-initialization)
+* [Atomic views over exclusive storage](#atomic-views-over-exclusive-storage)
+* [Process and environment iterators](#process-and-environment-iterators)
 * [Raw pointers](#raw-pointers)
 
 Rust encodes thread-safety through `Send` and `Sync`:
@@ -150,6 +152,61 @@ assert_eq!(STATUS_CODES.get("done"), Some(&3));
 ```
 
 Use `std::cell::OnceCell` or `LazyCell` for single-threaded local structures.
+
+## Atomic Views Over Exclusive Storage
+
+Rust 1.98 can borrow primitive storage as atomic storage, or borrow an exclusively
+owned atomic slice as its primitive representation. This avoids allocation and
+unsafe pointer casts when a phase of an algorithm changes its access mode.
+
+```rust
+use std::sync::atomic::{AtomicU8, Ordering};
+
+let mut bytes = [0_u8; 4];
+let atomics = AtomicU8::from_mut_slice(&mut bytes);
+
+std::thread::scope(|scope| {
+    for (index, cell) in atomics.iter().enumerate() {
+        scope.spawn(move || cell.store(index as u8, Ordering::Relaxed));
+    }
+});
+
+assert_eq!(bytes, [0, 1, 2, 3]);
+```
+
+Use the weakest ordering that satisfies the synchronization contract; `Relaxed`
+is correct only when the atomic value itself is the complete communication. The
+exclusive borrow prevents safe non-atomic access while the atomic view exists.
+For integer and pointer atomics wider than a byte, these view methods are
+available only on targets where the primitive and atomic alignments match. Use
+the applicable `target_has_atomic` and
+`target_has_atomic_primitive_alignment` cfgs, together with the repository's
+target matrix, where portability matters.
+
+`Atomic*::get_mut_slice` performs the reverse operation under an exclusive
+borrow. It is appropriate for single-threaded initialization or teardown, not for
+bypassing synchronization while other threads can observe the atomics.
+
+## Process and Environment Iterators
+
+`std::process::CommandArgs` can be sent or shared when its borrow remains valid,
+but `std::env::Vars` and `VarsOs` are not cross-thread iterators. Collect owned
+environment entries before moving them to another thread:
+
+```rust
+use std::ffi::OsString;
+
+let environment: Vec<(OsString, OsString)> = std::env::vars_os().collect();
+let expected_count = environment.len();
+let count = std::thread::spawn(move || environment.len())
+    .join()
+    .expect("environment worker panicked");
+
+assert_eq!(count, expected_count);
+```
+
+Prefer collecting only the entries the worker needs rather than copying the
+entire process environment by default.
 
 ## Raw Pointers
 

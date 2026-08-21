@@ -7,7 +7,7 @@
 - [Cargo configuration boundaries](#cargo-argument-and-configuration-boundaries)
 - [Nextest](#cargo-nextest-guidance)
 - [Feature, target, and MSRV validation](#feature-target-and-msrv-validation)
-- [Rust 1.97 validation](#rust-197-specific-validation)
+- [Rust 1.98 validation](#rust-198-specific-validation)
 - [Expectation-file handoff](#expectation-file-handoff)
 - [Coverage and mutation evidence](#coverage-and-mutation-evidence)
 - [Validation wording](#validation-wording)
@@ -62,7 +62,7 @@ Do not confuse Cargo arguments with test harness arguments:
 - `-j <n>` controls Cargo build parallelism.
 - `-- --test-threads=<n>` controls libtest runtime test parallelism.
 
-On Cargo 1.97, also inspect applicable configuration:
+On Cargo 1.98, also inspect applicable configuration:
 
 - `build.warnings = "deny"` can turn local-package lint warnings into command failures;
 - `resolver.lockfile-path` changes the lockfile used by resolution and `--locked`;
@@ -82,7 +82,7 @@ When the repository uses cargo-nextest:
 
 ## Feature, target, and MSRV validation
 
-Treat feature flags, `cfg` gates, target triples, `no_std`, WASM, embedded support, Rust 1.97-sensitive doctests, and MSRV as part of the test contract when affected. Useful evidence includes manifests, package `rust-version`, CI matrices, `.cargo/config.toml`, `rust-toolchain.toml`, README support claims, package metadata, and existing target-specific tests.
+Treat feature flags, `cfg` gates, target triples, `no_std`, WASM, embedded support, Rust 1.98-sensitive compiler, doctest, formatting, and target behavior, and MSRV as part of the test contract when affected. Useful evidence includes manifests, package `rust-version`, CI matrices, `.cargo/config.toml`, `rust-toolchain.toml`, README support claims, package metadata, and existing target-specific tests.
 
 Validation examples, only when applicable:
 
@@ -101,19 +101,35 @@ Use `cargo hack` only when the repository already uses it or the recommendation 
 - `cargo hack --feature-powerset --depth 2 --no-dev-deps check`
 - `cargo hack --version-range <min>..=<max> check`
 
-Disclose mutually exclusive features, missing target toolchains, unavailable linkers, MSRV toolchain gaps, Rust 1.97-only APIs or configuration that were not MSRV-safe, or target tests that could be checked but not executed.
+Disclose mutually exclusive features, missing target toolchains, unavailable linkers, MSRV toolchain gaps, Rust 1.98-only APIs or configuration that were not safe for an explicitly declared lower MSRV, or target tests that could be checked but not executed.
 
-## Rust 1.97-specific validation
+## Rust 1.98-specific validation
 
-Use `patterns/rust-1-97-testing-baseline.md` when the patch or recommendation depends on Rust 1.97. Apply these validation rules narrowly:
+Use `patterns/rust-1-98-testing-baseline.md` when a patch or recommendation
+depends on Rust 1.98. Apply these rules narrowly:
 
-- For assertion-only changes from `assert!(matches!(...))` to `assert_matches!`, run the smallest package/test-target command that exercises the changed tests, and disclose if the repository's Rust 1.96 minimum for that macro was reviewed but not executed.
-- On the Rust 1.97 baseline, `assert_matches!` is available; do not apply it to a crate whose declared MSRV is older than Rust 1.96.
-- For doctests using `assert_matches!`, run or recommend `cargo test --doc ...`; a normal nextest run is not sufficient.
-- For cfg-specific `rustdocflags`, rustdoc `--emit` or `--remap-path-prefix`, WASM, `no_std`, embedded, or custom target claims, use the repository's documented command. Host tests do not prove those contracts.
-- When `build.warnings = "deny"` is active, distinguish a lint-policy failure from a test failure.
-- When `resolver.lockfile-path` is active, identify the configured `Cargo.lock` before claiming `--locked` validation.
-- For Rust 1.97 compiler diagnostic or compatibility changes, update UI/diagnostic/symbol expectations only through the repository workflow and review the resulting diffs.
+- For `assert_matches!` changes, run the smallest package/test-target command that
+  exercises the assertion; run doctests separately when the macro appears there.
+- For `substr_range` or `subslice_range`, test source-derived repeated and empty
+  views; cover zero-sized slice elements only when the panic is part of the
+  contract.
+- For `strip_circumfix`, cover both matches, each missing side, and overlap.
+- For `NumBuffer`/`format_into`, run correctness tests and use the repository's
+  benchmark only when allocation or throughput is claimed.
+- For `algebraic_*` floats, validate documented tolerances and invariants in the
+  relevant optimization profile; exact bits and evaluation order are not a
+  stable oracle.
+- For endian-specific UTF-16 and non-zero radix parsing, cover strict and lossy
+  behavior, invalid input, byte order, zero, radix, and range boundaries.
+- For atomic views, run target-aware compile/tests under the applicable
+  `target_has_atomic` and `target_has_atomic_primitive_alignment` cfgs, plus the
+  configured concurrency evidence; host support does not prove every target.
+- When `build.warnings = "deny"` is active, distinguish lint-policy failures from
+  test failures. When `resolver.lockfile-path` is active, identify the selected
+  lockfile before claiming `--locked` validation.
+- For compiler diagnostics, auto-traits, repr/transmute checks, escaping,
+  temporary scopes, rustfmt `cfg_select!` discovery, or target compatibility,
+  update expectations only through the repository workflow and review the diff.
 
 ## Expectation-file handoff
 

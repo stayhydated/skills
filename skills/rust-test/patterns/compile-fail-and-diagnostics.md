@@ -43,17 +43,26 @@ When the repository uses `trybuild`:
 - Keep fixtures independent of rustc wording that is likely to churn unless the wording itself is the public diagnostic contract.
 - Do not add compile-fail fixtures merely to call every public API incorrectly; protect meaningful diagnostics and type-level contracts.
 
-## Rust 1.97-sensitive compiler contracts
+## Rust 1.98-sensitive compiler contracts
 
-Use Rust 1.97-specific compile-fail guidance only for compiler-facing contracts. Examples include a public API that must reject invalid trait, type-state, macro, target, or feature combinations; a proc macro whose diagnostic changed with the compiler; or a target support claim that changed compile/link behavior. Do not add UI fixtures merely to enforce broad style guidance that belongs to `rust-best-practices`.
+Use Rust 1.98-specific compile-fail guidance only for compiler-facing contracts.
+Relevant fixtures can include:
 
-Rust 1.97 compatibility changes can affect fixtures involving `pin!` coercions,
-generic arguments on module path segments, tuple-index shorthands in struct
-patterns, malformed `link_name`/`link` attributes, empty `export_name` values, or
-invalid Mach-O `link_section` specifiers. Update expectations only when the
-changed acceptance or diagnostic is relevant to the repository's contract.
+- trait-object lifetime elision that now resolves differently;
+- ambiguous imports or glob imports that are now rejected;
+- invalid equality-like where-bound syntax;
+- runtime-symbol definitions or `c_void` returns covered by new lints;
+- stricter `repr(transparent)`, `transmute`, structural-equality, or attribute
+  validation;
+- auto-trait expectations involving `std::env::Vars`/`VarsOs` or
+  `std::process::CommandArgs`;
+- target-specific Emscripten, Solaris, atomic-alignment, or platform contracts.
 
-If the repository MSRV is lower than Rust 1.97, keep fixtures and expected diagnostics compatible with the declared MSRV unless the user explicitly asks to raise or audit the MSRV. Remember that `assert_matches!` itself requires Rust 1.96 or newer.
+Update expectations only when the changed acceptance or diagnostic is relevant to
+the repository's public or type-level contract. If a lower MSRV is explicitly
+supported, keep fixtures and expected diagnostics compatible with that lane or
+use the repository's version-gated UI convention. Regenerate `.stderr` through
+the established harness and review the diff; do not handwrite compiler output.
 
 ## Doctest compile-fail boundary
 
