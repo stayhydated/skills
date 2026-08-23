@@ -1,0 +1,7 @@
+interface:
+  display_name: "Use Codex Subagents"
+  short_description: "Explicitly orchestrate Codex subagents"
+  default_prompt: "Use $use-subagents-codex to delegate this task to Codex subagents and return a verified consolidated result."
+
+policy:
+  allow_implicit_invocation: false
