@@ -129,7 +129,7 @@ Do not treat ignored build, cache, dependency, or tool-output paths as high-risk
 
 ## Limited-evidence mode
 
-If repository access is incomplete, produce an evidence-limited draft, patch, audit, or checklist. Clearly separate visible facts, assumptions, missing evidence, validation performed, and validation not performed. Do not name commands, paths, docs, packages, generated outputs, or tools that were not provided or otherwise evidenced. For non-`AGENTS.md` agent artifacts, this skill is out of scope.
+If repository access is incomplete, produce an evidence-limited draft, patch, audit, or checklist. Clearly separate visible facts, assumptions, missing evidence, validation performed, and validation not performed. Do not name commands, paths, docs, packages, generated outputs, or tools that were not provided or otherwise evidenced. Treat non-`AGENTS.md` agent artifacts as out of scope.
 
 ## Placeholder hygiene
 

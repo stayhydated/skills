@@ -5,9 +5,9 @@ description: Create, update, refactor, audit, or align repository AGENTS.md guid
 
 # manage-workspace-agents-md
 
-Use this skill to create or improve a high-signal root or nested `AGENTS.md` guide for a software workspace. The output should help coding agents make correct changes quickly without turning the guide into a policy dump, language handbook, or generic best-practices essay.
+Create or improve a high-signal root or nested `AGENTS.md` guide for a software workspace. The output should help coding agents make correct changes quickly without turning the guide into a policy dump, language handbook, or generic best-practices essay.
 
-This skill is a procedure. It is not content to copy wholesale into a generated guide.
+Treat these instructions as a procedure, not as content to copy wholesale into a generated guide.
 
 ## Operating principle
 
@@ -31,7 +31,7 @@ A strong guide answers these questions immediately:
 6. Keep root guidance short; split path-specific procedures into nested `AGENTS.md` or local docs.
 7. Use precise validation wording; never imply commands were run when they were only reviewed.
 
-## Do not use this skill for
+## Out of scope
 
 - General repository documentation unrelated to contributor or coding-agent guidance.
 - Release notes, README content, troubleshooting guides, or other repository documentation unrelated to agent routing and synchronization.
@@ -126,14 +126,14 @@ Prefer a root `AGENTS.md` under 220 lines. Split into nested `AGENTS.md` or loca
 
 Use these terms narrowly:
 
-- `AGENTS.md`: durable repository or subtree guidance for most coding-agent work in that scope. Root and nested `AGENTS.md` files are the only agent-guidance artifacts this skill creates, patches, audits, aligns, or checklist-reviews.
-- Non-`AGENTS.md` agent artifacts, including skill directories, custom-agent files, persona files, plugins, MCP servers, tool integrations, scripts, and executable helpers, are out of scope for this skill.
+- `AGENTS.md`: durable repository or subtree guidance for most coding-agent work in that scope. Root and nested `AGENTS.md` files are the only agent-guidance artifacts in scope.
+- Non-`AGENTS.md` agent artifacts, including skill directories, custom-agent files, persona files, plugins, MCP servers, tool integrations, scripts, and executable helpers, are out of scope.
 
 Do not collapse these surfaces into one file type merely because the word “agent” appears in a path.
 
 ## Standards guidance boundary
 
-This skill can describe standards only when they are repository standards:
+Describe standards only when they are repository standards:
 
 - **Observed:** directly evidenced by existing files, commands, tests, docs, manifests, CI, or local guidance.
 - **Inferred:** strongly implied by repeated local practice, workspace structure, or public entry points.
@@ -141,11 +141,11 @@ This skill can describe standards only when they are repository standards:
 
 Do not add language-specific rules merely because a language appears in the repository. Name local standards only when they affect agent routing, ownership, synchronization, or validation.
 
-For code-level conventions, use the relevant dedicated skill when available. If a dedicated language or testing skill already owns a pattern, this skill should point to existing repository guidance or a real `AGENTS.md` path only when that path exists and is relevant.
+For code-level conventions, use the relevant dedicated skill when available. If a dedicated language or testing skill already owns a pattern, point only to existing repository guidance or a real `AGENTS.md` path when that path exists and is relevant.
 
 ## Validation wording
 
-This section is the canonical validation wording for the skill and its templates. Use these exact distinctions:
+Use these exact distinctions for validation wording in final handoffs and templates:
 
 - `Validated with: <command>` only for commands or checks actually run.
 - `Reviewed only; not executed because: <reason>` for static review without execution.
