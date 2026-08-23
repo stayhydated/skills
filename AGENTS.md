@@ -81,7 +81,7 @@ Start here:
   `agents/openai.yaml` aligned when modes, handoff wording, evidence rules, or
   validation wording change.
 
-- `skills/use-windows-vm-computer-use/`
+- `skills/use-windows-vm-computer-use-codex/`
   Role: SSH-orchestrated, VM-local Codex computer-use in interactive Windows
   sessions, including forced full-access execution, approval, task lifecycle,
   and troubleshooting guidance.

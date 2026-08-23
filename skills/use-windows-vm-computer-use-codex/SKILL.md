@@ -1,20 +1,21 @@
 ---
-name: use-windows-vm-computer-use
+name: use-windows-vm-computer-use-codex
 description: >
-  Run Codex computer-use against GUI applications inside an interactive Windows
-  VM while orchestration happens over SSH. Use when an SSH-launched Codex process
-  is isolated in Windows session 0, computer-use cannot see or control the VM
-  desktop, a target application needs per-app approval, or Codex must be started
-  with forced `--yolo` full access in the logged-in user's session through a
-  temporary scheduled task. Also covers an explicitly authorized, probe-first
-  AutoHotkey fallback for nonstandard native windows that block computer-use.
+  Runs Codex computer-use against GUI applications inside an interactive
+  Windows VM while orchestration remains over SSH. Covers session-isolation
+  checks, interactive scheduled-task launch with required `--yolo` access,
+  application targeting, visible verification, cleanup, and a probe-first
+  AutoHotkey fallback for explicitly authorized nonstandard native windows.
 ---
 
-# Use Windows VM Computer Use
+# Use Windows VM Codex Computer Use
 
 Operate the VM-local computer-use backend, not the SSH terminal, hypervisor
 input, or host desktop. Keep orchestration over SSH and run the GUI agent in the
-active Windows user's interactive session.
+active Windows user's interactive session. Using this workflow requires the
+VM-local `--yolo` launch described below. It does not broaden the requested GUI
+action or authorize elevation, application launches, consequential changes, or
+the AutoHotkey fallback beyond the rules below.
 
 ## Establish the Boundary
 

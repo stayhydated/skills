@@ -1,0 +1,7 @@
+interface:
+  display_name: "Use Windows VM Codex Computer Use"
+  short_description: "VM-local Codex GUI control with guarded AHK fallback"
+  default_prompt: "Use $use-windows-vm-computer-use-codex to operate <target application> in the active Windows VM and perform <narrow GUI action>."
+
+policy:
+  allow_implicit_invocation: false

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Use Windows VM Computer Use"
-  short_description: "Run VM-local GUI control with guarded AHK fallback"
-  default_prompt: "Use $use-windows-vm-computer-use to run Codex computer-use with mandatory --yolo full access inside an interactive Windows VM session, using probe-first AutoHotkey only when explicitly authorized and computer-use remains blocked."
