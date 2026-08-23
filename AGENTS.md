@@ -81,6 +81,13 @@ Start here:
   `agents/openai.yaml` aligned when modes, handoff wording, evidence rules, or
   validation wording change.
 
+- `skills/use-subagents-codex/`
+  Role: user-requested Codex subagent orchestration and management of the
+  bundled worker profile.
+  Sync: keep `SKILL.md`, `assets/use-subagents-codex.toml`, and
+  `agents/openai.yaml` aligned when orchestration behavior, worker settings, or
+  visible metadata changes.
+
 - `skills/use-windows-vm-computer-use-codex/`
   Role: SSH-orchestrated, VM-local Codex computer-use in interactive Windows
   sessions, including forced full-access execution, approval, task lifecycle,
