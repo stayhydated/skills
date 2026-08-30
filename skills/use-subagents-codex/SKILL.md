@@ -5,7 +5,7 @@ description: Orchestrate one or more Codex subagents for a user-requested task.
 
 # Use Codex Subagents
 
-Orchestrate Codex subagents for the requested task. Keep the skill and custom-agent identity stable across worker-model upgrades. The bundled TOML is the sole source of the subagent model and reasoning effort; the parent model and reasoning effort selected by the user are outside this managed profile.
+Orchestrate Codex subagents for the requested task. Keep the skill and custom-agent identity stable across worker-model upgrades. The bundled TOML defines the worker defaults; an explicit worker model or reasoning effort in the user's request overrides the matching default. Parent model and reasoning settings remain outside this managed profile.
 
 ## Execution contract
 
@@ -19,35 +19,48 @@ Orchestrate Codex subagents for the requested task. Keep the skill and custom-ag
 - Never set, override, or persist a parent `model` or `model_reasoning_effort` on behalf of this skill.
 - Do not change model or reasoning settings in `$CODEX_HOME/config.toml`, a profile, command-line options, application settings, or the active parent session.
 - Do not derive the subagent model or effort from the parent, and do not apply the subagent settings to the parent.
-- Apply the bundled model and reasoning effort only to workers spawned by this skill.
+- Apply the resolved worker model and reasoning effort only to workers spawned by this skill.
+
+## Resolve the worker profile
+
+Read the top-level `model` and `model_reasoning_effort` values from `assets/use-subagents-codex.toml` as defaults. Resolve the profile before reconciling or spawning:
+
+- An explicit worker model in the user's request replaces the bundled model default.
+- An explicit worker reasoning effort replaces the bundled effort default.
+- Use the bundled value for either setting the user leaves unspecified. Never inherit the missing setting from the parent.
+- Normalize an unambiguous display name to the exact model identifier exposed by the spawn surface. For example, `5.6 sol` means `gpt-5.6-sol` only when that identifier is available.
+- Verify that the spawn surface supports the resolved model and effort. If it does not, report the unsupported setting rather than substituting another profile.
+
+Thus, a request to use this skill "but 5.6 sol high" resolves the worker profile to `gpt-5.6-sol` with `high` reasoning, regardless of the bundled defaults.
 
 ## Reconcile the managed custom agent
 
-The bundle owns one stable custom-agent identity with a bundle-controlled worker profile:
+The bundle owns one stable custom-agent identity with a bundle-controlled template:
 
 - bundled source: `assets/use-subagents-codex.toml`
+- profile renderer: `scripts/configure_worker_profile.py`
 - installed target: `$CODEX_HOME/agents/use-subagents-codex.toml`, falling back to `~/.codex/agents/use-subagents-codex.toml` when `CODEX_HOME` is unset
 - custom-agent name: `use_subagents_codex`
 
-Treat the bundled file as canonical. This managed target is intentionally replaced when the bundle changes so a successor worker model or revised worker effort can be adopted without renaming the skill or agent. Local customizations belong in a different custom-agent file with a different `name`.
+Treat the bundled file as canonical for every field except a user-requested worker model or effort. Render the resolved model and effort into the installed target with [scripts/configure_worker_profile.py](scripts/configure_worker_profile.py); do not hand-edit either TOML. This managed target is intentionally replaced when the template, bundled defaults, or explicit worker settings change. Local customizations belong in a different custom-agent file with a different `name`.
 
 1. Resolve this skill directory and the effective Codex home.
-2. Compare the bundled source and installed target byte-for-byte using normal file tools. No helper script or Python runtime is required.
-3. If they match, continue.
-4. If the target is missing or differs, show the intended change. Obtain approval through the execution environment before writing outside the workspace.
-5. When replacing an existing target, create a timestamped backup beside it. Then copy the bundled file atomically where supported and restrict permissions to the current user where supported.
+2. Run the renderer with the resolved `--model`, `--reasoning-effort`, and `--dry-run`. It compares the fully rendered profile with the installed target and prints any intended change.
+3. If the target already matches, continue without writing.
+4. If the target is missing or differs, show the dry-run output. Obtain approval through the execution environment before writing outside the workspace, then rerun without `--dry-run`.
+5. Rely on the renderer to create a timestamped backup beside a differing target, replace it atomically, and restrict the installed file and backup to the current user.
 6. Do not modify `$CODEX_HOME/config.toml` preemptively. If the effective runtime reports that multi-agent tools are disabled, explain the blocker and request approval before changing only `[agents].enabled` to `true`. Do not override managed policy or alter any model or reasoning setting.
 7. Do not use a Codex version heuristic unless a concrete runtime failure requires compatibility diagnosis.
 
-If the managed file was created or updated during the current session, do not assume the session reloaded it. Prefer an exact-runtime fallback from the next section, or require a fresh session rather than claiming the new definition ran.
+The renderer changes only the installed custom-agent file, never the bundled template. If it creates or updates the installed file during the current session, do not assume the session reloaded it. Prefer the exact-runtime fallback from the next section, or require a fresh session rather than claiming the new definition ran.
 
 ## Select the worker
 
-Use the first available path that preserves both worker settings selected by the bundle:
+Use the first available path that preserves both resolved worker settings:
 
-1. Spawn the custom agent named `use_subagents_codex` when the current session has already loaded the canonical definition.
-2. Otherwise, only when the spawn surface accepts explicit model **and** explicit reasoning-effort overrides, read the top-level `model` and `model_reasoning_effort` values from `assets/use-subagents-codex.toml` and pass both to a built-in `worker`. Include the worker constraints below in the assignment.
-3. Do not use an explicit-model fallback that cannot also preserve the bundled reasoning effort; it could accidentally inherit the parent's effort.
+1. Spawn the custom agent named `use_subagents_codex` when the current session has already loaded the resolved profile.
+2. Otherwise, when the spawn surface accepts explicit model **and** explicit reasoning-effort overrides, pass both resolved values to a built-in `worker`. Include the worker constraints below in the assignment.
+3. Do not use an explicit-model fallback that cannot also preserve the resolved reasoning effort; it could accidentally inherit the parent's effort.
 4. If neither exact path is available, report that the requested subagent profile cannot be executed in the current session. Do not silently substitute the parent model, another worker model, or another reasoning level.
 
 When runtime metadata exposes the selected worker model, reasoning effort, or custom-agent path, verify it. Otherwise state only what the runtime actually confirms. Never treat the installed TOML alone as proof of the runtime used.
