@@ -27,19 +27,31 @@ For binary integration tests, first consider Cargo's built-in binary path suppor
 - Add crates such as `assert_cmd`, `predicates`, snapshot helpers, or local command harnesses only when the repository already uses them, the user asks to standardize on them, or the addition is clearly labeled as **Recommended**.
 - Normalize paths, line endings, environment-dependent output, and temporary directories before asserting CLI text.
 
-## Mock boundary
+## Mock-free boundary
 
-Do not introduce a mock framework or mock-centric test pattern by default. Mock-heavy tests often verify that an implementation called a collaborator, not that the public behavior works.
+Refuse a mock-object test: a test that programs expectations for calls to a collaborator and passes or fails by verifying those calls, arguments, counts, or ordering. Do not introduce a mocking framework, extend mock expectations already present, or use a spy to make implementation choreography the assertion.
 
-Use a test double only when all of these hold:
+When asked to write a mock test:
 
-1. the real boundary is slow, unavailable, unsafe, expensive, nondeterministic, or outside the repository's normal validation environment;
-2. the repository already uses the style or the strategy is explicitly requested and labeled;
-3. the double preserves the public contract closely enough for the test's purpose; and
-4. at least one integration/e2e, contract, fixture, or compatibility test covers the real boundary where practical.
+1. explain briefly that this skill does not create interaction-verification mocks because they are coupled to implementation details;
+2. identify the observable contract the requested mock was meant to protect;
+3. implement a state-, output-, artifact-, or public-protocol-based test through the smallest practical seam; and
+4. if no such seam is available within scope, report the missing evidence and the production seam needed instead of generating the mock.
 
-Prefer lightweight fakes, in-memory implementations, fixtures, or local servers over mocks that only verify method-call choreography.
+Do not treat all test doubles as mocks. When the real boundary is slow, unavailable, unsafe, expensive, nondeterministic, or outside the normal validation environment, use the narrowest substitute that does not verify internal calls:
+
+- a stub that supplies a deterministic response;
+- a lightweight fake or in-memory implementation whose resulting state can be queried through its public contract;
+- a checked-in fixture;
+- a local server or subprocess that exposes the real protocol; or
+- a repository-standard hermetic service or container.
+
+Prefer the real implementation when it is fast and deterministic. Where practical, pair a substitute with an integration/e2e, contract, fixture, or compatibility test against the real boundary. If the interaction itself is a public protocol contract, capture and assert the semantic protocol result or transcript at that boundary; do not verify private method calls used to produce it.
+
+When editing tests that already use mocks, do not add expectations. Replace mocks touched by the requested change with contract-focused coverage where scope permits, but do not rewrite unrelated tests without authorization.
+
+This policy follows the distinction between mocks and other test doubles in Martin Fowler's [Mocks Aren't Stubs](https://martinfowler.com/articles/mocksArentStubs.html) and the public-API and state-testing guidance in Google's [Software Engineering at Google: Testing Overview](https://abseil.io/resources/swe-book/html/ch12.html#test_via_public_apis).
 
 ## Handoff
 
-When selecting integration/e2e over mocks, name the public seam being protected and the smaller tests that still cover pure logic. When a real dependency is not exercised, disclose the missing evidence and the remaining integration risk.
+When selecting a mock-free alternative, name the public seam being protected and the smaller tests that still cover pure logic. When a real dependency is not exercised, disclose the missing evidence and the remaining integration risk.

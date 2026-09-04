@@ -36,7 +36,7 @@ Use the repository's existing fuzzer and layout, commonly `cargo-fuzz` under `fu
 Fuzz-target discipline:
 
 - Keep targets deterministic, hermetic, and free from uncontrolled network, clock, filesystem, or environment dependencies.
-- Prefer exercising the real public parser/decoder/API seam rather than mocking collaborators.
+- Exercise the real public parser/decoder/API seam; do not mock collaborators.
 - Treat panics, hangs, excessive allocation, and assertion failures as findings only when they violate the intended contract.
 - Minimize crashing inputs and commit only small, non-secret corpus/regression files that protect meaningful behavior.
 - Convert important minimized failures into ordinary regression tests when they are cheap and stable enough for normal CI.

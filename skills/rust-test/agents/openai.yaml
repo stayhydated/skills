@@ -1,4 +1,4 @@
 interface:
   display_name: "Rust Tests"
-  short_description: "Design and audit Rust tests with focused validation"
-  default_prompt: "Use $rust-test to design, patch, or audit Rust tests from repository evidence with focused validation."
+  short_description: "Design mock-free Rust tests with focused validation"
+  default_prompt: "Use $rust-test to design, patch, or audit mock-free Rust tests from repository evidence with focused validation."

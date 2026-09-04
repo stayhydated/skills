@@ -1,6 +1,6 @@
 ---
 name: rust-test
-description: Design, patch, audit, or align Rust tests with evidence-based guidance for unit tests, integration/e2e tests, doctests, insta snapshots, compile-fail/UI tests, golden files, fixtures, property tests, fuzz tests, async/concurrency tests, unsafe-code validation, Criterion benchmarks, Cargo test semantics, Rust 1.98 test idioms, feature/target/MSRV matrices, flaky-test triage, coverage/mutation evidence, and focused validation.
+description: Design, patch, audit, or align Rust tests with evidence-based, mock-free guidance for unit tests, integration/e2e tests, doctests, insta snapshots, compile-fail/UI tests, golden files, fixtures, property tests, fuzz tests, async/concurrency tests, unsafe-code validation, Criterion benchmarks, Cargo test semantics, Rust 1.98 test idioms, feature/target/MSRV matrices, flaky-test triage, coverage/mutation evidence, and focused validation.
 ---
 
 # rust-test
@@ -11,7 +11,7 @@ Use this skill when the user asks to add, fix, refactor, audit, or explain Rust 
 
 Tests should express the contract clearly and fail with useful diffs. Match the test type to the contract being protected: unit tests for narrow logic, integration/e2e tests for public workflows and real boundaries, doctests for public examples, compile-fail/UI tests for compiler-facing contracts, snapshots/goldens for reviewable deterministic output, property/fuzz tests for broad input spaces, async/concurrency tests for task lifecycle and synchronization behavior, unsafe-code validation for invariants the type system cannot prove, and benchmarks for performance behavior. Prefer the repository's existing test conventions. Do not silently introduce new dev-dependencies, test runners, fuzzers, benchmark harnesses, async runtimes, Miri/sanitizer/loom gates, or snapshot tools unless the repository already uses them or the user explicitly asks to standardize on them.
 
-Do not add mock-centric test strategies as a default. When behavior depends on collaboration across modules, processes, services, filesystems, CLIs, async tasks, protocols, or target-specific behavior, prefer the smallest real integration/e2e seam that proves the public behavior. Use fakes, stubs, or test doubles only when the repository already uses that approach, the real boundary is impractical, and the test still asserts observable behavior rather than implementation call choreography.
+Refuse mock-object tests that program expectations for collaborator calls and then verify call arguments, counts, or ordering. They couple tests to implementation choreography, can fail during behavior-preserving refactors, and can pass while the public outcome is wrong. If a user asks for this style, explain the refusal briefly and implement or propose a contract-focused alternative instead. Prefer the smallest real integration/e2e seam that proves public behavior. When a real boundary is impractical, a deterministic stub or lightweight fake may control inputs or provide an in-memory implementation, but assertions must target observable state, outputs, artifacts, or public protocol effects rather than calls into the double. Do not add a mocking framework, extend mock expectations already present, or disguise a spy as a fake. Do not rewrite unrelated existing mocks unless they are in the requested scope.
 
 ## Boundary with rust-best-practices
 
@@ -64,7 +64,7 @@ Use it for:
 - unsafe code, FFI boundaries, pointer manipulation, custom allocators, atomics, panic/drop safety, Miri, sanitizer, or loom validation strategy;
 - feature-flag combinations, `cfg` gates, target triples, `no_std`, WASM, embedded, platform-specific behavior, and MSRV-sensitive test selection;
 - Criterion or other existing Rust benchmark harnesses for performance-sensitive code;
-- replacing brittle text assertions or mock-only assertions with clearer structural, snapshot, integration, or e2e assertions;
+- replacing mock-object tests or brittle text assertions with clearer state, structural, snapshot, integration, or e2e assertions;
 - choosing focused validation commands for Rust test, benchmark, doctest, fuzz, feature/target/MSRV, unsafe-code, nextest, coverage/mutation, or expectation-file changes.
 
 Do not use it for non-Rust testing unless the repository explicitly routes that work here.
@@ -81,7 +81,7 @@ Do not use it for non-Rust testing unless the repository explicitly routes that 
 8. Use property tests when invariants should hold across many generated inputs and the repository already uses or requests that style.
 9. Use fuzz tests for parser, deserializer, protocol, unsafe, or untrusted-input surfaces when fuzzing is configured or explicitly requested.
 10. Use Criterion or the repository's benchmark harness when performance is part of the contract or regression risk.
-11. Avoid mock-only verification for public behavior; prefer the smallest real integration/e2e seam, fixture, or local fake that preserves the observable contract.
+11. Refuse mock-object interaction verification. Replace it with state or output assertions through the smallest real integration/e2e seam, fixture, deterministic stub, or local fake that preserves the observable contract. If no viable mock-free seam exists within scope, report the evidence gap and the production seam needed instead of generating a mock test.
 12. Normalize nondeterministic output before asserting, snapshotting, goldening, fuzzing, or benchmarking it.
 13. Validate with focused commands and review expectation-file diffs intentionally.
 14. Treat feature flags, mutually exclusive features, `cfg` gates, target triples, MSRV, and `no_std`/WASM/embedded constraints as part of the tested contract when they affect behavior or compilation.
@@ -101,7 +101,7 @@ Before patching or recommending test changes, inspect the relevant subset of:
 - `rust-toolchain.toml`, package `rust-version`, `.cargo/config.toml`, Cargo 1.98 `build.warnings` or `resolver.lockfile-path`, MSRV policy, target matrix, `no_std`/WASM/embedded support, platform-specific `cfg`s, Rust 1.98-sensitive compiler, doctest, formatting, or target configuration, and feature-combination expectations affected by the change;
 - existing `tests/`, `src/**/tests`, `benches/`, `examples/`, `fixtures/`, `snapshots/`, `fuzz/`, corpus directories, UI-test directories, generated outputs, and e2e harnesses;
 - CI workflows, `justfile`, `Makefile`, `cargo-nextest` config, `cargo-insta` config, benchmark scripts, fuzz scripts, target-specific jobs, feature-matrix jobs, MSRV jobs, coverage/mutation jobs, or other runner files;
-- existing `insta`, `trybuild`, UI-test, golden-file, fixture, property-test, fuzz, doctest, Criterion, `cargo bench`, `cargo-fuzz`, `nextest`, `cargo hack`, async-runtime, fake-time, concurrency, Miri, sanitizer, loom, coverage, mutation-testing, or e2e usage;
+- existing `insta`, `trybuild`, UI-test, golden-file, fixture, property-test, fuzz, doctest, Criterion, `cargo bench`, `cargo-fuzz`, `nextest`, `cargo hack`, async-runtime, fake-time, concurrency, Miri, sanitizer, loom, coverage, mutation-testing, e2e, mocking-framework, or test-double usage;
 - existing coverage, mutation-testing, or quality-gate tooling only when the repository already uses it or the user asks about coverage strength;
 - public docs, README examples, CLI help, schemas, generated outputs, diagnostics, protocols, compatibility files, target/platform guarantees, or performance claims affected by the change.
 
@@ -144,7 +144,7 @@ Use these support files as source material, not default output. Summarize only t
 - `patterns/automated-testing.md`: core unit, integration, doctest, assertion, parameterized, and snapshot test shape.
 - `patterns/rust-1-98-testing-baseline.md`: Rust 1.98 test-specific assertion, library-API, Cargo/rustdoc, compiler, target, and expectation-compatibility guidance without broad code-style overlap.
 - `patterns/cargo-test-semantics.md`: Cargo package/target/feature/doctest/libtest command semantics and what a validation command proves.
-- `patterns/boundary-and-e2e.md`: public seams, integration/e2e tests, CLI binary integration, and avoiding mock-centric verification.
+- `patterns/boundary-and-e2e.md`: public seams, integration/e2e tests, CLI binary integration, refusing mock-object tests, and choosing contract-focused substitutes.
 - `patterns/doctests-and-examples.md`: doctests, README examples, rustdoc mechanics, `no_run`, `compile_fail`, and public API samples.
 - `patterns/insta-snapshots.md`: when and how to use `insta` snapshots.
 - `patterns/compile-fail-and-diagnostics.md`: proc-macro, compiler diagnostic, doctest compile-fail, `trybuild` expectation workflows, and UI-test patterns.
@@ -161,7 +161,7 @@ Use these support files as source material, not default output. Summarize only t
 
 ## Dependency boundary
 
-A new testing, fuzzing, benchmarking, snapshot, async-runtime, fake-time, sanitizer, Miri, loom, coverage, mutation-testing, feature-matrix, or command-runner dependency is a code change, not a default recommendation. Add or require a new Rust test dependency only when:
+A new testing, fuzzing, benchmarking, snapshot, async-runtime, fake-time, sanitizer, Miri, loom, coverage, mutation-testing, feature-matrix, or command-runner dependency is a code change, not a default recommendation. Do not add or recommend a mocking framework. Add or require another new Rust test dependency only when:
 
 1. the repository already uses it in the relevant workspace or has standardized on it;
 2. the user explicitly asked to introduce or standardize the tool; or

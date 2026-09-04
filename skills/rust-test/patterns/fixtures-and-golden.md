@@ -37,4 +37,4 @@ Prefer the clearest assertion for the contract:
 
 Assert exact user-facing text only when wording is part of the public contract, such as CLI output, diagnostics, snapshots, documented messages, or compatibility formats.
 
-Avoid test suites made mostly of `assert!(text.contains(...))` when the output has meaningful structure or a snapshot would make intent clearer. Avoid mock-only assertions for generated output or public workflows; assert the resulting artifact or observable behavior instead.
+Avoid test suites made mostly of `assert!(text.contains(...))` when the output has meaningful structure or a snapshot would make intent clearer. Refuse mock-object interaction assertions for generated output or public workflows; assert the resulting artifact or observable behavior instead.

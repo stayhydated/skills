@@ -32,7 +32,8 @@
 - [ ] Golden/generated outputs are produced from the source of truth, not hand-edited without reason.
 - [ ] Generated Rust or proc-macro output is tested through public behavior first; snapshots of generated shape are used only when stable, normalized, and review-relevant.
 - [ ] Structural assertions are preferred for typed errors, variants, spans, exit codes, and machine-readable fields; on the Rust 1.98 baseline, `assert_matches!` is used for a single-pattern assertion when it improves failure output; exact text is asserted only when wording is part of the public contract.
-- [ ] Mock-centric tests were not introduced as the default strategy; boundary behavior is covered through public seams, integration/e2e tests, fixtures, or local fakes only when justified by repository evidence.
+- [ ] Mock-object tests and interaction-verification expectations were refused; boundary behavior is asserted through observable state, outputs, artifacts, or public protocol effects using real seams or justified deterministic stubs/fakes.
+- [ ] Existing mocks touched by the change were replaced where scope permitted, no new mock expectations or mocking frameworks were added, and unrelated mocks were left alone.
 - [ ] The test skill did not drift into broad Rust implementation guidance covered by `rust-best-practices` unless that code pattern was itself the tested contract.
 
 ## Determinism and hygiene
