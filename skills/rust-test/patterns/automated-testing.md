@@ -210,9 +210,11 @@ integration suite into a second application.
 Use snapshot testing when output is structural, textual, generated, or hard to
 read in `assert_eq!`.
 
+<!-- skill-example: insta-dependencies -->
+
 ```toml
 [dev-dependencies]
-insta = { version = "1", features = ["yaml"] }
+insta = { version = "1", features = ["yaml", "json", "redactions"] }
 ```
 
 ```rust
@@ -228,15 +230,18 @@ fn summary_report_shape_is_stable() {
 ```
 
 Commit snapshots. Review changes as carefully as source code. Redact timestamps,
-random identifiers, host paths, and other unstable fields.
+random identifiers, host paths, and other unstable fields. The JSON example needs
+`json`, and selector-based redactions need `redactions`; enable only the snapshot
+formats and capabilities used by the repository. Put redaction mappings inside
+braces as the third macro argument.
+
+<!-- skill-example: insta-json-redactions -->
 
 ```rust
-insta::assert_json_snapshot!(
-    "jobs/completed",
-    job_payload,
+insta::assert_json_snapshot!("jobs/completed", job_payload, {
     ".finished_at" => "[timestamp]",
-    ".run_id" => "[run-id]"
-);
+    ".run_id" => "[run-id]",
+});
 ```
 
 Do not snapshot tiny primitive logic. `assert_eq!(count, 3)` is clearer than a

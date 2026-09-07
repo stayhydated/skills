@@ -39,12 +39,15 @@ where
 }
 ```
 
-Use `where` clauses when bounds get longer than a single simple trait.
+A `where` clause separates trait constraints from the function signature. This
+example concatenates cloned values in input order; it does not sort or merge them.
+
+<!-- skill-example: concat-cloned -->
 
 ```rust
-fn merge_sorted<T>(left: &[T], right: &[T]) -> Vec<T>
+fn concat_cloned<T>(left: &[T], right: &[T]) -> Vec<T>
 where
-    T: Clone + Ord,
+    T: Clone,
 {
     left.iter().chain(right).cloned().collect()
 }

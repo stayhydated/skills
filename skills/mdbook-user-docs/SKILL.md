@@ -1,6 +1,6 @@
 ---
 name: mdbook-user-docs
-description: Creates and revises en-US user-facing documentation in mdBook projects for products, CLIs, libraries, and APIs. Applies to tutorials, how-to guides, concepts, reference pages, migration guidance, and troubleshooting for end users. Excludes architecture and maintainer-only implementation documentation, which belongs in mdbook-internals.
+description: Creates, revises, and reviews en-US user-facing documentation in mdBook projects for products, CLIs, libraries, and APIs. Applies to tutorials, how-to guides, concepts, reference pages, migration guidance, and troubleshooting for end users. Excludes architecture and maintainer-only implementation documentation, which belongs in mdbook-internals.
 ---
 
 # User-facing mdBook documentation
@@ -8,6 +8,29 @@ description: Creates and revises en-US user-facing documentation in mdBook proje
 ## Goal
 
 Create accurate en-US documentation that helps users complete a task or understand public behavior with minimal cognitive load. Lead with the outcome, verify claims against authoritative sources, and include implementation detail only when it changes a user decision or observable result.
+
+## Request mode and write boundary
+
+Choose the mode before following the workflow:
+
+- **Edit:** create, revise, or apply changes only to the user-authorized chapters
+  and supporting surfaces.
+- **Review:** reviews, audits, checks, and checklist requests report findings and
+  proposed corrections without editing files. Choose Review when edit permission
+  is ambiguous; applying a checklist does not authorize applying its fixes.
+
+Review mode governs every workflow step, template, and supporting checklist.
+Do not create missing chapters, change navigation or configuration, accept
+expectations, or run formatters, generators, builds, or tests that write into the
+checkout. Use non-mutating checks or an isolated temporary copy containing the
+required book, includes, configuration, and validation inputs. Check wrappers and
+preprocessors for absolute paths or external side effects before running them;
+a temporary build destination alone does not make a build read-only. When safe
+isolation is unavailable, report static review rather than run the command.
+Preserve tracked, untracked, and ignored files, including pre-existing user edits.
+
+In Edit mode, make only the requested changes and report required follow-ups
+outside that scope. A prior review is not standing permission to edit.
 
 ## Workflow
 
@@ -85,9 +108,14 @@ Use length and visual density as diagnostics, not quality scores. Review long pa
 
 ### 8. Validate and inspect the final diff
 
+Apply the request mode above to every check. Report a check as successful only
+when it ran successfully; distinguish failed attempts, static review, and checks
+not run. In Review mode, inspect the original checkout for accidental changes.
+
 1. Check `[build].create-missing` before building. It defaults to `true`, so
    `mdbook build` can create missing chapter files listed in `SUMMARY.md`;
-   create or rename the intended files first.
+   in Edit mode, create or rename only authorized files first. In Review mode,
+   report missing chapters and build only in a safely isolated copy.
 2. Build with the repository wrapper or `mdbook build <book-root>`.
 3. Run the repository's Markdown, link, spelling, and style checks.
 4. Run `mdbook test <book-root>` only for testable Rust snippets. Validate other languages with project-native tooling.
@@ -95,7 +123,9 @@ Use length and visual density as diagnostics, not quality scores. Review long pa
 6. Re-read from the user's perspective and remove detail that does not affect action or understanding.
 7. Inspect the final diff for unrelated edits, accidental files, stale links, and unresolved placeholders.
 
-Report the changed chapters, evidence consulted, validation performed, and any checks that could not run.
+Report the selected mode, changed or reviewed chapters, evidence consulted,
+validation performed (including any isolated copy), and checks that failed or
+could not run. Do not describe static review as a successful build or test.
 
 ## Resources
 

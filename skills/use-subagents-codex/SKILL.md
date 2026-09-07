@@ -1,7 +1,7 @@
 ---
 name: use-subagents-codex
 description: Orchestrate one or more Codex subagents for a user-requested task.
-compatibility: Requires Python 3.11+ in a POSIX environment for profile installation, and Codex multi-agent tooling that supports the resolved worker model and reasoning effort.
+compatibility: Requires Python 3.11+ in a POSIX environment with advisory file locking for profile installation, and Codex multi-agent tooling that supports the resolved worker model and reasoning effort.
 ---
 
 # Use Codex Subagents
@@ -46,8 +46,8 @@ The bundle owns one stable custom-agent identity with a bundle-controlled templa
 
 Treat the bundled file as canonical for every field except a user-requested worker model or effort. Render the resolved model and effort into the installed target with [scripts/configure_worker_profile.py](scripts/configure_worker_profile.py); do not hand-edit either TOML. This managed target is intentionally replaced when the template, bundled defaults, or explicit worker settings change. Local customizations belong in a different custom-agent file with a different `name`.
 
-1. Resolve this skill directory and the effective Codex home. The renderer requires Python 3.11+ and POSIX file permissions; use a supported environment for installation rather than claiming native Windows permission guarantees.
-2. Run the renderer with the resolved `--model`, `--reasoning-effort`, and `--dry-run`. It compares the fully rendered profile and required `0600` permissions with the installed target and prints intended changes without writing files or changing permissions.
+1. Resolve this skill directory and the effective Codex home. The renderer requires Python 3.11+, POSIX file permissions, and advisory file locking; use a supported environment for installation rather than claiming native Windows permission guarantees.
+2. Run the renderer with the resolved `--model`, `--reasoning-effort`, and `--dry-run`. It compares the fully rendered profile and required `0600` permissions with the installed target and prints intended profile changes without writing files or changing permissions.
 3. If both content and permissions already match, continue without writing.
 4. If the target is missing, differs, or needs a permission correction, show the dry-run output. Obtain approval through the execution environment before writing outside the workspace, then rerun without `--dry-run`.
 5. Rely on the renderer to create a timestamped backup beside a content-differing target, replace it atomically, and restrict the installed file and backup to the current user. For matching content with incorrect permissions, it repairs permissions without rewriting content or creating a redundant backup.
@@ -58,7 +58,22 @@ The renderer resolves the effective Codex home first. Within that home, `agents`
 
 The renderer pins the opened `agents` directory for file operations and creates backups and temporary files with `0600` permissions before writing content. A failed copy removes its incomplete file; backup creation never overwrites an existing backup. Rendering must produce the requested top-level model and effort without changing other parsed TOML fields. A template that fails that check is rejected before installation.
 
-The renderer changes only the installed custom-agent file and its private backup, never the bundled template. If it creates or updates the installed content during the current session, do not assume the session reloaded it. Prefer the exact-runtime fallback from the next section, or require a fresh session rather than claiming the new definition ran. A permission-only repair does not change the profile content.
+Non-dry-run reconciliation creates or reuses the private sidecar
+`$CODEX_HOME/agents/.use-subagents-codex.lock`. The renderer holds its advisory
+lock while re-reading the target, checking for changes, creating a backup, and
+replacing content or repairing permissions. A competing write fails with an
+already-in-progress error; rerun the dry run after that operation finishes rather
+than bypassing the lock. Dry runs neither create nor acquire the lock and remain
+read-only observations, not reservations for a later install.
+
+Keep the lock file in place: unlinking it could let writers coordinate on
+different inodes. A symlinked, hardlinked, special, or other-user-owned lock is
+rejected for writes. Report that blocker rather than replacing the lock or
+changing a referent. The lock coordinates cooperating renderer invocations; it
+does not protect against unrelated programs that ignore the locking protocol.
+
+The renderer changes only the installed custom-agent file, its private backup,
+and the private coordination lock, never the bundled template. If it creates or updates the installed content during the current session, do not assume the session reloaded it. Prefer the exact-runtime fallback from the next section, or require a fresh session rather than claiming the new definition ran. A permission-only repair does not change the profile content.
 
 ## Select the worker
 

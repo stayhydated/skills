@@ -11,11 +11,14 @@ import secrets
 import stat
 import sys
 import tomllib
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 
 
 PROFILE_NAME = "use-subagents-codex.toml"
+LOCK_NAME = ".use-subagents-codex.lock"
 SKILL_ROOT = Path(__file__).resolve().parent.parent
 TEMPLATE_PATH = SKILL_ROOT / "assets" / PROFILE_NAME
 MODEL_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
@@ -134,6 +137,43 @@ def open_agents_directory(codex_home: Path, *, create: bool) -> int | None:
     return os.open(directory, flags)
 
 
+@contextmanager
+def profile_lock(directory_fd: int) -> Iterator[None]:
+    """Coordinate writers on a stable inode; never unlink the sidecar lock."""
+    import fcntl
+
+    descriptor = os.open(
+        LOCK_NAME, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK,
+        0o600, dir_fd=directory_fd,
+    )
+    try:
+        metadata = os.fstat(descriptor)
+        if (
+            not stat.S_ISREG(metadata.st_mode)
+            or metadata.st_nlink != 1
+            or metadata.st_uid != os.geteuid()
+        ):
+            raise ValueError("profile lock must be a regular file owned by this user with one link")
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise ValueError(
+                "managed profile reconciliation already in progress; retry after it finishes"
+            ) from None
+        current = os.stat(LOCK_NAME, dir_fd=directory_fd, follow_symlinks=False)
+        if (
+            not stat.S_ISREG(current.st_mode)
+            or current.st_nlink != 1
+            or (current.st_dev, current.st_ino) != (metadata.st_dev, metadata.st_ino)
+        ):
+            raise ValueError("profile lock changed during reconciliation")
+        os.fchmod(descriptor, 0o600)
+        yield
+    finally:
+        # Closing releases the lock even when reconciliation raises an error.
+        os.close(descriptor)
+
+
 def read_target(directory_fd: int | None) -> tuple[str, os.stat_result | None]:
     if directory_fd is None:
         return "", None
@@ -220,6 +260,43 @@ def profile_fingerprint(value: os.stat_result | None) -> tuple[int, ...] | None:
     )
 
 
+def reconcile_profile(
+    target: Path, desired: str, directory_fd: int | None, *, dry_run: bool
+) -> int:
+    """Re-read and reconcile the profile while the caller holds the write lock."""
+    current, metadata = read_target(directory_fd)
+    if current == desired and metadata is not None:
+        current_mode = stat.S_IMODE(metadata.st_mode)
+        if current_mode != 0o600:
+            print(f"permissions: {target}: {current_mode:04o} -> 0600")
+            if dry_run:
+                print(f"dry-run: no changes written to {target}")
+            else:
+                assert directory_fd is not None
+                repair_permissions(directory_fd, metadata)
+                print(f"permissions updated: {target}")
+        else:
+            print(f"unchanged: {target}")
+        return 0
+
+    show_diff(target, current, desired)
+    if dry_run:
+        print(f"dry-run: no changes written to {target}")
+        return 0
+
+    assert directory_fd is not None
+    latest, latest_metadata = read_target(directory_fd)
+    if latest != current or profile_fingerprint(latest_metadata) != profile_fingerprint(metadata):
+        raise ValueError("managed profile changed during reconciliation; rerun the dry run")
+    backup = backup_target(target, current, directory_fd) if metadata is not None else None
+    atomic_write(target, desired, directory_fd)
+    if backup is not None:
+        print(f"backup: {backup}")
+    print(f"updated: {target}")
+    return 0
+
+
+
 def main() -> int:
     args = parse_args()
     template, defaults = load_template()
@@ -238,38 +315,15 @@ def main() -> int:
     target = codex_home / "agents" / PROFILE_NAME
     directory_fd = open_agents_directory(codex_home, create=False)
     try:
-        current, metadata = read_target(directory_fd)
-        if current == desired and metadata is not None:
-            current_mode = stat.S_IMODE(metadata.st_mode)
-            if current_mode != 0o600:
-                print(f"permissions: {target}: {current_mode:04o} -> 0600")
-                if args.dry_run:
-                    print(f"dry-run: no changes written to {target}")
-                else:
-                    assert directory_fd is not None
-                    repair_permissions(directory_fd, metadata)
-                    print(f"permissions updated: {target}")
-            else:
-                print(f"unchanged: {target}")
-            return 0
-
-        show_diff(target, current, desired)
         if args.dry_run:
-            print(f"dry-run: no changes written to {target}")
-            return 0
-
+            return reconcile_profile(target, desired, directory_fd, dry_run=True)
+        # Reject unsafe target layouts before creating any coordination files.
+        read_target(directory_fd)
         if directory_fd is None:
             directory_fd = open_agents_directory(codex_home, create=True)
         assert directory_fd is not None
-        latest, latest_metadata = read_target(directory_fd)
-        if latest != current or profile_fingerprint(latest_metadata) != profile_fingerprint(metadata):
-            raise ValueError("managed profile changed during reconciliation; rerun the dry run")
-        backup = backup_target(target, current, directory_fd) if metadata is not None else None
-        atomic_write(target, desired, directory_fd)
-        if backup is not None:
-            print(f"backup: {backup}")
-        print(f"updated: {target}")
-        return 0
+        with profile_lock(directory_fd):
+            return reconcile_profile(target, desired, directory_fd, dry_run=False)
     finally:
         if directory_fd is not None:
             os.close(directory_fd)

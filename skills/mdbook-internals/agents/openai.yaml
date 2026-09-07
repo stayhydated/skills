@@ -1,4 +1,4 @@
 interface:
   display_name: "mdBook Internals"
   short_description: "Document mdBook architecture and system internals"
-  default_prompt: "Use $mdbook-internals to create or revise maintainer-facing mdBook documentation grounded in implementation, tests, schemas, and authoritative design sources."
+  default_prompt: "Use $mdbook-internals to create, revise, or review maintainer-facing mdBook documentation grounded in implementation, tests, schemas, and authoritative design sources. Keep reviews read-only."
