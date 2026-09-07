@@ -1,6 +1,6 @@
 ---
 name: mdbook-internals
-description: Creates and revises en-US maintainer-facing mdBook documentation for architecture, components, control and data flows, invariants, failure modes, operations, extension points, contributor workflows, and design decisions. Applies when readers need verified implementation context to modify, debug, operate, or review a system. Excludes end-user task documentation, which belongs in mdbook-user-docs.
+description: Creates, revises, and reviews en-US maintainer-facing mdBook documentation for architecture, components, control and data flows, invariants, failure modes, operations, extension points, contributor workflows, and design decisions. Applies when readers need verified implementation context to modify, debug, operate, or review a system. Excludes end-user task documentation, which belongs in mdbook-user-docs.
 ---
 
 # Internal mdBook documentation
@@ -8,6 +8,29 @@ description: Creates and revises en-US maintainer-facing mdBook documentation fo
 ## Goal
 
 Give maintainers enough verified context to change, debug, operate, or review a system safely. Explain boundaries, contracts, invariants, flows, failure behavior, and rationale without turning the book into a prose copy of the repository.
+
+## Request mode and write boundary
+
+Choose the mode before following the workflow:
+
+- **Edit:** create, revise, or apply changes only to the user-authorized chapters
+  and supporting surfaces.
+- **Review:** reviews, audits, checks, and checklist requests report findings and
+  proposed corrections without editing files. Choose Review when edit permission
+  is ambiguous; applying a checklist does not authorize applying its fixes.
+
+Review mode governs every workflow step, template, and supporting checklist.
+Do not create missing chapters, change navigation or configuration, accept
+expectations, or run formatters, generators, builds, or tests that write into the
+checkout. Use non-mutating checks or an isolated temporary copy containing the
+required book, includes, configuration, and validation inputs. Check wrappers and
+preprocessors for absolute paths or external side effects before running them;
+a temporary build destination alone does not make a build read-only. When safe
+isolation is unavailable, report static review rather than run the command.
+Preserve tracked, untracked, and ignored files, including pre-existing user edits.
+
+In Edit mode, make only the requested changes and report required follow-ups
+outside that scope. A prior review is not standing permission to edit.
 
 ## Workflow
 
@@ -96,10 +119,15 @@ Read [references/architecture-patterns.md](references/architecture-patterns.md) 
 
 ### 8. Validate against both source and renderer
 
+Apply the request mode above to every check. Report a check as successful only
+when it ran successfully; distinguish failed attempts, static review, and checks
+not run. In Review mode, inspect the original checkout for accidental changes.
+
 1. Re-check every material contract, invariant, state, and failure claim against the cited implementation evidence.
 2. Check `[build].create-missing` before building. It defaults to `true`, so
    `mdbook build` can create missing chapter files listed in `SUMMARY.md`;
-   create or rename the intended files first.
+   in Edit mode, create or rename only authorized files first. In Review mode,
+   report missing chapters and build only in a safely isolated copy.
 3. Build with the repository wrapper or `mdbook build <book-root>`.
 4. Run repository Markdown, link, spelling, style, schema, and documentation checks.
 5. Run `mdbook test <book-root>` for testable Rust snippets and project-native tests for other languages or schemas.
@@ -107,7 +135,9 @@ Read [references/architecture-patterns.md](references/architecture-patterns.md) 
 7. Review for mixed abstraction levels, stale line references, accidental promises, undocumented failure paths, and unresolved placeholders.
 8. Inspect the final diff for unrelated edits or files created as a build side effect.
 
-Report the changed chapters, evidence consulted, validation performed, and any checks that could not run.
+Report the selected mode, changed or reviewed chapters, evidence consulted,
+validation performed (including any isolated copy), and checks that failed or
+could not run. Do not describe static review as a successful build or test.
 
 ## Resources
 

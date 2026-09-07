@@ -1,4 +1,4 @@
 interface:
   display_name: "mdBook User Docs"
   short_description: "Write task-focused user documentation for mdBook"
-  default_prompt: "Use $mdbook-user-docs to create or revise accurate, task-focused user documentation in an mdBook project."
+  default_prompt: "Use $mdbook-user-docs to create, revise, or review accurate, task-focused user documentation in an mdBook project. Keep reviews read-only."

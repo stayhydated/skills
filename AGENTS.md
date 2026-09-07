@@ -20,7 +20,8 @@ Start here:
 - `scripts/check_skills.py` validates every skill bundle against the Agent Skills
   contract and this repository's required OpenAI display metadata shape.
 - `scripts/test_skills.py` tests skill validation and worker-profile installation;
-  `scripts/skill-behavior-cases.md` defines separate agent-evaluation scenarios.
+  `scripts/test_skill_regressions.py` covers concurrent installation and marked
+  Rust examples. `scripts/skill-behavior-cases.md` defines separate agent evaluations.
 - `xtask/src/main.rs` owns the Rust-stable sync command used by
   `.github/workflows/check-rust-stable.yml`.
 
@@ -89,8 +90,8 @@ Start here:
   Sync: keep `SKILL.md`, `assets/use-subagents-codex.toml`,
   `scripts/configure_worker_profile.py`, and `agents/openai.yaml` aligned when
   orchestration behavior, worker settings, installation requirements, or visible
-  metadata changes. Cover renderer changes in `scripts/test_skills.py` at the
-  repository root.
+  metadata changes. Cover renderer changes in `scripts/test_skills.py` and
+  `scripts/test_skill_regressions.py` at the repository root.
 
 - `skills/use-windows-vm-computer-use-codex/`
   Role: SSH-orchestrated, VM-local Codex computer-use in interactive Windows
@@ -116,6 +117,12 @@ Start here:
   Sync: keep tests aligned with validator and renderer contracts. The
   `WorkerProfileTests` subset runs without third-party Python packages; the full
   suite runs through `just check-skills` and the CI `skills` job.
+
+- `scripts/test_skill_regressions.py`
+  Role: deterministic installer contention tests and tests extracted from marked
+  Markdown examples. Python-only checks run through `just check-skills`; Rust
+  compilation and snapshot checks use `just check-skill-examples` in a temporary
+  crate. Keep markers, source examples, runner recipes, and CI jobs aligned.
 
 - `scripts/skill-behavior-cases.md`
   Role: agent-evaluation scenarios for reporting modes, validation claims,
@@ -148,6 +155,9 @@ Start here:
 - Use `just check-skills` after changing a skill's `SKILL.md`, bundled resources,
   `agents/openai.yaml`, or skill-validation tooling. It runs both contract
   validation and tooling regression tests.
+- Use `just check-skill-examples` after changing marked Rust examples or their
+  fixture harness. It requires Cargo and resolves the documented dependencies
+  in a temporary crate without changing the workspace lockfile or snapshots.
 - Use `just ci` for the full local suite when a change spans skill text, Rust
   tooling, manifests, and CI wiring.
 - For local Rust-stable sync checks, run
