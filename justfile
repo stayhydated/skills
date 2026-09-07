@@ -20,6 +20,7 @@ test:
 
 check-skills:
     uv run --script scripts/check_skills.py
+    uv run --script scripts/test_skills.py -v
 
 cov:
     cargo llvm-cov --workspace --all-features --all-targets

@@ -20,8 +20,10 @@ from skills_ref import validate as validate_agent_skill
 REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
 SKILLS_ROOT = REPOSITORY_ROOT / "skills"
 MAX_SKILL_LINES = 500
+MAX_COMPATIBILITY_LENGTH = 500
 ALLOWED_SKILL_FIELDS = {
     "allowed-tools",
+    "compatibility",
     "description",
     "license",
     "metadata",
@@ -112,6 +114,18 @@ def validate_skill_shape(skill_dir: Path) -> list[str]:
     for field in ("license", "allowed-tools"):
         if field in frontmatter and not isinstance(frontmatter[field], str):
             errors.append(f"{skill_path}: frontmatter field {field!r} must be a string")
+
+    if "compatibility" in frontmatter:
+        compatibility = frontmatter["compatibility"]
+        if not isinstance(compatibility, str) or not compatibility.strip():
+            errors.append(
+                f"{skill_path}: frontmatter field 'compatibility' must be a non-empty string"
+            )
+        elif len(compatibility) > MAX_COMPATIBILITY_LENGTH:
+            errors.append(
+                f"{skill_path}: compatibility must contain 1-{MAX_COMPATIBILITY_LENGTH} "
+                f"characters (found {len(compatibility)})"
+            )
 
     metadata = frontmatter.get("metadata")
     if metadata is not None:

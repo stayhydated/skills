@@ -25,6 +25,9 @@ jobs:
       - name: Validate Agent Skills contracts
         run: uv run --script scripts/check_skills.py
 
+      - name: Test skill tooling
+        run: uv run --script scripts/test_skills.py -v
+
   test:
     name: test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
