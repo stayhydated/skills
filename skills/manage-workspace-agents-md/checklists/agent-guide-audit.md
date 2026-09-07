@@ -1,11 +1,12 @@
 # Agent guidance audit checklist
 
-Use this checklist before finalizing a generated or patched `AGENTS.md` guide, running an alignment review, or reviewing guide quality.
+Use this checklist before finalizing a generated or patched `AGENTS.md` guide, running an alignment review, or reviewing guide quality. Checklist results are read-only unless the user separately authorizes edits.
 
 ## Mode and output boundary
 
 - [ ] The handoff states the selected mode: Draft, Patch, Audit, Alignment, or Checklist.
 - [ ] The selected mode is the smallest useful mode for the request.
+- [ ] Audit, Alignment, and Checklist report proposed changes without editing files or running fix commands.
 - [ ] Generated or patched guidance does not copy the skill procedure, templates, pattern files, or checklist wholesale.
 - [ ] Pattern examples were replaced with repository-specific guidance or omitted.
 - [ ] Patch mode, including refactors, preserves existing repository facts and local style unless the structure itself is defective.
@@ -55,13 +56,14 @@ Use this checklist before finalizing a generated or patched `AGENTS.md` guide, r
   editing procedure.
 - [ ] Existing entries that only describe lockfile synchronization, dependency
   automation schedules/groups/labels, or ordinary dependency metadata routing
-  were removed or shortened to a higher-value rule.
-- [ ] Placeholder names, copied template paths, and unchecked links are removed.
+  were removed or shortened in Patch mode, or flagged in reporting modes.
+- [ ] Placeholder names, copied template paths, and unchecked links are removed from proposed output; repository edits remain subject to the selected mode.
 
 ## Synchronization and public contracts
 
+- [ ] Documentation audience is established from purpose and readers, not from a README filename or mdBook renderer.
 - [ ] Public workflow changes name the docs, examples, API references, generated outputs, fixtures, or `AGENTS.md` guidance that must sync.
-- [ ] Internal implementation changes are not routed to standalone narrative docs; source-of-truth expectations stay in code, tests, examples, fixtures, schemas, generated-source inputs, and existing `AGENTS.md` guidance.
+- [ ] Internal implementation changes route first to their source evidence; existing maintainer books and design records remain synchronization targets when they describe the changed contract, without requiring new narrative docs for every change.
 - [ ] Generated output changes route to generators, schemas, inventories, templates, snapshots, fixtures, and docs.
 - [ ] Evidence-backed high-risk or restricted edit surfaces are named with short mechanical boundaries.
 - [ ] The guide uses “when X changes, update Y” rather than vague “keep docs updated.”
@@ -69,9 +71,10 @@ Use this checklist before finalizing a generated or patched `AGENTS.md` guide, r
 
 ## Tests and validation
 
-- [ ] Validation rules require the narrowest proving command.
-- [ ] The guide does not claim validation when checks were not run.
-- [ ] Handoff wording distinguishes `Validated with`, `Reviewed only`, and `Not validated`.
+- [ ] Validation rules require the narrowest proving command and respect the selected mode's write boundary.
+- [ ] The guide does not claim successful validation when checks were not run or failed.
+- [ ] Handoff wording distinguishes `Validated with`, `Attempted validation with`, `Reviewed only`, and `Not validated`.
+- [ ] Failed checks include their failure summary and relationship to the change.
 - [ ] Snapshot, compile-fail, schema, generated-output, or type-level test guidance appears only when configured, repo-standardized, or explicitly requested.
 - [ ] Broad full-workspace validation is not the default unless it is the smallest reliable proof.
 

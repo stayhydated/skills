@@ -1,6 +1,6 @@
 # Evidence and scope patterns
 
-These patterns govern repository claims. Use them as source material; do not paste this file wholesale into a generated guide.
+These patterns govern repository claims. Use them as source material; do not paste this file wholesale into a generated guide. Audit, Alignment, and Checklist remain read-only under the mode contract in `SKILL.md`; proposed removals and corrections are findings, not permission to edit.
 
 ## Contents
 
@@ -41,11 +41,11 @@ Inspect the `AGENTS.md` guide and enough repository evidence to verify or challe
 
 ### Alignment
 
-Compare the guide against CI, runner files, manifests, lockfiles, README/contributor docs, generated-output sources, examples, tests, and scoped `AGENTS.md` guidance.
+Compare the guide against CI, runner files, manifests, lockfiles, README/contributor docs, generated-output sources, examples, tests, and scoped `AGENTS.md` guidance. Report drift without applying corrections.
 
 ### Checklist
 
-Inspect the `AGENTS.md` guide and every file needed for checked items. Mark unsupported items `Not checked` instead of guessing.
+Inspect the `AGENTS.md` guide and every file needed for checked items. Mark unsupported items `Not checked` instead of guessing. Report failures without applying corrections.
 
 ## Repository inspection playbook
 
@@ -65,7 +65,7 @@ For repository-specific work:
 8. Draft sync rules only for surfaces that exist.
 9. Final-check every command and path used in the output.
 
-Use manifests, lockfiles, dependency automation config, runner files, and CI as evidence for workspace shape, package manager, dependency tooling, commands, and validation. Do not list generic root manifests, lockfiles, dependency metadata, dependency automation config, package-manager config, runner files, or workflow YAML as workspace-map entries merely because they exist or own configuration. Include them only when repository guidance or docs define a non-obvious editing procedure for that exact surface that agents must follow during ordinary work. In Patch, Alignment, and Checklist modes, remove existing entries that only say to keep lockfiles aligned, update dependency automation schedules/groups/labels, or route ordinary dependency metadata edits.
+Use manifests, lockfiles, dependency automation config, runner files, and CI as evidence for workspace shape, package manager, dependency tooling, commands, and validation. Do not list generic root manifests, lockfiles, dependency metadata, dependency automation config, package-manager config, runner files, or workflow YAML as workspace-map entries merely because they exist or own configuration. Include them only when repository guidance or docs define a non-obvious editing procedure for that exact surface that agents must follow during ordinary work. In Patch mode, remove existing entries that only say to keep lockfiles aligned, update dependency automation schedules/groups/labels, or route ordinary dependency metadata edits. In Audit, Alignment, and Checklist modes, flag those entries for removal without changing files.
 
 Use `.gitignore` as exclusion evidence, not as an inventory to repeat in `AGENTS.md`. Ignored build outputs, cache directories, dependency caches, and tool output directories are not source surfaces by default; name them only when another repository-owned workflow makes the path relevant to editing, synchronization, cleanup, or validation.
 
@@ -79,7 +79,7 @@ When comparing guidance against repository truth, check:
 | Package manager | Manifests, lockfiles, install docs, package-manager config, and CI setup. |
 | Workspace members | Workspace config, package metadata, manifests, and directory layout. |
 | Public entry points | README files, package/crate metadata, examples, docs, exported APIs, and facade modules. |
-| Documentation sync rules | README, books, public site docs, API docs, examples, tutorials, generated outputs, fixtures, and `AGENTS.md`. |
+| Documentation sync rules | User and maintainer docs, README, books, public site docs, API docs, examples, tutorials, generated outputs, fixtures, and `AGENTS.md`, classified by actual audience. |
 | Generated outputs | Generators, schemas, registries, templates, checked-in generated files, snapshots, and fixtures. |
 | Testing guidance | Test directories, snapshot files, UI-test harnesses, runner files, package scripts, and CI jobs. |
 | Scoped guidance | Nested `AGENTS.md` guidance. |

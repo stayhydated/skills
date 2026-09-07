@@ -1,6 +1,6 @@
 # Agent guide layout patterns
 
-These patterns are source material, not default output. Before using any bullet or section in a generated guide, replace it with repository-specific guidance or omit it. Fenced examples are illustrative only; do not copy them without replacing every path, command, surface, and sync rule with repository evidence.
+These patterns are source material, not default output. Before using any bullet or section in a generated guide, replace it with repository-specific guidance or omit it. Fenced examples are illustrative only; do not copy them without replacing every path, command, surface, and sync rule with repository evidence. Removal and synchronization rules describe authorized edits; in Audit, Alignment, and Checklist modes, report findings without changing files.
 
 ## Contents
 
@@ -55,9 +55,10 @@ Prefer concise root guidance unless repository complexity clearly justifies more
 - Manifests, lockfiles, dependency automation config, package-manager config,
   runner files, and CI files: use as evidence; omit from the guide unless an
   exact file has a documented, non-obvious editing procedure that agents must
-  follow during ordinary work. In existing guides, remove entries that only say
+  follow during ordinary work. In Patch mode, remove entries that only say
   to keep lockfiles aligned, update dependency automation schedules/groups, or
-  route ordinary dependency metadata edits.
+  route ordinary dependency metadata edits. In reporting modes, flag them
+  without applying removals.
 - Long procedures: move to nested `AGENTS.md` or docs.
 - Target-platform limits: when an evidenced agent runtime has an instruction size or truncation limit, keep the applicable root and nested guidance below that limit or split local procedures closer to the files they govern.
 
@@ -86,9 +87,9 @@ Use a decision flow near the top because it helps agents route changes before ed
 Before editing, classify the change:
 
 1. **Find the surface in the workspace map.** Use its audience label to decide how much public explanation the change needs.
-2. **Place documentation by content, not by crate or package audience.** User-facing workflows belong in READMEs, examples, books, public site docs, or API docs when those surfaces exist. Implementation rationale should stay close to the code, tests, fixtures, schemas, generator inputs, or examples that prove the behavior. Do not create separate narrative documentation as a required synchronization target.
+2. **Place documentation by content and audience.** User-facing workflows belong in the existing user guides, examples, books, public site docs, or API docs. Implementation rationale should stay close to the code, tests, fixtures, schemas, generator inputs, or examples that prove the behavior. Preserve existing maintainer books and design records and update them when they document the changed contract; do not require new narrative documents for every internal change.
 3. **Follow repository standards, not ecosystem defaults.** Use the package manager, runner, generated-output flow, and test style evidenced by this repository.
-4. **Sync public workflow changes.** If behavior, commands, generated output, feature flags, API shape, or recommended usage changes, update the relevant example, README, book page, public docs, and existing `AGENTS.md` guidance in the same change when applicable.
+4. **Sync documented workflow changes.** If behavior, commands, generated output, feature flags, API shape, or recommended usage changes, update the relevant examples, user or maintainer docs, and existing `AGENTS.md` guidance in the same change when applicable.
 5. **Validate narrowly.** Run the smallest evidenced command that proves the edited behavior or documentation surface is still sound.
 ```
 
@@ -116,9 +117,10 @@ Treat these as public contracts when present: CLI flags and output, configuratio
 
 Include these rules only when the repository has the named surfaces:
 
-- Treat root `README.md`, crate/package READMEs, example READMEs, books, public site docs, tutorials, and public API docs as user-facing.
+- Determine a document's audience from its stated purpose, readers, and repository usage, not its filename or rendering system. READMEs and books may be user-facing, maintainer-facing, or mixed; classify mixed books by chapter when needed.
 - Keep user-facing docs example-first. Prefer runnable commands or tested snippets over prose-only descriptions.
 - Keep implementation details, subsystem boundaries, data flow, generated-output mechanics, and maintenance-only procedures close to the code, tests, fixtures, schemas, generator inputs, or comments that prove the behavior.
+- Preserve existing maintainer documentation, architecture books, and design records. Route their updates by the contracts and workflows they document, without imposing end-user writing constraints or requiring new narrative docs for every implementation change.
 
 ## Synchronization rules
 
@@ -136,16 +138,16 @@ When a substantive change modifies a public workflow, public feature, generated 
 1. Update the owning implementation.
 2. Update the canonical executable example when relevant.
 3. Update affected user-facing README files.
-4. Update matching book, public site, tutorial, API reference, or example README pages when they exist.
+4. Update matching user or maintainer book, public site, tutorial, API reference, or example README pages when they exist and describe the changed contract.
 5. Update relevant root or nested `AGENTS.md` guidance when it already names the changed workflow or boundary.
-6. Update code comments, tests, fixtures, schemas, generator inputs, examples, or existing `AGENTS.md` guidance when it already encodes the changed boundary, data flow, generated output, or internal behavior.
+6. Update code comments, tests, fixtures, schemas, generator inputs, examples, existing maintainer documentation, or `AGENTS.md` guidance when they already encode the changed boundary, data flow, generated output, or internal behavior.
 7. Keep these surfaces aligned in the same change unless there is a documented reason not to.
 ```
 
 For generated output:
 
 - Prefer changing the source generator, schema, inventory, metadata, template, or registry over hand-editing generated output.
-- Keep generator tests, snapshots, golden files, fixtures, and user-facing docs aligned.
+- Keep generator tests, snapshots, golden files, fixtures, and relevant user or maintainer docs aligned.
 - State exact regeneration commands only after confirming they exist.
 - Do not create a standalone generated or ignored-output section,
   workspace-map entry, or validation/editing rule merely to restate
@@ -165,7 +167,7 @@ Do not add broad safety language that does not help an agent route edits in this
 
 ## Workspace map pattern
 
-The workspace map is the highest-value part of the file. Keep it accurate and terse. Map owned editing surfaces, not every important file. Exclude routine manifests, lockfiles, dependency automation config, package-manager config, runner files, and CI files unless the repository documents a non-obvious editing procedure for that exact file. Remove existing workspace-map entries for these files when they only describe standard dependency metadata, lockfile synchronization, update schedules, grouping, labels, or ordinary CI/dependency routing.
+The workspace map is the highest-value part of the file. Keep it accurate and terse. Map owned editing surfaces, not every important file. Exclude routine manifests, lockfiles, dependency automation config, package-manager config, runner files, and CI files unless the repository documents a non-obvious editing procedure for that exact file. In Patch mode, remove existing workspace-map entries for these files when they only describe standard dependency metadata, lockfile synchronization, update schedules, grouping, labels, or ordinary CI/dependency routing. In reporting modes, recommend the removal without changing files.
 
 <!-- EXAMPLE ONLY: use real repository paths and omit sections that do not apply. -->
 
