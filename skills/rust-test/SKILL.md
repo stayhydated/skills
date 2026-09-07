@@ -129,7 +129,9 @@ For substantive work, declare the mode before the main response:
 
 For brief explanations or command recommendations that do not patch or audit files, keep the response concise while preserving evidence and validation boundaries.
 
-When ambiguous, choose Audit for existing tests and Strategy for a planned change. Choose Patch only when the user asked for edits or the required change is obvious.
+When ambiguous, choose Audit for existing tests and Strategy for a planned change. Choose Patch only when the user authorizes edits. Audit, Strategy, and Checklist are read-only: an obvious correction is a finding, not permission to apply it.
+
+In read-only modes, propose fixes without modifying tests, fixtures, snapshots, goldens, diagnostics, or other repository files. Do not run formatters, generators, or expectation-acceptance commands that mutate the checkout. Use non-mutating checks or an isolated temporary copy when validation would write outputs. This boundary governs every supporting pattern and checklist, including mock replacement and expectation updates. In Patch mode, change only the authorized surfaces and preserve unrelated user edits.
 
 ### Audit severities
 

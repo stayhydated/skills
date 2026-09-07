@@ -2,6 +2,7 @@
 # /// script
 # requires-python = ">=3.11"
 # dependencies = [
+#   "PyYAML==6.0.3",
 #   "skills-ref @ git+https://github.com/agentskills/agentskills.git@38a2ff82958afee88dadf4831509e6f7e9d8ef4e#subdirectory=skills-ref",
 # ]
 # ///
@@ -14,8 +15,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-import strictyaml
-from skills_ref import validate as validate_agent_skill
+import yaml
 
 REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
 SKILLS_ROOT = REPOSITORY_ROOT / "skills"
@@ -57,7 +57,15 @@ REQUIRED_INTERFACE_FIELDS = {
 ALLOWED_OPENAI_FIELDS = {"dependencies", "interface", "policy"}
 
 
+def validate_agent_skill(skill_dir: Path) -> list[str]:
+    from skills_ref import validate
+
+    return validate(skill_dir)
+
+
 def load_yaml_mapping(path: Path, content: str) -> tuple[dict[str, Any] | None, list[str]]:
+    import strictyaml
+
     try:
         value = strictyaml.load(content).data
     except strictyaml.YAMLError as error:
@@ -161,15 +169,112 @@ def validate_skill_shape(skill_dir: Path) -> list[str]:
     return errors
 
 
+class OpenAIMetadataLoader(yaml.SafeLoader):
+    """Preserve YAML scalar types and reject ambiguous duplicate/non-string keys."""
+
+    def construct_mapping(self, node: yaml.MappingNode, deep: bool = False) -> dict[str, Any]:
+        result: dict[str, Any] = {}
+        for key_node, value_node in node.value:
+            key = self.construct_object(key_node, deep=deep)
+            if not isinstance(key, str) or key in result:
+                raise yaml.constructor.ConstructorError(
+                    "while reading metadata", node.start_mark,
+                    "mapping keys must be unique strings", key_node.start_mark,
+                )
+            result[key] = self.construct_object(value_node, deep=deep)
+        return result
+
+
+# Match the runtime's canonical boolean spelling, not YAML 1.1's yes/on aliases.
+OpenAIMetadataLoader.yaml_implicit_resolvers = {
+    key: [(tag, pattern) for tag, pattern in resolvers if tag != "tag:yaml.org,2002:bool"]
+    for key, resolvers in yaml.SafeLoader.yaml_implicit_resolvers.items()
+}
+OpenAIMetadataLoader.add_implicit_resolver(
+    "tag:yaml.org,2002:bool", re.compile(r"^(?:true|false)$"), ["t", "f"]
+)
+
+
+def load_openai_mapping(path: Path, content: str) -> tuple[dict[str, Any] | None, list[str]]:
+    try:
+        document = yaml.load(content, Loader=OpenAIMetadataLoader)
+    except yaml.YAMLError as error:
+        return None, [f"{path}: invalid YAML: {error}"]
+    if not isinstance(document, dict):
+        return None, [f"{path}: YAML document must be a mapping"]
+    return document, []
+
+
+def validate_openai_nested_metadata(path: Path, document: dict[str, Any]) -> list[str]:
+    # Supported fields: OpenAI skill-creator/references/openai_yaml.md and
+    # https://developers.openai.com/plugins/deploy/submission-errors
+    errors: list[str] = []
+    if "policy" in document:
+        policy = document["policy"]
+        if not isinstance(policy, dict):
+            errors.append(f"{path}: 'policy' must be a mapping")
+        else:
+            unknown = set(policy) - {"allow_implicit_invocation", "products"}
+            if unknown:
+                errors.append(f"{path}: unsupported policy fields: {', '.join(sorted(unknown))}")
+            if "allow_implicit_invocation" in policy and not isinstance(
+                policy["allow_implicit_invocation"], bool
+            ):
+                errors.append(f"{path}: policy.allow_implicit_invocation must be a boolean")
+            if "products" in policy:
+                products = policy["products"]
+                if not isinstance(products, list) or not products or not all(
+                    isinstance(product, str) and product in {"CHAT", "CODEX"}
+                    for product in products
+                ):
+                    errors.append(f"{path}: policy.products must list CHAT, CODEX, or both")
+
+    if "dependencies" not in document:
+        return errors
+    dependencies = document["dependencies"]
+    if not isinstance(dependencies, dict):
+        errors.append(f"{path}: 'dependencies' must be a mapping")
+        return errors
+    unknown = set(dependencies) - {"tools"}
+    if unknown:
+        errors.append(f"{path}: unsupported dependencies fields: {', '.join(sorted(unknown))}")
+    if "tools" not in dependencies:
+        return errors
+    tools = dependencies["tools"]
+    if not isinstance(tools, list):
+        errors.append(f"{path}: dependencies.tools must be a list")
+        return errors
+    allowed = {"type", "value", "description", "transport", "url"}
+    for index, tool in enumerate(tools):
+        label = f"{path}: dependencies.tools[{index}]"
+        if not isinstance(tool, dict):
+            errors.append(f"{label} must be a mapping")
+            continue
+        unknown = set(tool) - allowed
+        if unknown:
+            errors.append(f"{label}: unsupported fields: {', '.join(sorted(unknown))}")
+        for field in ("type", "value"):
+            if field not in tool:
+                errors.append(f"{label}: missing required field {field!r}")
+        for field in allowed & set(tool):
+            if not isinstance(tool[field], str) or not tool[field].strip():
+                errors.append(f"{label}: {field!r} must be a non-empty string")
+        if "type" in tool and tool["type"] != "mcp":
+            errors.append(f"{label}: only dependency type 'mcp' is supported")
+    return errors
+
+
 def validate_openai_metadata(skill_dir: Path) -> list[str]:
     metadata_path = skill_dir / "agents" / "openai.yaml"
     if not metadata_path.is_file():
         return [f"{metadata_path}: required repository UI metadata is missing"]
 
     content = metadata_path.read_text(encoding="utf-8")
-    document, errors = load_yaml_mapping(metadata_path, content)
+    document, errors = load_openai_mapping(metadata_path, content)
     if document is None:
         return errors
+
+    errors.extend(validate_openai_nested_metadata(metadata_path, document))
 
     unexpected_fields = set(document) - ALLOWED_OPENAI_FIELDS
     if unexpected_fields:
