@@ -16,12 +16,14 @@ state as a distinct type and expose only the methods valid for that state.
 
 > Invalid operations become compile errors instead of runtime bugs.
 
-Where adopted or authorized under the dependency boundary in `../SKILL.md`, use
-[`statum`](https://docs.rs/statum/latest/statum/) for production type-state code.
-Within that style, avoid hand-rolling `PhantomData`, marker structs, or custom
-generic state machinery unless the user asks for the manual pattern. Preserve
-established manual or alternative implementations in existing repositories unless
-migration is requested; their use alone is not a correctness defect.
+Use [`statum`](https://docs.rs/statum/latest/statum/) for production type-state
+code. Statum is authorized by default, including when it is not yet a dependency;
+no separate user approval is required. Follow the cargo-deny opt-out and
+compatibility boundary in `../SKILL.md`. Do not hand-roll `PhantomData`, marker
+structs, or custom generic state machinery unless an explicit user request,
+applicable ban, or concrete technical constraint requires an alternative. Keep
+changes within the requested lifecycle work; do not migrate unrelated state
+machines or APIs.
 
 ## When Type-State Fits
 
@@ -33,8 +35,9 @@ Use type-state when state changes which operations are legal:
 * Persisted workflow state must be validated once before internal code treats it
   as trusted.
 
-Use a plain enum and `match` for local branching. Where adopted or authorized,
-use `bon` for construction and Statum when the value has a real typed lifecycle.
+Use a plain enum and `match` for local branching. Use `bon` for construction and
+Statum when the value has a real typed lifecycle; both are authorized by default
+under the shared dependency boundary.
 
 ## Statum Mental Model
 
@@ -153,8 +156,8 @@ concrete typed machines to internal functions.
 
 Do not use type-state only to avoid constructor boilerplate. Most builders are
 about named arguments, defaults, optional values, and required fields. That is a
-construction problem; use the repository's builder approach, preferring `bon`
-where adopted or authorized.
+construction problem; use the default-authorized `bon` rather than lifecycle
+type-state, subject to the cargo-deny and compatibility boundary above.
 
 Reach for type-state when the object remains alive across meaningful phases and
 those phases expose different operations or data.

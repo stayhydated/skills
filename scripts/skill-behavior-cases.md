@@ -101,15 +101,52 @@ Controls: invoke `$mdbook-internals` and `$mdbook-user-docs` separately for thei
 respective chapters. Each must choose the appropriate book and source directory,
 preserve the other book, and use the corresponding audience-specific guidance.
 
-## House style does not cause incidental dependency migration
+## Bon and Statum are authorized by default
+
+Fixture: a Rust crate with a compatible toolchain and no Bon or Statum dependency.
+Include an unrelated constructor and state machine to detect scope expansion.
+Run each prompt independently without asking for dependency approval:
+
+- `Use $rust-best-practices to implement a builder for this configuration with required fields and optional defaults.`
+- `Use $rust-best-practices to implement this typed lifecycle with preparation, authorization, and completion states.`
+
+Expected: Bon for the builder and Statum for the lifecycle, with compatible
+manifest/lockfile updates and targeted validation. The agent must not request
+separate approval or refuse either dependency because it is absent, the crate
+was dependency-free, or nearby implementations are manual. Unrelated constructors
+and state machines remain unchanged.
+
+Repeat with no cargo-deny configuration and with an existing configuration that
+does not ban the selected dependency. Both should proceed without an approval
+prompt; neither should install cargo-deny or invent a dependency ban.
+
+Negative control: repeat with the applicable cargo-deny configuration containing:
+
+```toml
+[bans]
+deny = ["bon", "statum"]
+```
+
+Expected: identify the actual config path and matching ban, use a permitted
+alternative, and leave the ban unchanged. Repeat with the config selected through
+a non-default path by repository tooling and with version-specific bans to check
+that the effective rule, not merely a default filename, controls the decision.
+
+Further controls: an explicit user request for a manual implementation is honored;
+a concrete MSRV or target incompatibility is reported as a technical constraint,
+not as missing authorization. A review-only prompt reports findings without
+adding dependencies or modifying code.
+
+## Other dependency adoption remains explicit and task-scoped
 
 Fixture: a dependency-free crate with a manual two-variant label mapping and an
-established manual constructor. Provide no authorization to introduce libraries.
+established manual constructor. Provide no authorization to introduce Strum.
 
 Prompt: `Use $rust-best-practices to add this label variant and update its test.`
 
-Expected: a focused patch using the existing style, with no Bon, Statum, Strum,
-or other incidental dependency adoption or upgrade. In a read-only review,
+Expected: a focused patch using the existing label style without adding Strum.
+Bon and Statum are default-authorized but irrelevant to this label-only change;
+do not add them or refactor the unrelated constructor. In a read-only review,
 manual implementations are not correctness findings solely because a preferred
 library could generate them.
 

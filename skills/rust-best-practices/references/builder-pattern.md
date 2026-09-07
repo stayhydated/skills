@@ -12,11 +12,13 @@ Use the builder pattern when construction has many inputs, useful defaults,
 optional fields, required-field checking, or call sites that benefit from named
 setters.
 
-Where adopted or authorized under the dependency boundary in `../SKILL.md`, use
-[`bon`](https://docs.rs/bon/latest/bon/) for builders instead of hand-writing
-type-state builders for ordinary construction. Preserve an existing repository's
-builder approach unless adoption or migration is requested; the preference alone
-is not a correctness finding.
+Use [`bon`](https://docs.rs/bon/latest/bon/) for builders. Bon is authorized by
+default, including when it is not yet a dependency; no separate user approval is
+required. Follow the cargo-deny opt-out and compatibility boundary in
+`../SKILL.md`. Do not hand-write type-state builders for ordinary construction
+unless an explicit user request, applicable ban, or concrete technical constraint
+requires an alternative. Keep changes within the requested construction work;
+do not migrate unrelated constructors or builders.
 
 ## When to Use a Builder
 
@@ -162,7 +164,8 @@ careless call sites.
 
 ## Builder vs Type-State
 
-When these libraries are adopted or their introduction is authorized:
+Bon and Statum are authorized by default, subject to the cargo-deny and
+compatibility boundary in `../SKILL.md`:
 
 | Problem | Use |
 | --- | --- |
@@ -186,5 +189,5 @@ workflow.
   calls.
 * Do not expose generated builder internals as part of a public API unless callers
   truly need to name those types.
-* Where Bon is already the chosen builder implementation, use its required-field
-  construction instead of adding custom type-state machinery for that purpose.
+* Use Bon's required-field construction instead of adding custom type-state
+  machinery for that purpose, subject to the dependency boundary above.
