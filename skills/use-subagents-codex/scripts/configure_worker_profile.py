@@ -7,10 +7,9 @@ import argparse
 import difflib
 import os
 import re
-import shutil
+import secrets
 import stat
 import sys
-import tempfile
 import tomllib
 from datetime import UTC, datetime
 from pathlib import Path
@@ -90,7 +89,11 @@ def render(template: str, model: str, effort: str) -> str:
     rendered = template
     for key, value in values.items():
         rendered = ASSIGNMENTS[key].sub(f'{key} = "{value}"', rendered, count=1)
-    tomllib.loads(rendered)
+    expected = {**tomllib.loads(template), **values}
+    if tomllib.loads(rendered) != expected:
+        raise ValueError(
+            "rendering must change only the top-level worker model and reasoning effort"
+        )
     return rendered
 
 
@@ -114,34 +117,107 @@ def show_diff(target: Path, current: str, desired: str) -> None:
     sys.stdout.writelines(diff)
 
 
-def backup_target(target: Path) -> Path:
+def open_agents_directory(codex_home: Path, *, create: bool) -> int | None:
+    """Pin a real agents directory; never follow a symlink at that boundary."""
+    directory = codex_home / "agents"
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    try:
+        return os.open(directory, flags)
+    except FileNotFoundError:
+        if not create:
+            return None
+    codex_home.mkdir(mode=0o700, parents=True, exist_ok=True)
+    try:
+        directory.mkdir(mode=0o700)
+    except FileExistsError:
+        pass
+    return os.open(directory, flags)
+
+
+def read_target(directory_fd: int | None) -> tuple[str, os.stat_result | None]:
+    if directory_fd is None:
+        return "", None
+    try:
+        descriptor = os.open(
+            PROFILE_NAME, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
+            dir_fd=directory_fd,
+        )
+    except FileNotFoundError:
+        return "", None
+    with os.fdopen(descriptor, "r", encoding="utf-8", newline="") as profile:
+        metadata = os.fstat(profile.fileno())
+        if not stat.S_ISREG(metadata.st_mode) or metadata.st_nlink != 1:
+            raise ValueError("managed profile must be a regular file with one link")
+        return profile.read(), metadata
+
+
+def write_private_file(directory_fd: int, name: str, content: str) -> None:
+    """Create privately before writing; remove incomplete files on failure."""
+    remaining = memoryview(content.encode("utf-8"))
+    descriptor = os.open(
+        name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+        0o600, dir_fd=directory_fd,
+    )
+    try:
+        os.fchmod(descriptor, 0o600)
+        while remaining:
+            written = os.write(descriptor, remaining)
+            if written == 0:
+                raise OSError("could not finish writing the private profile file")
+            remaining = remaining[written:]
+        os.fsync(descriptor)
+    except BaseException:
+        os.unlink(name, dir_fd=directory_fd)
+        raise
+    finally:
+        os.close(descriptor)
+
+
+def backup_target(target: Path, current: str, directory_fd: int) -> Path:
     timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")
     backup = target.with_name(f"{target.name}.bak.{timestamp}")
-    shutil.copy2(target, backup)
-    backup.chmod(0o600)
+    write_private_file(directory_fd, backup.name, current)
     return backup
 
 
-def atomic_write(target: Path, content: str) -> None:
-    temporary_path: Path | None = None
+def atomic_write(target: Path, content: str, directory_fd: int) -> None:
+    name = f".{target.name}.{secrets.token_hex(16)}"
+    write_private_file(directory_fd, name, content)
     try:
-        with tempfile.NamedTemporaryFile(
-            mode="w",
-            encoding="utf-8",
-            dir=target.parent,
-            prefix=f".{target.name}.",
-            delete=False,
-        ) as temporary:
-            temporary_path = Path(temporary.name)
-            os.fchmod(temporary.fileno(), 0o600)
-            temporary.write(content)
-            temporary.flush()
-            os.fsync(temporary.fileno())
-        os.replace(temporary_path, target)
-        target.chmod(0o600)
+        os.replace(name, target.name, src_dir_fd=directory_fd, dst_dir_fd=directory_fd)
     finally:
-        if temporary_path is not None and temporary_path.exists():
-            temporary_path.unlink()
+        try:
+            os.unlink(name, dir_fd=directory_fd)
+        except FileNotFoundError:
+            pass
+
+
+def repair_permissions(directory_fd: int, expected: os.stat_result) -> None:
+    descriptor = os.open(
+        PROFILE_NAME, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
+        dir_fd=directory_fd,
+    )
+    try:
+        actual = os.fstat(descriptor)
+        if (
+            not stat.S_ISREG(actual.st_mode)
+            or actual.st_nlink != 1
+            or (actual.st_dev, actual.st_ino) != (expected.st_dev, expected.st_ino)
+        ):
+            raise ValueError("managed profile changed during permission reconciliation")
+        os.fchmod(descriptor, 0o600)
+    finally:
+        os.close(descriptor)
+
+
+def profile_fingerprint(value: os.stat_result | None) -> tuple[int, ...] | None:
+    # Reading may update atime; it is not evidence of a concurrent edit.
+    if value is None:
+        return None
+    return (
+        value.st_dev, value.st_ino, value.st_mode, value.st_nlink,
+        value.st_size, value.st_mtime_ns, value.st_ctime_ns,
+    )
 
 
 def main() -> int:
@@ -156,35 +232,47 @@ def main() -> int:
         )
     desired = render(template, model, effort)
 
+    if os.name != "posix":
+        raise OSError("profile installation requires POSIX file permissions")
     codex_home = effective_codex_home(args.codex_home)
     target = codex_home / "agents" / PROFILE_NAME
-    current = target.read_text(encoding="utf-8") if target.is_file() else ""
-
-    if current == desired:
-        current_mode = stat.S_IMODE(target.stat().st_mode)
-        if current_mode != 0o600:
-            print(f"permissions: {target}: {current_mode:04o} -> 0600")
-            if args.dry_run:
-                print(f"dry-run: no changes written to {target}")
+    directory_fd = open_agents_directory(codex_home, create=False)
+    try:
+        current, metadata = read_target(directory_fd)
+        if current == desired and metadata is not None:
+            current_mode = stat.S_IMODE(metadata.st_mode)
+            if current_mode != 0o600:
+                print(f"permissions: {target}: {current_mode:04o} -> 0600")
+                if args.dry_run:
+                    print(f"dry-run: no changes written to {target}")
+                else:
+                    assert directory_fd is not None
+                    repair_permissions(directory_fd, metadata)
+                    print(f"permissions updated: {target}")
             else:
-                target.chmod(0o600)
-                print(f"permissions updated: {target}")
-        else:
-            print(f"unchanged: {target}")
-        return 0
+                print(f"unchanged: {target}")
+            return 0
 
-    show_diff(target, current, desired)
-    if args.dry_run:
-        print(f"dry-run: no changes written to {target}")
-        return 0
+        show_diff(target, current, desired)
+        if args.dry_run:
+            print(f"dry-run: no changes written to {target}")
+            return 0
 
-    target.parent.mkdir(parents=True, exist_ok=True)
-    backup = backup_target(target) if target.exists() else None
-    atomic_write(target, desired)
-    if backup is not None:
-        print(f"backup: {backup}")
-    print(f"updated: {target}")
-    return 0
+        if directory_fd is None:
+            directory_fd = open_agents_directory(codex_home, create=True)
+        assert directory_fd is not None
+        latest, latest_metadata = read_target(directory_fd)
+        if latest != current or profile_fingerprint(latest_metadata) != profile_fingerprint(metadata):
+            raise ValueError("managed profile changed during reconciliation; rerun the dry run")
+        backup = backup_target(target, current, directory_fd) if metadata is not None else None
+        atomic_write(target, desired, directory_fd)
+        if backup is not None:
+            print(f"backup: {backup}")
+        print(f"updated: {target}")
+        return 0
+    finally:
+        if directory_fd is not None:
+            os.close(directory_fd)
 
 
 if __name__ == "__main__":

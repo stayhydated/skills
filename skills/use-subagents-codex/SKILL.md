@@ -54,7 +54,11 @@ Treat the bundled file as canonical for every field except a user-requested work
 6. Do not modify `$CODEX_HOME/config.toml` preemptively. If the effective runtime reports that multi-agent tools are disabled, explain the blocker and request approval before changing only `[agents].enabled` to `true`. Do not override managed policy or alter any model or reasoning setting.
 7. Do not use a Codex version heuristic unless a concrete runtime failure requires compatibility diagnosis.
 
-The renderer changes only the installed custom-agent file, never the bundled template. If it creates or updates the installed content during the current session, do not assume the session reloaded it. Prefer the exact-runtime fallback from the next section, or require a fresh session rather than claiming the new definition ran. A permission-only repair does not change the profile content.
+The renderer resolves the effective Codex home first. Within that home, `agents` must be a real directory and an existing installed profile must be a regular file with a single hard link. Symlinked directories, symlinked profiles (including dangling links), hardlinked profiles, and special files are rejected in dry runs and writes. Report the blocker; do not unlink, follow, or change permissions on a referent to bypass it. Changing that layout requires separate user authorization.
+
+The renderer pins the opened `agents` directory for file operations and creates backups and temporary files with `0600` permissions before writing content. A failed copy removes its incomplete file; backup creation never overwrites an existing backup. Rendering must produce the requested top-level model and effort without changing other parsed TOML fields. A template that fails that check is rejected before installation.
+
+The renderer changes only the installed custom-agent file and its private backup, never the bundled template. If it creates or updates the installed content during the current session, do not assume the session reloaded it. Prefer the exact-runtime fallback from the next section, or require a fresh session rather than claiming the new definition ran. A permission-only repair does not change the profile content.
 
 ## Select the worker
 
