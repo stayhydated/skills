@@ -19,6 +19,8 @@ Start here:
   changing validation commands.
 - `scripts/check_skills.py` validates every skill bundle against the Agent Skills
   contract and this repository's required OpenAI display metadata shape.
+- `scripts/test_skills.py` tests skill validation and worker-profile installation;
+  `scripts/skill-behavior-cases.md` defines separate agent-evaluation scenarios.
 - `xtask/src/main.rs` owns the Rust-stable sync command used by
   `.github/workflows/check-rust-stable.yml`.
 
@@ -31,8 +33,8 @@ Start here:
    matching `agents/openai.yaml` aligned with the skill frontmatter and user
    instructions.
 4. For skill contract or OpenAI metadata shape changes, keep
-   `scripts/check_skills.py`, the `just check-skills` recipe, and the CI `skills` job
-   aligned.
+   `scripts/check_skills.py`, `scripts/test_skills.py`, the `just check-skills`
+   recipe, and the CI `skills` job aligned.
 5. For Rust baseline guidance, update all affected `skills/` mentions together;
    the `xtask` sync command scans files under `skills/` for tracked Rust minor
    versions.
@@ -84,9 +86,11 @@ Start here:
 - `skills/use-subagents-codex/`
   Role: user-requested Codex subagent orchestration and management of the
   bundled worker profile.
-  Sync: keep `SKILL.md`, `assets/use-subagents-codex.toml`, and
-  `agents/openai.yaml` aligned when orchestration behavior, worker settings, or
-  visible metadata changes.
+  Sync: keep `SKILL.md`, `assets/use-subagents-codex.toml`,
+  `scripts/configure_worker_profile.py`, and `agents/openai.yaml` aligned when
+  orchestration behavior, worker settings, installation requirements, or visible
+  metadata changes. Cover renderer changes in `scripts/test_skills.py` at the
+  repository root.
 
 - `skills/use-windows-vm-computer-use-codex/`
   Role: SSH-orchestrated, VM-local Codex computer-use in interactive Windows
@@ -101,8 +105,23 @@ Start here:
   Role: validates every immediate directory under `skills/` with the pinned
   Agent Skills reference validator, then checks progressive-disclosure resources
   and `agents/openai.yaml` metadata.
-  Sync: keep the `just check-skills` recipe and the CI `skills` job aligned when the
-  command, dependency pin, or validated metadata shape changes.
+  Sync: keep `scripts/test_skills.py`, the `just check-skills` recipe, and the CI
+  `skills` job aligned when the command, dependency pin, or validated metadata
+  shape changes.
+
+- `scripts/test_skills.py`
+  Role: isolated filesystem tests for the worker renderer and fixtures for
+  skill-validator behavior. The script uses the same pinned reference-validator
+  dependency as `scripts/check_skills.py`.
+  Sync: keep tests aligned with validator and renderer contracts. The
+  `WorkerProfileTests` subset runs without third-party Python packages; the full
+  suite runs through `just check-skills` and the CI `skills` job.
+
+- `scripts/skill-behavior-cases.md`
+  Role: agent-evaluation scenarios for reporting modes, validation claims,
+  runtime settings, release boundaries, audience routing, and dependency scope.
+  Sync: update affected cases when those skill contracts change. These scenarios
+  require an actual agent run; tooling tests do not establish their results.
 
 ### Rust Maintenance Tooling
 
@@ -126,11 +145,13 @@ Start here:
   is part of the change.
 - Use `just check`, `just clippy`, or `just test` for focused Rust workspace
   validation when the edited surface affects typechecking, lints, or tests.
-- Use `just check-skills` after changing a skill's `SKILL.md`, bundled resources, or
-  `agents/openai.yaml`.
+- Use `just check-skills` after changing a skill's `SKILL.md`, bundled resources,
+  `agents/openai.yaml`, or skill-validation tooling. It runs both contract
+  validation and tooling regression tests.
 - Use `just ci` for the full local suite when a change spans skill text, Rust
   tooling, manifests, and CI wiring.
 - For local Rust-stable sync checks, run
   `cargo run --locked -p xtask -- check-rust-stable` without `--create-issue`.
-- Do not claim validation ran unless the command was actually executed; if a
-  command is skipped, state what remains unvalidated.
+- Report successful checks separately from attempted checks that failed. Do not
+  claim validation ran unless it was executed; if a command is skipped, state
+  what remains unvalidated.

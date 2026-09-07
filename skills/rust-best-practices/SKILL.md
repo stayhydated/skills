@@ -2,7 +2,9 @@
 name: rust-best-practices
 description: >
   Guide for writing, refactoring, reviewing, optimizing, and documenting
-  idiomatic Rust code on a Rust 1.98 stable baseline.
+  idiomatic Rust code on a Rust 1.98 stable baseline, with Bon and Statum
+  authorized by default unless repository cargo-deny policy bans them. Keep
+  other dependency adoption explicit and all changes task-scoped.
 ---
 
 # Rust Best Practices
@@ -15,6 +17,44 @@ Assume **Rust 1.98 stable** and **edition 2024** unless the repository explicitl
 declares a lower MSRV or the user gives a different target. Respect existing
 `rust-toolchain.toml`, CI, `Cargo.toml`, workspace lints, target support, and
 public API stability before introducing an API that exceeds the declared MSRV.
+
+## Repository and Dependency Adoption Boundary
+
+Bon (`bon`) and Statum (`statum`) are authorized by default in both new and
+existing repositories. Use Bon for suitable builder work and Statum for real
+lifecycle or protocol type-state work. Add the appropriate dependency when it is
+needed for the requested implementation or refactor; do not ask the user to
+approve these dependencies separately. Their absence from `Cargo.toml`, an
+existing manual implementation, or a dependency-free crate is not an opt-out.
+
+Inspect the applicable cargo-deny configuration for an explicit opt-out, including
+crate- and version-specific bans on `bon` or `statum`. It is commonly `deny.toml`,
+`.deny.toml`, or `.cargo/deny.toml`; follow the configuration selected by repository
+tooling when it uses a different path. With no matching ban, proceed without a
+dependency-approval prompt. A missing cargo-deny configuration is not a blocker
+and does not require introducing cargo-deny. If a ban applies, identify its file
+and rule and use a permitted alternative. Do not remove or weaken the rule to
+force adoption. Honor an explicit user request to avoid a dependency or use a
+manual pattern.
+
+Default authorization does not waive MSRV, feature, `no_std`, target, public API,
+license, source, or security constraints, including restrictions affecting
+transitive dependencies. Select compatible versions and follow the repository's
+manifest and lockfile conventions. Report a concrete incompatibility rather than
+inventing an approval requirement. Keep adoption within the requested change;
+do not migrate unrelated constructors, state machines, or APIs.
+
+For other libraries, including Strum, template engines, and error-handling
+libraries, preserve established dependencies, versions, patterns, and dependency
+policy unless adoption or migration is part of the requested scope. Apply their
+house-style preferences when already adopted or explicitly authorized; otherwise
+use the established implementation and label alternatives as recommendations.
+The Bon and Statum default authorization takes precedence over generic
+adoption-or-authorization language in the references.
+
+Reviews are read-only unless the user asks to apply changes. Separate correctness
+findings from house-style suggestions; a manual implementation is not a defect
+solely because a preferred library could generate it.
 
 ## Rust 1.98 Baseline Guidance
 
@@ -56,10 +96,11 @@ public API stability before introducing an API that exceeds the declared MSRV.
   `invalid_runtime_symbol_definitions`, `suspicious_runtime_symbol_definitions`,
   or `c_void_returns`; use a narrow, documented exception only at a real runtime
   or foreign-function boundary.
-* Use `bon` for builders. Do not hand-roll type-state builders for ordinary
-  construction.
-* Use `statum` for real lifecycle or protocol type-state. Do not use type-state as
-  a generic replacement for builders or enums.
+* Use `bon` for builders instead of hand-rolling type-state builders for ordinary
+  construction. Bon is authorized by default under the cargo-deny boundary above.
+* Use `statum` for real lifecycle or protocol type-state. Statum is authorized by
+  default under the same boundary; do not use type-state as a generic replacement
+  for builders or enums.
 * Keep examples generic, self-contained, and domain-neutral unless the user gives
   domain vocabulary.
 

@@ -1,6 +1,7 @@
 ---
 name: use-subagents-codex
 description: Orchestrate one or more Codex subagents for a user-requested task.
+compatibility: Requires Python 3.11+ in a POSIX environment for profile installation, and Codex multi-agent tooling that supports the resolved worker model and reasoning effort.
 ---
 
 # Use Codex Subagents
@@ -30,6 +31,7 @@ Read the top-level `model` and `model_reasoning_effort` values from `assets/use-
 - Use the bundled value for either setting the user leaves unspecified. Never inherit the missing setting from the parent.
 - Normalize an unambiguous display name to the exact model identifier exposed by the spawn surface. For example, `5.6 sol` means `gpt-5.6-sol` only when that identifier is available.
 - Verify that the spawn surface supports the resolved model and effort. If it does not, report the unsupported setting rather than substituting another profile.
+- The renderer can represent `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`, and `ultra`. This is a serialization allowlist, not a promise that any particular model or runtime supports every value. Verify the selected pair before installing or spawning it.
 
 Thus, a request to use this skill "but 5.6 sol high" resolves the worker profile to `gpt-5.6-sol` with `high` reasoning, regardless of the bundled defaults.
 
@@ -44,15 +46,15 @@ The bundle owns one stable custom-agent identity with a bundle-controlled templa
 
 Treat the bundled file as canonical for every field except a user-requested worker model or effort. Render the resolved model and effort into the installed target with [scripts/configure_worker_profile.py](scripts/configure_worker_profile.py); do not hand-edit either TOML. This managed target is intentionally replaced when the template, bundled defaults, or explicit worker settings change. Local customizations belong in a different custom-agent file with a different `name`.
 
-1. Resolve this skill directory and the effective Codex home.
-2. Run the renderer with the resolved `--model`, `--reasoning-effort`, and `--dry-run`. It compares the fully rendered profile with the installed target and prints any intended change.
-3. If the target already matches, continue without writing.
-4. If the target is missing or differs, show the dry-run output. Obtain approval through the execution environment before writing outside the workspace, then rerun without `--dry-run`.
-5. Rely on the renderer to create a timestamped backup beside a differing target, replace it atomically, and restrict the installed file and backup to the current user.
+1. Resolve this skill directory and the effective Codex home. The renderer requires Python 3.11+ and POSIX file permissions; use a supported environment for installation rather than claiming native Windows permission guarantees.
+2. Run the renderer with the resolved `--model`, `--reasoning-effort`, and `--dry-run`. It compares the fully rendered profile and required `0600` permissions with the installed target and prints intended changes without writing files or changing permissions.
+3. If both content and permissions already match, continue without writing.
+4. If the target is missing, differs, or needs a permission correction, show the dry-run output. Obtain approval through the execution environment before writing outside the workspace, then rerun without `--dry-run`.
+5. Rely on the renderer to create a timestamped backup beside a content-differing target, replace it atomically, and restrict the installed file and backup to the current user. For matching content with incorrect permissions, it repairs permissions without rewriting content or creating a redundant backup.
 6. Do not modify `$CODEX_HOME/config.toml` preemptively. If the effective runtime reports that multi-agent tools are disabled, explain the blocker and request approval before changing only `[agents].enabled` to `true`. Do not override managed policy or alter any model or reasoning setting.
 7. Do not use a Codex version heuristic unless a concrete runtime failure requires compatibility diagnosis.
 
-The renderer changes only the installed custom-agent file, never the bundled template. If it creates or updates the installed file during the current session, do not assume the session reloaded it. Prefer the exact-runtime fallback from the next section, or require a fresh session rather than claiming the new definition ran.
+The renderer changes only the installed custom-agent file, never the bundled template. If it creates or updates the installed content during the current session, do not assume the session reloaded it. Prefer the exact-runtime fallback from the next section, or require a fresh session rather than claiming the new definition ran. A permission-only repair does not change the profile content.
 
 ## Select the worker
 

@@ -1,4 +1,4 @@
 interface:
   display_name: "Rust Best Practices"
-  short_description: "Write, refactor, review, and document idiomatic Rust"
-  default_prompt: "Use $rust-best-practices to write, refactor, review, optimize, or document idiomatic Rust code on the repository Rust baseline."
+  short_description: "Idiomatic Rust with Bon and Statum authorized by default"
+  default_prompt: "Use $rust-best-practices to write, refactor, review, optimize, or document idiomatic Rust on the repository baseline, with Bon and Statum authorized by default. Respect applicable cargo-deny bans and keep changes task-scoped."

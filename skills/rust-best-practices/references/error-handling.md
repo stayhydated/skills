@@ -11,7 +11,9 @@
 
 Rust makes fallibility explicit. Good Rust error handling keeps that explicitness
 useful: typed errors for libraries, context at application boundaries, and no
-surprise panics in normal control flow.
+surprise panics in normal control flow. The named libraries below are subject to
+the dependency adoption boundary in `../SKILL.md`; preserve established error
+handling unless adoption or migration is authorized.
 
 ## Prefer `Result`, Avoid Panic
 
@@ -120,14 +122,21 @@ application framework or plugin host where typed errors are not part of the API.
 ## Error Translation and Observation
 
 Use `map_err` when changing error types. Use `inspect_err` for logging or metrics
-without changing the error.
+without changing the error. Keep the translated error in the same domain as the
+failed operation:
 
 ```rust
-fn parse_port(input: &str) -> Result<u16, ManifestError> {
+#[derive(Debug, thiserror::Error)]
+enum PortError {
+    #[error("invalid port `{0}`")]
+    InvalidPort(String),
+}
+
+fn parse_port(input: &str) -> Result<u16, PortError> {
     input
         .parse::<u16>()
         .inspect_err(|err| tracing::debug!(%err, "port parse failed"))
-        .map_err(|_| ManifestError::InvalidVersion(input.to_owned()))
+        .map_err(|_| PortError::InvalidPort(input.to_owned()))
 }
 ```
 

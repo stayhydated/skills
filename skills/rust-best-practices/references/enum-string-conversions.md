@@ -15,16 +15,22 @@ label, user-facing English display text, parse input, a label list, a round trip
 or localized text. Pick the smallest conversion surface that matches that
 contract.
 
-For static English variant labels, always prefer Strum, even for small enums.
-Enum size is not a reason to hand-write a string `match`. The maintainability win
-comes from keeping the variant and its canonical label in one place, using the
-same convention everywhere, and making the mapping available to both runtime and
-`const` callers.
+The dependency adoption boundary in `../SKILL.md` applies throughout this
+chapter. Use the Strum house style when the repository already adopts it or the
+user authorizes its introduction. Preserve existing manual mappings and pinned
+versions otherwise; a small label change does not authorize adding or upgrading
+a dependency, and a manual mapping alone is not a correctness finding.
 
-When Strum is used for a static label, always derive `IntoStaticStr` with
-`#[strum(const_into_str)]`. Expose a domain-specific wrapper such as
-`label()`, `metric_label()`, or `wire_name()` when that reads better at call
-sites, but route that wrapper through the generated `into_str()` method.
+Within the adopted Strum style, prefer Strum for static English variant labels,
+even for small enums. Enum size alone is not a reason to introduce a second
+mapping style. The maintainability win comes from keeping the variant and its
+canonical label in one place, using the same convention everywhere, and making
+the mapping available to both runtime and `const` callers.
+
+When Strum is used for a static label and the adopted version supports it, derive
+`IntoStaticStr` with `#[strum(const_into_str)]`. Expose a domain-specific wrapper
+such as `label()`, `metric_label()`, or `wire_name()` when that reads better at
+call sites, but route that wrapper through the generated `into_str()` method.
 
 Strum-generated strings are for stable English labels, ASCII-ish protocol tokens,
 metric labels, CLI values, schema terms, and other non-localized identifiers. Do
@@ -33,6 +39,8 @@ runtime language, translator-owned wording, or user preference, use a localizati
 layer such as `es-fluent`/Fluent or a project-specific i18n abstraction instead.
 
 ## Choose the Conversion by Contract
+
+The library preferences below apply when adoption is established or authorized.
 
 | Contract | Prefer |
 | --- | --- |
@@ -46,18 +54,18 @@ layer such as `es-fluent`/Fluent or a project-specific i18n abstraction instead.
 | Payload-carrying enum where only variant identity matters | `EnumDiscriminants` to generate a fieldless kind enum, then `IntoStaticStr` + `const_into_str` on that generated discriminant enum |
 | Labels depend on payload data, runtime state, localization, grammar, pluralization, or complex `cfg` rules | A manual method, `Display`, or an i18n/message type instead of a static Strum label |
 
-Do not hand-write a static variant-label mapping merely because an enum is small.
-The standard pattern is Strum plus `const_into_str`. Manual matches are reserved
-for contracts Strum should not model: runtime-dependent strings, payload-dependent
-strings, localization, grammar, pluralization, or compatibility boundaries where a
-generated method would obscure behavior.
+Within the adopted Strum style, do not hand-write a static variant-label mapping
+merely because an enum is small. The standard pattern is Strum plus
+`const_into_str`. Manual matches remain appropriate for contracts Strum should
+not model, unsupported versions, existing repository conventions, or boundaries
+where a generated method would obscure behavior.
 
 ## Prefer Strum for Static English Labels
 
-When an enum maps each variant to one fixed English label, derive
-`IntoStaticStr` and enable `const_into_str`. This keeps the variant and string
-mapping in one place, removes repetitive `match` arms, and gives both runtime and
-`const` callers a stable `into_str()` method.
+When an enum maps each variant to one fixed English label under the adopted
+Strum style, derive `IntoStaticStr` and enable `const_into_str`. This keeps the
+variant and string mapping in one place, removes repetitive `match` arms, and
+gives both runtime and `const` callers a stable `into_str()` method.
 
 ```rust
 use strum_macros::IntoStaticStr;
@@ -150,11 +158,12 @@ i18n for the human text.
 
 ## Do Not Replace Static Labels with Manual Matches
 
-Do not use a manual `const fn` match for a static English variant-label mapping
-when Strum can represent the contract. Even a two-variant enum should use the
-standard Strum pattern.
+Once Strum is adopted for static labels, do not replace that convention with a
+manual `const fn` match merely because an enum is small. Even a two-variant enum
+can use the standard Strum pattern. This is a consistency preference within an
+adopted style, not authorization to migrate an existing repository.
 
-Prefer this:
+Prefer this within the Strum style:
 
 ```rust
 use strum_macros::IntoStaticStr;
@@ -177,7 +186,8 @@ const DEFAULT_POOL: &str = AddressLocalePool::CityPrefix.label();
 assert_eq!(DEFAULT_POOL, "city_prefix");
 ```
 
-Do not write this for ordinary static labels:
+The equivalent manual implementation is valid, but needlessly introduces a
+second mapping style when the repository has standardized on Strum:
 
 ```rust
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -196,11 +206,10 @@ impl AddressLocalePool {
 }
 ```
 
-A manual match is acceptable only when the mapping is not a static English
-variant-label contract, when Strum cannot represent the API safely, or when the
-repository is pinned to a Strum version that cannot support `const_into_str` and
-cannot be upgraded. In new code, upgrade Strum rather than standardizing a manual
-fallback.
+Keep manual mappings when they are the established repository convention, when
+Strum cannot represent the API safely, or when the adopted version does not
+support `const_into_str`. Introduce or upgrade Strum only within authorized
+dependency work after checking MSRV, target, feature, and API constraints.
 
 ## Separate Display Text from Static Labels and i18n
 

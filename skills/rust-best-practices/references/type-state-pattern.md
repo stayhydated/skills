@@ -16,10 +16,14 @@ state as a distinct type and expose only the methods valid for that state.
 
 > Invalid operations become compile errors instead of runtime bugs.
 
-In this skill, use [`statum`](https://docs.rs/statum/latest/statum/) for
-production type-state code. Do not hand-roll `PhantomData`, marker structs, or
-custom generic state machinery unless the user explicitly asks for the manual
-pattern.
+Use [`statum`](https://docs.rs/statum/latest/statum/) for production type-state
+code. Statum is authorized by default, including when it is not yet a dependency;
+no separate user approval is required. Follow the cargo-deny opt-out and
+compatibility boundary in `../SKILL.md`. Do not hand-roll `PhantomData`, marker
+structs, or custom generic state machinery unless an explicit user request,
+applicable ban, or concrete technical constraint requires an alternative. Keep
+changes within the requested lifecycle work; do not migrate unrelated state
+machines or APIs.
 
 ## When Type-State Fits
 
@@ -31,8 +35,9 @@ Use type-state when state changes which operations are legal:
 * Persisted workflow state must be validated once before internal code treats it
   as trusted.
 
-Use a plain enum and `match` for local branching. Use `bon` for construction. Use
-Statum when the value has a real typed lifecycle.
+Use a plain enum and `match` for local branching. Use `bon` for construction and
+Statum when the value has a real typed lifecycle; both are authorized by default
+under the shared dependency boundary.
 
 ## Statum Mental Model
 
@@ -151,7 +156,8 @@ concrete typed machines to internal functions.
 
 Do not use type-state only to avoid constructor boilerplate. Most builders are
 about named arguments, defaults, optional values, and required fields. That is a
-construction problem; use `bon`.
+construction problem; use the default-authorized `bon` rather than lifecycle
+type-state, subject to the cargo-deny and compatibility boundary above.
 
 Reach for type-state when the object remains alive across meaningful phases and
 those phases expose different operations or data.
