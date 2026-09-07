@@ -28,7 +28,7 @@ bounds.
 | `Box<T>` | Single owner on heap | `Send`/`Sync` follows `T`. |
 | `Rc<T>` | Non-atomic ref count | Single-thread only. |
 | `Arc<T>` | Atomic ref count | Multi-thread shared ownership when `T: Send + Sync`. |
-| `Cell<T>` | Copy-only interior mutability | Single-thread interior mutation; not `Sync`. |
+| `Cell<T>` | Interior mutability by moving or replacing values; `get()` requires `Copy` | Single-thread interior mutation; not `Sync`. |
 | `RefCell<T>` | Runtime borrow checking | Single-thread shared mutation; not `Sync`; may panic. |
 | `Mutex<T>` | Exclusive locked access | Multi-thread mutation when `T: Send`. |
 | `RwLock<T>` | Shared reads or exclusive write | Multi-thread read-heavy mutation when `T: Send + Sync`. |
@@ -97,7 +97,11 @@ shared ownership.
 
 ## Interior Mutability
 
-Use `Cell<T>` for small `Copy` values in single-threaded code.
+Use `Cell<T>` when mutation can move or replace values without borrowing their
+contents. `get()` requires `T: Copy`, but `set`, `replace`, and `into_inner` also
+work with non-`Copy` values; `take()` requires `T: Default`. See the
+[`Cell` API](https://doc.rust-lang.org/std/cell/struct.Cell.html) for each method's
+bounds. Small `Copy` values are a common use:
 
 ```rust
 use std::cell::Cell;
@@ -105,6 +109,17 @@ use std::cell::Cell;
 let retries = Cell::new(0u8);
 retries.set(retries.get() + 1);
 assert_eq!(retries.get(), 1);
+```
+
+Non-`Copy` values can also be replaced without runtime borrow checking:
+
+```rust
+use std::cell::Cell;
+
+let status = Cell::new(String::from("queued"));
+let previous = status.replace(String::from("running"));
+assert_eq!(previous, "queued");
+assert_eq!(status.into_inner(), "running");
 ```
 
 Use `RefCell<T>` only when compile-time borrowing cannot express the local design.

@@ -16,10 +16,12 @@ state as a distinct type and expose only the methods valid for that state.
 
 > Invalid operations become compile errors instead of runtime bugs.
 
-In this skill, use [`statum`](https://docs.rs/statum/latest/statum/) for
-production type-state code. Do not hand-roll `PhantomData`, marker structs, or
-custom generic state machinery unless the user explicitly asks for the manual
-pattern.
+Where adopted or authorized under the dependency boundary in `../SKILL.md`, use
+[`statum`](https://docs.rs/statum/latest/statum/) for production type-state code.
+Within that style, avoid hand-rolling `PhantomData`, marker structs, or custom
+generic state machinery unless the user asks for the manual pattern. Preserve
+established manual or alternative implementations in existing repositories unless
+migration is requested; their use alone is not a correctness defect.
 
 ## When Type-State Fits
 
@@ -31,8 +33,8 @@ Use type-state when state changes which operations are legal:
 * Persisted workflow state must be validated once before internal code treats it
   as trusted.
 
-Use a plain enum and `match` for local branching. Use `bon` for construction. Use
-Statum when the value has a real typed lifecycle.
+Use a plain enum and `match` for local branching. Where adopted or authorized,
+use `bon` for construction and Statum when the value has a real typed lifecycle.
 
 ## Statum Mental Model
 
@@ -151,7 +153,8 @@ concrete typed machines to internal functions.
 
 Do not use type-state only to avoid constructor boilerplate. Most builders are
 about named arguments, defaults, optional values, and required fields. That is a
-construction problem; use `bon`.
+construction problem; use the repository's builder approach, preferring `bon`
+where adopted or authorized.
 
 Reach for type-state when the object remains alive across meaningful phases and
 those phases expose different operations or data.

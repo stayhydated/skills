@@ -2,7 +2,9 @@
 name: rust-best-practices
 description: >
   Guide for writing, refactoring, reviewing, optimizing, and documenting
-  idiomatic Rust code on a Rust 1.98 stable baseline.
+  idiomatic Rust code on a Rust 1.98 stable baseline, with opinionated house-style
+  defaults that preserve existing repository dependencies unless adoption or
+  migration is authorized.
 ---
 
 # Rust Best Practices
@@ -15,6 +17,26 @@ Assume **Rust 1.98 stable** and **edition 2024** unless the repository explicitl
 declares a lower MSRV or the user gives a different target. Respect existing
 `rust-toolchain.toml`, CI, `Cargo.toml`, workspace lints, target support, and
 public API stability before introducing an API that exceeds the declared MSRV.
+
+## Repository and Dependency Adoption Boundary
+
+The named libraries in this skill are opinionated house-style defaults for new
+projects or explicitly authorized standardization, not universal Rust
+requirements. In an existing repository, preserve established dependencies,
+versions, patterns, and dependency policy unless adoption or migration is part of
+the requested scope. Merely invoking this skill for a review, bug fix, or small
+feature does not authorize dependency adoption, upgrades, or unrelated rewrites.
+
+This boundary governs every reference, including imperative preferences for Bon,
+Statum, Strum, template engines, and error-handling libraries. Apply those
+preferences when the repository already adopts them or the user authorizes the
+change. Otherwise use the established implementation and describe a relevant
+alternative as a recommendation, not a required fix. Respect MSRV, feature,
+`no_std`, target, and public API constraints before any adoption.
+
+Reviews are read-only unless the user asks to apply changes. Separate correctness
+findings from house-style suggestions; a manual implementation is not a defect
+solely because a preferred library could generate it.
 
 ## Rust 1.98 Baseline Guidance
 
@@ -56,10 +78,10 @@ public API stability before introducing an API that exceeds the declared MSRV.
   `invalid_runtime_symbol_definitions`, `suspicious_runtime_symbol_definitions`,
   or `c_void_returns`; use a narrow, documented exception only at a real runtime
   or foreign-function boundary.
-* Use `bon` for builders. Do not hand-roll type-state builders for ordinary
-  construction.
-* Use `statum` for real lifecycle or protocol type-state. Do not use type-state as
-  a generic replacement for builders or enums.
+* Where adopted or authorized under the dependency boundary, use `bon` for
+  builders instead of hand-rolling type-state builders for ordinary construction.
+* Where adopted or authorized, use `statum` for real lifecycle or protocol
+  type-state. Do not use type-state as a generic replacement for builders or enums.
 * Keep examples generic, self-contained, and domain-neutral unless the user gives
   domain vocabulary.
 
