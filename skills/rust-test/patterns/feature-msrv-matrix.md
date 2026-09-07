@@ -27,7 +27,7 @@ Before recommending matrix validation, inspect the relevant subset of:
 ## Target and MSRV validation discipline
 
 - Use `cargo check --target <target>` when the target is compile-only in the current environment.
-- Use `cargo test --target <target>` only when the target can execute locally or in the configured runner.
+- Use `cargo test --target <target>`, including `--doc`, only when the target can execute locally or in a working configured runner. Follow `patterns/doctests-and-examples.md` when only snippet compilation can be checked.
 - For `no_std`, WASM, or embedded contracts, prefer the repository's documented check recipe over invented commands.
 - For WASM contracts on the Rust 1.98 baseline, treat linker and ABI failures as target-validation evidence; do not assume a host test run proves the WASM boundary.
 - For MSRV, use the repository's documented toolchain or CI job. Do not claim MSRV validation unless the command actually ran under the minimum supported toolchain.

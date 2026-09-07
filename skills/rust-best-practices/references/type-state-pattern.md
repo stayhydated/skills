@@ -48,7 +48,23 @@ Statum provides a macro-based type-state surface:
 * `#[transition]` defines legal state transitions.
 * `#[validators]` rebuilds typed machines from persisted or external data.
 
+The examples below use Statum 0.9:
+
+<!-- skill-example: statum-dependencies -->
+
+```toml
+[dependencies]
+statum = "0.9"
+```
+
+Keep state and machine declarations at module scope. In doctests, include an
+explicit `fn main()` around executable statements so rustdoc does not wrap the
+declarations in its implicit function; Statum's generated modules refer to those
+declarations through `super`.
+
 ## Example: Upload Session
+
+<!-- skill-example: statum-upload-session -->
 
 ```rust
 use statum::{machine, state, transition};
@@ -84,14 +100,16 @@ impl UploadSession<Buffered> {
     }
 }
 
-let session = UploadSession::<Empty>::builder()
-    .id("upload-1".to_owned())
-    .build();
+fn main() {
+    let session = UploadSession::<Empty>::builder()
+        .id("upload-1".to_owned())
+        .build();
 
-let buffered = session.buffer(4096);
-assert_eq!(buffered.state_data.bytes, 4096);
+    let buffered = session.buffer(4096);
+    assert_eq!(buffered.state_data.bytes, 4096);
 
-let _stored = buffered.store();
+    let _stored = buffered.store();
+}
 ```
 
 After buffering, methods defined only on `UploadSession<Empty>` are gone. After
@@ -103,6 +121,8 @@ surface follows the lifecycle.
 Compile-time state does not remove runtime validation at system boundaries. A row,
 event, or payload is still untrusted. Use validators to rebuild exactly one typed
 state before ordinary business logic runs.
+
+<!-- skill-example: statum-rehydration -->
 
 ```rust
 use statum::{machine, state, validators, Error};
@@ -146,6 +166,26 @@ impl TransferRow {
             .then_some(())
             .ok_or(Error::InvalidState)
     }
+}
+
+fn main() -> statum::Result<()> {
+    let row = TransferRow {
+        id: 7,
+        status: "authorized",
+        approver: Some("reviewer-1".to_owned()),
+    };
+
+    let machine = Transfer::rebuild(&row).id(row.id).build()?;
+    match machine {
+        transfer::SomeState::Authorized(transfer) => {
+            assert_eq!(transfer.state_data, "reviewer-1");
+        }
+        _ => panic!("expected an authorized transfer"),
+    }
+
+    let invalid = TransferRow { approver: None, ..row };
+    assert!(Transfer::rebuild(&invalid).id(invalid.id).build().is_err());
+    Ok(())
 }
 ```
 

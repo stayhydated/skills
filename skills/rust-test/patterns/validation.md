@@ -92,7 +92,12 @@ Validation examples, only when applicable:
 - `cargo check -p <crate> --target <target>` for cross-target compilation.
 - `cargo test -p <crate> --target <target>` when the target can run locally or in the configured environment.
 - Repository-specific MSRV commands only when documented or present in CI.
-- `cargo test --doc -p <crate> --target <target>` only when target-specific rustdoc configuration or doctest compilation is part of the contract and the target can be checked in the environment.
+- `cargo test --doc -p <crate> --target <target>` when target-specific doctests are part of the contract and the target can compile and execute locally or through a working runner.
+
+For targets that cannot execute, follow the compilation-only boundary in
+`patterns/doctests-and-examples.md`. A successful target check does not prove
+doctests; report any verified snippet-compilation workflow separately from
+execution, or mark those doctests not run.
 
 Use `cargo hack` only when the repository already uses it or the recommendation is clearly labeled as **Recommended**. Common recommended shapes include:
 

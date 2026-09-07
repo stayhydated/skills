@@ -112,10 +112,15 @@ Apply the request mode above to every check. Report a check as successful only
 when it ran successfully; distinguish failed attempts, static review, and checks
 not run. In Review mode, inspect the original checkout for accidental changes.
 
-1. Check `[build].create-missing` before building. It defaults to `true`, so
-   `mdbook build` can create missing chapter files listed in `SUMMARY.md`;
-   in Edit mode, create or rename only authorized files first. In Review mode,
-   report missing chapters and build only in a safely isolated copy.
+1. Check `[build].create-missing` before builds or `mdbook test`. It defaults to
+   `true`, so loading the book can create missing chapters from `SUMMARY.md`.
+   In Edit mode, create or rename authorized files explicitly, then set
+   `MDBOOK_BUILD__CREATE_MISSING=false` for each validation process. Confirm that
+   wrappers preserve this override. Report remaining missing chapters as
+   follow-ups; validation must not create files outside the requested scope.
+   If the override cannot be honored, validate in a safely isolated copy or
+   report static review. In Review mode, report missing chapters and build only
+   in a safely isolated copy as required above.
 2. Build with the repository wrapper or `mdbook build <book-root>`.
 3. Run the repository's Markdown, link, spelling, and style checks.
 4. Run `mdbook test <book-root>` only for testable Rust snippets. Validate other languages with project-native tooling.

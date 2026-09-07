@@ -8,7 +8,7 @@ Use this pattern before selecting validation commands or explaining what a Rust 
 - Package selection matters in workspaces. Prefer `-p <crate>` for focused validation, and expand to dependents only when a public API, shared fixture, feature, or workspace dependency change can affect them.
 - Feature selection changes the tested contract. `--features`, `--all-features`, and `--no-default-features` can compile different APIs, dependencies, `cfg` branches, doctests, and examples.
 - MSRV and package `rust-version` affect which test idioms are allowed. `assert_matches!` is available on the Rust 1.98 baseline, but a test-only cleanup must still compile on any explicitly declared lower-MSRV lane.
-- Target selection changes both compilation and executability. Cross-target validation may be limited to `cargo check` when the target cannot run in the current environment.
+- Target selection changes both compilation and executability. Ordinary doctests also execute target binaries and need a working runner when they cannot run locally. Cross-target validation may be limited to `cargo check` when the target cannot run in the current environment; that check does not validate doctests.
 - Arguments before `--` are Cargo arguments. Arguments after `--` are test harness arguments, such as a libtest filter option or `--test-threads=1`.
 - `-j <n>` controls Cargo build parallelism. `-- --test-threads=<n>` controls libtest runtime test parallelism.
 - On Cargo 1.98, `build.warnings = "deny"` can turn adjustable lint warnings in local packages into command failures.

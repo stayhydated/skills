@@ -28,6 +28,7 @@ PROFILE_NAME = "use-subagents-codex.toml"
 LOCK_NAME = ".use-subagents-codex.lock"
 GENERICS = "skills/rust-best-practices/references/generics-static-and-dynamic-dispatch.md"
 TESTING = "skills/rust-test/patterns/automated-testing.md"
+TYPE_STATE = "skills/rust-best-practices/references/type-state-pattern.md"
 
 
 @unittest.skipUnless(os.name == "posix", "installer requires POSIX permissions")
@@ -256,8 +257,9 @@ def example_block(relative_path: str, name: str, language: str) -> str:
     return match.group(1) + "\n"
 
 
-def example_sources() -> tuple[str, str]:
+def example_sources() -> tuple[str, str, str]:
     dependencies = example_block(TESTING, "insta-dependencies", "toml")
+    dependencies += "\n" + example_block(TYPE_STATE, "statum-dependencies", "toml")
     concat = example_block(GENERICS, "concat-cloned", "rust")
     redaction = example_block(TESTING, "insta-json-redactions", "rust")
     manifest = '''[package]
@@ -294,18 +296,29 @@ fn json_redactions_match_the_documented_example() {
         ("status", "complete"),
     ]);
 ''' + textwrap.indent(redaction, "    ") + "}\n"
-    return manifest, tests
+    # Preserve the whole examples as doctests. Moving their declarations into
+    # fixture modules would hide regressions in rustdoc's implicit main wrapper.
+    doctests = "\n\n".join(
+        f"```rust\n{example_block(TYPE_STATE, name, 'rust')}```"
+        for name in ("statum-upload-session", "statum-rehydration")
+    ) + "\n"
+    return manifest, tests, doctests
 
 
 class ExampleSourceTests(unittest.TestCase):
     def test_marked_examples_and_manifest_can_be_extracted(self) -> None:
-        manifest, tests = example_sources()
+        manifest, tests, doctests = example_sources()
         parsed = tomllib.loads(manifest)
         self.assertEqual(parsed["package"]["edition"], "2024")
         self.assertEqual(set(parsed["dev-dependencies"]["insta"]["features"]),
                          {"yaml", "json", "redactions"})
+        self.assertEqual(parsed["dependencies"], tomllib.loads(
+            example_block(TYPE_STATE, "statum-dependencies", "toml")
+        )["dependencies"])
         self.assertIn(example_block(GENERICS, "concat-cloned", "rust"), tests)
         self.assertIn(textwrap.indent(example_block(TESTING, "insta-json-redactions", "rust"), "    "), tests)
+        for name in ("statum-upload-session", "statum-rehydration"):
+            self.assertIn(example_block(TYPE_STATE, name, "rust"), doctests)
 
     def test_missing_example_fails_instead_of_silently_skipping(self) -> None:
         with self.assertRaisesRegex(ValueError, "exactly one"):
@@ -316,12 +329,15 @@ class RustExampleTests(unittest.TestCase):
     def test_documented_examples_compile_and_preserve_their_contracts(self) -> None:
         cargo = shutil.which("cargo")
         self.assertIsNotNone(cargo, "Cargo is required; use ExampleSourceTests for extraction-only checks")
-        manifest, tests = example_sources()
+        manifest, tests, doctests = example_sources()
         with tempfile.TemporaryDirectory(prefix="skill-examples-") as directory:
             root = Path(directory)
             (root / "src").mkdir()
             (root / "tests").mkdir()
-            (root / "src" / "lib.rs").write_text("", encoding="utf-8")
+            (root / "src" / "lib.rs").write_text(
+                '#![doc = include_str!("examples.md")]\n', encoding="utf-8"
+            )
+            (root / "src" / "examples.md").write_text(doctests, encoding="utf-8")
             (root / "Cargo.toml").write_text(manifest, encoding="utf-8")
             (root / "tests" / "examples.rs").write_text(tests, encoding="utf-8")
             environment = {
@@ -334,7 +350,9 @@ class RustExampleTests(unittest.TestCase):
                 "INSTA_FORCE_PASS": "0",
             }
             result = subprocess.run(
-                [cargo, "test", "--manifest-path", str(root / "Cargo.toml"), "--test", "examples"],
+                # Default target selection includes the Statum doctests as well
+                # as the concatenation and snapshot integration tests.
+                [cargo, "test", "--manifest-path", str(root / "Cargo.toml")],
                 cwd=root, env=environment, capture_output=True, text=True,
                 timeout=300, check=False,
             )

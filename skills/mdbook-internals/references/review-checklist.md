@@ -5,6 +5,7 @@
 - [ ] The request is classified as Edit or read-only Review under `SKILL.md`.
 - [ ] Reviews, audits, checks, and checklist requests report proposed fixes without applying them.
 - [ ] Review validation is non-mutating or runs in a safely isolated copy; the original tracked, untracked, and ignored files remain unchanged.
+- [ ] Edit-mode builds and tests disable automatic chapter creation, or run in a safely isolated copy; missing chapters outside scope remain reported follow-ups.
 - [ ] Build wrappers, preprocessors, include paths, and external side effects were checked before using an isolated copy.
 - [ ] Successful checks, failed attempts, static review, and checks not run are reported separately; unchecked items are marked `Not checked`.
 

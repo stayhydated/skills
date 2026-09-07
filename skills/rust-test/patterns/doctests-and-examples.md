@@ -50,7 +50,14 @@ Use the repository's documented doctest command when present. Common focused com
 - `cargo test --doc -p <crate>` for one crate's doctests;
 - `cargo test --doc --workspace` when doctest changes span the workspace;
 - `cargo test --doc -p <crate> --features <feature>` for feature-gated doctests;
-- `cargo test --doc -p <crate> --target <target>` only when that target can be compiled in the environment and target-specific rustdoc configuration is part of the contract;
+- `cargo test --doc -p <crate> --target <target>` when the target can compile and execute locally or through a working runner, and target-specific doctests are part of the contract;
 - a repository-specific `just`, `make`, or CI recipe when one is already established.
+
+Ordinary cross-target doctests execute target binaries. An installed target or a
+successful `cargo check --target <target>` establishes compilation support only;
+it does not validate doctests. Without an execution environment, use an existing,
+verified workflow that only compiles the snippets and report that limited scope,
+or mark cross-target doctests not run. Do not add `ignore` or `no_run` merely to
+make runnable examples pass on an unavailable target.
 
 When the repository uses cargo-nextest, do not assume `cargo nextest run` covers doctests. Run or recommend a separate doctest command when doctests or public examples are affected. If `.cargo/config.toml` uses cfg-specific `rustdocflags`, or the repository invokes rustdoc `--emit` or `--remap-path-prefix`, inspect that configuration before claiming what a doctest command covers.
