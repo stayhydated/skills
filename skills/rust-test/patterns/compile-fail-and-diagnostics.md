@@ -37,7 +37,8 @@ When the repository uses `trybuild`:
 - Use `TestCases::new().pass(...)` for fixtures that should compile.
 - Use `TestCases::new().compile_fail(...)` for fixtures that should fail to compile.
 - Put fixtures in the repository's established location, commonly `tests/ui`, `tests/compile-fail`, or a crate-specific equivalent.
-- If a `.stderr` expectation is missing or stale, expect trybuild to write observed output under a `wip/` directory.
+- If a `.stderr` expectation is missing, trybuild writes the observed output under `wip/` and fails the test for review.
+- If an existing `.stderr` expectation is stale, trybuild displays the expected and actual output and fails the test; it leaves the expectation unchanged and creates no `wip/` replacement.
 - Use `TRYBUILD=overwrite cargo test ...` only when intentionally regenerating expectations.
 - Always review `git diff` for changed `.stderr` files and disclose reviewed paths in the handoff.
 - Keep fixtures independent of rustc wording that is likely to churn unless the wording itself is the public diagnostic contract.

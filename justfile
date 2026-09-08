@@ -23,7 +23,7 @@ check-skills:
     uv run --script scripts/test_skills.py -v
 
 check-skill-snippets *args:
-    cargo run --locked -p xtask -- check-skill-snippets {{args}}
+    cargo xtask check-skill-snippets {{args}}
 
 cov:
     cargo llvm-cov --workspace --all-features --all-targets

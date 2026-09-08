@@ -14,7 +14,8 @@ subset needs no third-party Python packages: `python scripts/test_skills.py
 WorkerProfileTests -v`.
 
 `just check-skill-snippets` discovers Rust code fences throughout `skills/` and
-compiles and runs them as doctests in a temporary crate. Its output distinguishes
+compiles and runs them as doctests in generated per-skill crates under `target/`.
+Its output distinguishes
 executed examples, compile-only examples, and explicitly ignored outlines.
 Snippet checks establish compilation and assertion results; agent
 instruction-following requires the separate evaluations below.

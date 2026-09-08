@@ -39,7 +39,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - name: Compile and run skill Rust snippets
-        run: cargo run --locked -p xtask -- check-skill-snippets
+        run: cargo xtask check-skill-snippets
 
   test:
     name: test (${{ matrix.os }})

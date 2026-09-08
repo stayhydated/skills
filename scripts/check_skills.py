@@ -41,6 +41,7 @@ RESOURCE_PATH_PATTERN = re.compile(
     r"(?:assets|checklists|patterns|references|scripts|templates)"
     r"/[A-Za-z0-9_.\-/]+"
 )
+EXTERNAL_URL_START_PATTERN = re.compile(r"\b[A-Za-z][A-Za-z0-9+.-]*://|(?<![\w/])//")
 ALLOWED_INTERFACE_FIELDS = {
     "brand_color",
     "default_prompt",
@@ -96,6 +97,35 @@ def split_skill(path: Path) -> tuple[dict[str, Any] | None, str, list[str]]:
     return frontmatter, body, errors
 
 
+def without_external_urls(content: str) -> str:
+    """Exclude URL text from both bundled-resource presence and existence checks."""
+    parts: list[str] = []
+    cursor = 0
+    for match in EXTERNAL_URL_START_PATTERN.finditer(content):
+        if match.start() < cursor:
+            continue
+        end = match.end()
+        preceding = content[match.start() - 1] if match.start() else ""
+        quote = preceding if preceding in ("'", '"') else None
+        closers: list[str] = []
+        while end < len(content):
+            char = content[end]
+            if char.isspace() or char in "<>`" or char == quote:
+                break
+            if char in "([":
+                closers.append(")" if char == "(" else "]")
+            elif char in ")]":
+                if not closers or closers[-1] != char:
+                    break
+                closers.pop()
+            end += 1
+        # Leave Markdown delimiters intact so an adjacent local link is checked.
+        parts.extend((content[cursor:match.start()], " "))
+        cursor = end
+    parts.append(content[cursor:])
+    return "".join(parts)
+
+
 def validate_skill_shape(skill_dir: Path) -> list[str]:
     skill_path = skill_dir / "SKILL.md"
     frontmatter, body, errors = split_skill(skill_path)
@@ -147,7 +177,7 @@ def validate_skill_shape(skill_dir: Path) -> list[str]:
                 f"{skill_path}: frontmatter metadata keys and values must be strings"
             )
 
-    skill_content = skill_path.read_text(encoding="utf-8")
+    skill_content = without_external_urls(skill_path.read_text(encoding="utf-8"))
     for resource_directory in SUPPORTED_RESOURCE_DIRECTORIES:
         resource_root = skill_dir / resource_directory
         if not resource_root.is_dir():

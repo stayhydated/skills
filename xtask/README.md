@@ -7,25 +7,32 @@ parsing and dispatch. Each command has a directory under `src/commands/`:
   fetches channel manifests, `versions.rs` parses and scans Rust versions,
   `github.rs` manages sync issues, and `report.rs` formats output.
 - `check_skill_snippets/`: `mod.rs` owns arguments and orchestration;
-  `discovery.rs` finds and extracts Rust fences, `runner.rs` executes the
-  temporary crate, and `dependencies.toml` supplies its dependencies.
+  `discovery.rs` finds Rust fences, `runner.rs` generates and executes one
+  Rustdoc crate per skill, and `setups/` supplies per-skill dependencies.
 
 Unit tests live with the code they cover. `tests/check_rust_stable.rs` exercises
 the Rust-stable command through the binary and a local HTTP server.
+`tests/check_skill_snippets.rs` checks snippet selection and rejection through
+the binary; the snippet CI job also compiles and runs the accepted examples.
+`cargo machete` checks dependencies of the Rust maintenance workspace.
 
 ## Skill snippet checks
 
 Run `just check-skill-snippets` (or
-`cargo run --locked -p xtask -- check-skill-snippets`) to discover Rust code fences
+`cargo xtask check-skill-snippets`) to discover Rust code fences
 in every Markdown file under `skills/` and test them with Cargo/rustdoc. New Rust
 examples are included automatically. Failures name the source file and line.
 
-The command creates a temporary crate, uses the dependencies in
-`src/commands/check_skill_snippets/dependencies.toml`,
-and reuses build artifacts under `target/skill-snippets`. Dependency resolution
-happens in the temporary crate and may access the registry; the workspace
-lockfile stays unchanged. Snapshot expectations must already be present, for
-example as inline snapshots. The runner disables snapshot acceptance.
+Each skill with Rust examples has a dependency fragment in
+`src/commands/check_skill_snippets/setups/<skill>.toml`. The runner writes a
+single crate for that skill under `target/skill-snippets/<skill>/`. Its generated
+`src/lib.rs` attaches every Markdown file in the skill with `include_str!`, then
+`cargo test --doc` lets Rustdoc compile and run the Rust fences.
+
+Cargo build output is shared under `target/skill-snippets/build`. Dependency
+resolution may access the registry. Generated manifests, lockfiles, and Rust
+source stay under `target/`; the workspace lockfile and skill directories stay
+unchanged. The runner disables automatic inline snapshot acceptance.
 
 Use these options for focused work:
 
@@ -37,7 +44,9 @@ just check-skill-snippets --deny-ignored
 ```
 
 `--list` reports discovery only. `--filter` selects Markdown paths by substring.
-An empty selection fails. `--deny-ignored` makes explicit exclusions fail too.
+The selected paths choose the per-skill crate; that crate imports all Markdown
+from the selected skill. An empty selection fails. `--deny-ignored` makes
+explicit exclusions fail too.
 
 Rust fences use [rustdoc attributes](https://doc.rust-lang.org/rustdoc/write-documentation/documentation-tests.html):
 
@@ -48,18 +57,21 @@ Rust fences use [rustdoc attributes](https://doc.rust-lang.org/rustdoc/write-doc
   or environment. This proves compilation only.
 - `rust,compile_fail`: require compilation to fail for intentionally invalid Rust.
 - `rust,should_panic`: require the example to panic.
-- `rust,ignore (reason)`: report an application-specific outline that omits
-  essential implementation. Prefer completing examples with rustdoc's hidden
-  `#` setup lines. Every ignored block requires a reason.
+- `rust,ignore (reason)`: report an intentionally excluded example. Supply
+  dependencies through the skill's setup and use hidden lines to make the
+  example self-contained whenever feasible. Every ignored block requires a reason.
 
 Edition attributes and `standalone_crate` are supported. The runner rejects
-unknown Rust fence attributes. Each snippet is independent;
-provide its imports, types, setup, and assertions in the fence. Keep test-only
+unknown Rust fence attributes. Parenthesized comments may appear between attributes;
+attributes after a comment are still checked. Comments must be closed and
+non-nested. Each ordinary doctest is independent; provide its imports, types,
+setup, and assertions in the fence. Keep test-only
 setup in hidden `#` lines when it would distract from the example.
 
 The check covers explicitly tagged Rust fences, including backtick and tilde
-fences in Markdown lists and blockquotes. It excludes other languages, untagged fences, inline code, and Rust
-fences shown inside outer Markdown examples. The reported count is Rust snippet
-coverage, not a claim that shell commands, template fragments, or agent behavior
-were validated. A function definition that compiles is only exercised when the
+fences in Markdown lists and blockquotes. It excludes other languages, untagged
+fences, inline code, and Rust fences shown inside outer
+Markdown examples. The reported count is Rust snippet
+coverage, not a claim that shell commands, template fragments, or agent
+behavior were validated. A function definition that compiles is only exercised when the
 snippet calls it.

@@ -150,7 +150,9 @@ For snapshots, golden files, diagnostics, fuzz corpora, generated outputs, and b
 - `Not reviewed; benchmark environment unavailable or noisy: <reason>` when performance output was not meaningful.
 - `Not updated; behavior change did not affect expectations` when applicable.
 
-For `trybuild`, disclose whether missing or changed `.stderr` files were written under `wip/`, regenerated with `TRYBUILD=overwrite`, and reviewed through `git diff`.
+For `trybuild`, distinguish new expectations written under `wip/` from mismatches
+against existing `.stderr` files. Report whether expectations were intentionally
+regenerated with `TRYBUILD=overwrite` and reviewed through `git diff`.
 
 ## Coverage and mutation evidence
 

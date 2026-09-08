@@ -586,6 +586,52 @@ class SkillValidationTests(unittest.TestCase):
             skill_file.write("\nRead [the guide](references/guide.md).\n")
         self.assertEqual(self.validator.validate_skill_shape(self.skill), [])
 
+    def test_external_urls_are_not_bundled_resource_references(self) -> None:
+        for reference in (
+            "[guide](https://example.org/references/guide.md)",
+            "<https://example.org/scripts/check.py>",
+            "https://example.org/assets/image.png",
+            "[guide]: https://example.org/patterns/guide.md",
+            "[guide](//example.org/templates/guide.md)",
+            "`https://example.org/checklists/review.md`",
+            "[guide](https://example.org/(v1)/references/guide.md)",
+            "[guide](https://example.org/it's/references/guide.md)",
+            "[guide](https://example.org/?path=references/guide.md#scripts/check.py)",
+            "[guide](https://[::1]/references/guide.md)",
+        ):
+            with self.subTest(reference=reference):
+                self.write_skill()
+                with (self.skill / "SKILL.md").open("a", encoding="utf-8") as skill_file:
+                    skill_file.write(f"\nRead {reference}.\n")
+                self.assertEqual(self.validator.validate_skill_shape(self.skill), [])
+
+    def test_local_references_are_checked_beside_external_urls(self) -> None:
+        for reference in (
+            "[remote](https://example.org/references/remote.md)[local](references/missing.md)",
+            "<https://example.org/scripts/remote.py> `references/missing.md`",
+            "https://example.org/assets/remote.png references/missing.md",
+            "'https://example.org/scripts/remote.py' `references/missing.md`",
+            '"https://example.org/scripts/remote.py" `references/missing.md`',
+        ):
+            with self.subTest(reference=reference):
+                self.write_skill()
+                with (self.skill / "SKILL.md").open("a", encoding="utf-8") as skill_file:
+                    skill_file.write(f"\n{reference}\n")
+                errors = self.validator.validate_skill_shape(self.skill)
+                self.assertEqual(len(errors), 1, errors)
+                self.assertIn("referenced resource 'references/missing.md' does not exist", errors[0])
+
+    def test_external_url_does_not_make_a_bundled_resource_reachable(self) -> None:
+        self.write_skill()
+        resources = self.skill / "references"
+        resources.mkdir()
+        (resources / "guide.md").write_text("# Guide\n", encoding="utf-8")
+        with (self.skill / "SKILL.md").open("a", encoding="utf-8") as skill_file:
+            skill_file.write("\nRead [upstream](https://example.org/references/guide.md).\n")
+        errors = self.validator.validate_skill_shape(self.skill)
+        self.assertEqual(len(errors), 1, errors)
+        self.assertIn("bundled resource 'references/guide.md' must be referenced directly", errors[0])
+
 
 if __name__ == "__main__":
     unittest.main()

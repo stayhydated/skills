@@ -1,0 +1,5 @@
+# Dependencies used by rust-test Markdown examples.
+[dependencies]
+insta = { features = [ "json", "redactions", "yaml" ], version = "1" }
+rstest = "0.26"
+serde = { features = [ "derive" ], version = "1" }

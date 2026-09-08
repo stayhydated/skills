@@ -59,5 +59,5 @@ pub(crate) fn run(args: &Args) -> Result<()> {
     }
     ensure!(count > ignored, "all discovered Rust snippets are ignored");
 
-    runner::run(&documents)
+    runner::run(&args.skills_root, &documents)
 }

@@ -119,9 +119,11 @@ Start here:
   suite runs through `just check-skills` and the CI `skills` job.
 
 - `xtask/src/commands/check_skill_snippets/`
-  Role: discover Rust code fences under `skills/`, then compile and run them as
-  doctests in a temporary crate with the documented example dependencies.
-  Sync: keep `dependencies.toml`, source examples, the `just check-skill-snippets`
+  Role: discover Rust code fences under `skills/`, generate one Rustdoc test
+  crate per skill under `target/skill-snippets/`, and attach every Markdown file
+  from that skill with `include_str!`. Per-skill dependency setups live under
+  `xtask/src/commands/check_skill_snippets/setups/`.
+  Sync: keep those setups, source examples, the `just check-skill-snippets`
   recipe, and the CI `skill-snippets` job aligned. See `xtask/README.md` for fence
   attributes, exclusions, and focused checks.
 
@@ -134,7 +136,7 @@ Start here:
 ### Rust Maintenance Tooling
 
 - `xtask/`
-  Role: `cargo run --locked -p xtask -- check-rust-stable` checks the current
+  Role: `cargo xtask check-rust-stable` checks the current
   Rust stable channel against Rust minor versions mentioned under `skills/`.
   Implementation: `xtask/src/commands/check_rust_stable/` separates command
   orchestration, channel manifests, version scanning, GitHub access, and reporting.
@@ -159,12 +161,12 @@ Start here:
   `agents/openai.yaml`, or skill-validation tooling. It runs both contract
   validation and tooling regression tests.
 - Use `just check-skill-snippets` after changing Rust examples or their runner.
-  It requires Cargo and resolves the example dependencies in a temporary crate
+  It requires Cargo and resolves each skill's example dependencies in generated crates under `target/`
   without changing the workspace lockfile or accepting snapshots.
 - Use `just ci` for the full local suite when a change spans skill text, Rust
   tooling, manifests, and CI wiring.
 - For local Rust-stable sync checks, run
-  `cargo run --locked -p xtask -- check-rust-stable` without `--create-issue`.
+  `cargo xtask check-rust-stable` without `--create-issue`.
 - Report successful checks separately from attempted checks that failed. Do not
   claim validation ran unless it was executed; if a command is skipped, state
   what remains unvalidated.
