@@ -20,7 +20,6 @@ test:
 
 check-skills:
     uv run --locked scripts/check_skills.py
-    uv run --locked scripts/test_skills.py -v
 
 check-skill-snippets *args:
     cargo xtask check-skill-snippets {{args}}

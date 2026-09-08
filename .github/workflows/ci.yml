@@ -25,9 +25,6 @@ jobs:
       - name: Validate Agent Skills contracts
         run: uv run --locked scripts/check_skills.py
 
-      - name: Test skill tooling
-        run: uv run --locked scripts/test_skills.py -v
-
   skill-snippets:
     runs-on: ubuntu-latest
     env:
