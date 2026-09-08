@@ -39,6 +39,10 @@ Use named prefixes for recurring comment types:
 * `CONTEXT:` for design or operational background.
 
 ```rust
+# let slice = [42_u8];
+# let index = 0;
+# let ptr = slice.as_ptr();
+# assert!(index < slice.len());
 // SAFETY: `ptr` came from `slice.as_ptr()` and `index < slice.len()` was checked
 // immediately above, so the computed address is in-bounds for a shared read.
 let value = unsafe { *ptr.add(index) };
@@ -59,7 +63,7 @@ Prefer a better name, a smaller function, or a test that names the behavior.
 
 Instead of narrating every step, extract functions with names that encode intent.
 
-```rust
+```rust,ignore (application-specific pipeline outline; stage implementations are omitted)
 fn ingest_frame(frame: Frame) -> Result<(), IngestError> {
     validate_frame_header(&frame)?;
     let payload = decode_payload(frame)?;
@@ -69,7 +73,7 @@ fn ingest_frame(frame: Frame) -> Result<(), IngestError> {
 
 Tests can then document each stage:
 
-```rust
+```rust,ignore (test naming outline; assertions and implementations are omitted)
 #[cfg(test)]
 mod tests {
     #[test]
@@ -99,7 +103,7 @@ condition.
 Use `///` for public items and include behavior, errors, panics, safety, and
 examples where relevant.
 
-```rust
+```rust,ignore (API documentation outline; domain types and implementation are omitted)
 /// Parses a wire marker into a normalized lowercase marker.
 ///
 /// # Errors

@@ -50,8 +50,6 @@ Statum provides a macro-based type-state surface:
 
 The examples below use Statum 0.9:
 
-<!-- skill-example: statum-dependencies -->
-
 ```toml
 [dependencies]
 statum = "0.9"
@@ -63,8 +61,6 @@ declarations in its implicit function; Statum's generated modules refer to those
 declarations through `super`.
 
 ## Example: Upload Session
-
-<!-- skill-example: statum-upload-session -->
 
 ```rust
 use statum::{machine, state, transition};
@@ -121,8 +117,6 @@ surface follows the lifecycle.
 Compile-time state does not remove runtime validation at system boundaries. A row,
 event, or payload is still untrusted. Use validators to rebuild exactly one typed
 state before ordinary business logic runs.
-
-<!-- skill-example: statum-rehydration -->
 
 ```rust
 use statum::{machine, state, validators, Error};

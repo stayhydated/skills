@@ -388,6 +388,9 @@ assert_eq!(decoded, Some('🦀'));
 Group imports by origin and keep them boring:
 
 ```rust
+# mod queue { pub struct WorkItem; }
+# mod telemetry { pub struct SpanName; }
+# fn main() {
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -395,6 +398,7 @@ use tracing::Instrument;
 
 use crate::queue::WorkItem;
 use crate::telemetry::SpanName;
+# }
 ```
 
 Use stable `rustfmt` defaults unless the repository already uses nightly rustfmt

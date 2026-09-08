@@ -23,7 +23,7 @@
 - [ ] Commands, identifiers, UI strings, product names, and quotations remain exact.
 - [ ] Established public terminology has not been renamed solely for house style.
 - [ ] Non-en-US locale trees and translation catalogs are unchanged.
-- [ ] Examples contain no live credentials, personal data, or production endpoints.
+- [ ] Examples use documented public service URLs where appropriate and placeholders for user-specific values; they contain no live credentials, tokens, personal data, or sensitive deployment URLs.
 - [ ] Material claims are supported by authoritative sources; conflicts or uncertainty are reported.
 
 ## Clarity and concision

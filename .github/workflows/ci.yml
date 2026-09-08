@@ -28,24 +28,18 @@ jobs:
       - name: Test skill tooling
         run: uv run --script scripts/test_skills.py -v
 
-      - name: Test installer contention and example extraction
-        run: uv run --script scripts/test_skill_regressions.py WorkerConcurrencyTests ExampleSourceTests -v
-
-  skill-examples:
+  skill-snippets:
     runs-on: ubuntu-latest
+    env:
+      RUSTC_WRAPPER: ""
 
     steps:
       - uses: actions/checkout@v7
 
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: Set up uv
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
-        with:
-          version: "0.11.32"
-
-      - name: Compile and test documented Rust examples
-        run: uv run --script scripts/test_skill_regressions.py RustExampleTests -v
+      - name: Compile and run skill Rust snippets
+        run: cargo run --locked -p xtask -- check-skill-snippets
 
   test:
     name: test (${{ matrix.os }})

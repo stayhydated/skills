@@ -17,6 +17,7 @@ octocrab = { default-features = false, features = [
   "rustls",
   "rustls-ring",
 ], version = "0.54" }
+pulldown-cmark = { default-features = false, version = "0.13" }
 regex = "1"
 reqwest = { default-features = false, features = [ "rustls" ], version = "0.13" }
 serde = { features = [ "derive" ], version = "1" }

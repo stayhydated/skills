@@ -21,6 +21,9 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+# Imported bundled helpers must not create resources inside the skill bundles.
+sys.dont_write_bytecode = True
+
 ROOT = Path(__file__).resolve().parent.parent
 WORKER_ROOT = ROOT / "skills" / "use-subagents-codex"
 RENDERER = WORKER_ROOT / "scripts" / "configure_worker_profile.py"

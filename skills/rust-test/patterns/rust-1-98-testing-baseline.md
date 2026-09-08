@@ -42,7 +42,7 @@ contract.
 Use `assert_matches!` when the contract is one structured pattern and seeing the
 mismatched value improves the failure:
 
-```rust
+```rust,test_harness
 use std::assert_matches;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -89,7 +89,7 @@ contract is intentionally debug-assertion-dependent.
 view derived from a source. Test provenance and offsets, including repeated equal
 values:
 
-```rust
+```rust,test_harness
 use core::range::Range;
 
 #[test]
@@ -123,7 +123,7 @@ exposed contract.
 `strip_circumfix` succeeds only when the prefix and suffix both match without
 overlap. Use a compact table that covers the complete contract:
 
-```rust
+```rust,test_harness
 #[test]
 fn quoted_payload_requires_both_delimiters() {
     for (input, expected) in [
@@ -149,7 +149,7 @@ actual public rule.
 For integer `format_into`, verify output across zero, signs, and extremes, then
 reuse the same buffer. Consume each returned `&str` before the next mutable use:
 
-```rust
+```rust,test_harness
 use core::fmt::NumBuffer;
 
 #[test]
@@ -185,7 +185,7 @@ For endian-specific UTF-16 constructors, cover:
 - strict constructors returning `Err`;
 - lossy constructors inserting `char::REPLACEMENT_CHARACTER` at invalid input.
 
-```rust
+```rust,test_harness
 #[test]
 fn utf16_byte_order_is_explicit() {
     assert_eq!(String::from_utf16le(&[0x48, 0x00, 0x69, 0x00]).unwrap(), "Hi");

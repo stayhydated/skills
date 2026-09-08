@@ -87,7 +87,7 @@ State the user impact first, then include only the mechanism needed to explain t
 - Preserve commands, flags, API identifiers, source symbols, UI strings, product names, and quoted text exactly; do not “correct” a public literal for house style.
 - Reuse the book's established terminology. Do not rename a public concept solely to enforce stylistic consistency.
 - Put prerequisites before steps. Use ordered lists only for required sequence and bullets for unordered facts.
-- Make examples minimal, safe, and copyable. Use obvious placeholders such as `<PROJECT_ID>` and never include live credentials, tokens, personal data, or production endpoints.
+- Make examples minimal, safe, and copyable. Use documented public service URLs, including production API base URLs, when they are part of the supported workflow. Use obvious placeholders such as `<PROJECT_ID>` for user-specific values; never include live credentials, tokens, personal data, or sensitive deployment URLs.
 - Give code fences accurate language identifiers and enough execution context to remove ambiguity.
 - Show expected output only when it is a useful verification signal.
 - Remove throat-clearing, repetition, marketing language, and minimizing words such as “easy,” “simple,” “just,” or “obvious.”

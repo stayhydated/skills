@@ -1,0 +1,16 @@
+# Dependencies used by the skill examples, resolved only in the temporary crate.
+[dependencies]
+anyhow = "1"
+bon = { features = [ "experimental-overwritable" ], version = "3.9" }
+genco = "0.19"
+insta = { features = [ "yaml", "json", "redactions" ], version = "1" }
+proc-macro2 = "1"
+quote = "1"
+rstest = "0.26"
+serde = { features = [ "derive" ], version = "1" }
+statum = "0.9"
+strum = "0.28"
+strum_macros = "0.28"
+syn = { features = [ "full" ], version = "2" }
+thiserror = "2"
+tracing = "0.1"

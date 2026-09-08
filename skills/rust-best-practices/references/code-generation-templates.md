@@ -83,7 +83,7 @@ For file generation, create small render-only structs that expose the exact fiel
 the template needs. This keeps template failures obvious and keeps generation
 decisions testable in Rust.
 
-```rust
+```rust,ignore (template outline; requires the application's template file and view model)
 use askama::Template;
 
 #[derive(Template)]
@@ -110,7 +110,7 @@ struct ErrorCodeView {
 Render after building the view model, while borrowed source data is still alive
 and before any generated output is written to disk:
 
-```rust
+```rust,ignore (application-specific renderer outline; model construction is omitted)
 fn render_error_codes(spec: &ErrorSpec) -> Result<String, RenderError> {
     let areas = build_error_code_views(spec)?;
 
@@ -127,7 +127,7 @@ The model should contain parsed and validated Rust syntax, semantic decisions,
 spans for diagnostics, facade paths, and values that can be converted to tokens
 without string assembly.
 
-```rust
+```rust,ignore (macro architecture outline; attribute parsing in from_input is omitted)
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{DeriveInput, LitStr};
@@ -226,8 +226,7 @@ values:
 
 ```rust
 use proc_macro2::TokenStream;
-use quote::{format_ident, quote, quote_spanned};
-use syn::spanned::Spanned;
+use quote::{format_ident, quote};
 
 fn emit_registration_module(
     type_ident: &syn::Ident,
@@ -244,18 +243,54 @@ fn emit_registration_module(
         }
     }
 }
+```
 
-fn emit_from_str_bound(field: &syn::Field) -> TokenStream {
+For a field-dependent bound, clone the input generics, append a predicate for the
+field type, and call `split_for_impl` on that augmented copy. Preserve existing
+type, lifetime, and const parameters and `where` predicates. Keep the bound on
+the field type itself, including an associated type such as `T::Item`, so only
+the operations used by the generated implementation constrain callers.
+
+The following emitter uses these dependencies, subject to the adoption boundary
+in `../SKILL.md`:
+
+```toml
+[dependencies]
+proc-macro2 = "1"
+quote = "1"
+syn = { version = "2", features = ["full"] }
+```
+
+```rust
+use proc_macro2::TokenStream;
+use quote::quote;
+use syn::spanned::Spanned;
+
+fn emit_field_parser(input: &syn::DeriveInput, field: &syn::Field) -> TokenStream {
+    let ident = &input.ident;
     let ty = &field.ty;
+    let mut generics = input.generics.clone();
+    generics.make_where_clause().predicates.push(syn::parse_quote_spanned! {
+        ty.span()=> #ty: ::core::str::FromStr
+    });
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
-    quote_spanned! { ty.span()=>
-        const _: fn() = || {
-            fn assert_from_str<T: ::core::str::FromStr>() {}
-            assert_from_str::<#ty>();
-        };
+    quote! {
+        impl #impl_generics #ident #ty_generics #where_clause {
+            fn parse_field(input: &str) -> ::core::result::Result<
+                #ty,
+                <#ty as ::core::str::FromStr>::Err,
+            > {
+                <#ty as ::core::str::FromStr>::from_str(input)
+            }
+        }
     }
 }
 ```
+
+This emits a parsing method on the input type for the selected field. Test the
+emitted implementation with generic and concrete field types, preserved bounds,
+and a caller whose field type fails the required bound.
 
 Use `proc_macro2::Literal` or `syn::Lit*` when the generated surface is
 token-stream-oriented or the repository already uses `proc_macro2` for that
@@ -317,7 +352,7 @@ string literals.
 
 Keep macro entrypoints thin:
 
-```rust
+```rust,ignore (requires a proc-macro crate and the application's expansion implementation)
 use proc_macro_error2::proc_macro_error;
 use syn::{parse_macro_input, DeriveInput};
 
@@ -374,7 +409,7 @@ For generated files:
 * When generated Rust is checked in or published, compile the owning crate or run
   the focused test that exercises the generated API.
 
-```rust
+```rust,ignore (application-specific renderer test; fixture and renderer are omitted)
 #[test]
 fn renders_error_code_bindings_from_template() {
     let output = render_error_codes(&sample_error_spec()).expect("error-code template renders");
@@ -403,7 +438,7 @@ For macros:
 * Assert that invalid user input expands to clear `compile_error!` output and
   points at the right syntax when spans matter.
 
-```rust
+```rust,ignore (application-specific macro test; expansion implementation is omitted)
 #[test]
 fn derive_command_spec_emits_trait_impl() {
     let input: syn::DeriveInput = syn::parse_quote! {

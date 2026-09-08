@@ -20,7 +20,10 @@ Integration tests belong under `tests/` and should exercise the public API.
 Doc tests belong in rustdoc examples and should cover public happy paths and
 important edge cases.
 
-```rust
+```rust,test_harness
+# fn parse_frame(input: &str) -> Result<&str, &'static str> {
+#     input.split_once(':').map(|(_, body)| body).ok_or("missing separator")
+# }
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -44,7 +47,11 @@ behavior statements.
 
 Avoid broad "happy path" tests with many unrelated assertions.
 
-```rust
+```rust,test_harness
+# fn normalize_marker(input: &str) -> String {
+#     let trimmed = input.trim();
+#     if trimmed.is_empty() { "default".to_owned() } else { trimmed.to_ascii_lowercase() }
+# }
 #[test]
 fn active_marker_is_preserved() {
     let marker = normalize_marker(" Active ");
@@ -61,6 +68,7 @@ fn blank_marker_uses_default() {
 Use helper functions for setup, not for hiding assertions.
 
 ```rust
+# struct Batch { id: String, records: Vec<String> }
 fn sample_batch() -> Batch {
     Batch {
         id: "batch-1".to_owned(),
@@ -77,7 +85,7 @@ parse outcomes, or other values where the mismatched debug shape should appear i
 the failure. Import the macro explicitly from `std` in ordinary tests or from
 `core` in `no_std` test contexts.
 
-```rust
+```rust,test_harness
 use std::assert_matches;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -108,6 +116,7 @@ Use `assert_eq!` when equality is the behavior. Use `assert!` for boolean
 properties with a useful failure message.
 
 ```rust
+# fn normalize_marker(input: &str) -> String { input.trim().to_ascii_lowercase() }
 let output = normalize_marker(" ready ");
 assert!(
     output.chars().all(char::is_lowercase),
@@ -124,7 +133,8 @@ user-facing message itself is part of the public contract.
 Use table-driven loops for tiny pure cases where a single failure message is good
 enough. Use `rstest` when named cases help navigation.
 
-```rust
+```rust,test_harness
+# fn normalize_marker(input: &str) -> String { input.trim().to_ascii_lowercase() }
 #[test]
 fn trims_outer_whitespace() {
     for (input, expected) in [(" alpha", "alpha"), ("beta ", "beta"), (" gamma ", "gamma")] {
@@ -135,7 +145,8 @@ fn trims_outer_whitespace() {
 
 With `rstest`, keep case names descriptive:
 
-```rust
+```rust,test_harness
+# fn normalize_marker(input: &str) -> String { input.trim().to_ascii_lowercase() }
 use rstest::rstest;
 
 #[rstest]
@@ -210,14 +221,14 @@ integration suite into a second application.
 Use snapshot testing when output is structural, textual, generated, or hard to
 read in `assert_eq!`.
 
-<!-- skill-example: insta-dependencies -->
-
 ```toml
 [dev-dependencies]
 insta = { version = "1", features = ["yaml", "json", "redactions"] }
 ```
 
-```rust
+```rust,test_harness
+# #[derive(serde::Serialize)]
+# struct SummaryReport { processed: u32, rejected: u32 }
 #[test]
 fn summary_report_shape_is_stable() {
     let report = SummaryReport {
@@ -225,7 +236,10 @@ fn summary_report_shape_is_stable() {
         rejected: 1,
     };
 
-    insta::assert_yaml_snapshot!("reports/summary", report);
+    insta::assert_yaml_snapshot!(report, @r"
+    processed: 3
+    rejected: 1
+    ");
 }
 ```
 
@@ -233,15 +247,25 @@ Commit snapshots. Review changes as carefully as source code. Redact timestamps,
 random identifiers, host paths, and other unstable fields. The JSON example needs
 `json`, and selector-based redactions need `redactions`; enable only the snapshot
 formats and capabilities used by the repository. Put redaction mappings inside
-braces as the third macro argument.
-
-<!-- skill-example: insta-json-redactions -->
+braces after the snapshot value. Inline snapshots keep the expected output with
+the example.
 
 ```rust
-insta::assert_json_snapshot!("jobs/completed", job_payload, {
+# let job_payload = std::collections::BTreeMap::from([
+#     ("finished_at", "2026-09-07T12:00:00Z"),
+#     ("run_id", "job-123"),
+#     ("status", "complete"),
+# ]);
+insta::assert_json_snapshot!(job_payload, {
     ".finished_at" => "[timestamp]",
     ".run_id" => "[run-id]",
-});
+}, @r###"
+{
+  "finished_at": "[timestamp]",
+  "run_id": "[run-id]",
+  "status": "complete"
+}
+"###);
 ```
 
 Do not snapshot tiny primitive logic. `assert_eq!(count, 3)` is clearer than a

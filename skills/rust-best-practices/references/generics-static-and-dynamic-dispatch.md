@@ -42,8 +42,6 @@ where
 A `where` clause separates trait constraints from the function signature. This
 example concatenates cloned values in input order; it does not sort or merge them.
 
-<!-- skill-example: concat-cloned -->
-
 ```rust
 fn concat_cloned<T>(left: &[T], right: &[T]) -> Vec<T>
 where
@@ -51,6 +49,7 @@ where
 {
     left.iter().chain(right).cloned().collect()
 }
+# assert_eq!(concat_cloned(&[1, 3], &[2, 4]), vec![1, 3, 2, 4]);
 ```
 
 ## `impl Trait` for Input Ergonomics

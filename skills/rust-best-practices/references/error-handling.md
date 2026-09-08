@@ -93,6 +93,9 @@ pub enum ManifestError {
 Use nested errors to preserve layers without erasing details.
 
 ```rust
+# #[derive(Debug, thiserror::Error)]
+# #[error("invalid manifest")]
+# pub struct ManifestError;
 #[derive(Debug, thiserror::Error)]
 pub enum SyncError {
     #[error("manifest error: {0}")]
