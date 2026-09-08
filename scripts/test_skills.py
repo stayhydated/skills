@@ -1,11 +1,4 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.11"
-# dependencies = [
-#   "PyYAML==6.0.3",
-#   "skills-ref @ git+https://github.com/agentskills/agentskills.git@38a2ff82958afee88dadf4831509e6f7e9d8ef4e#subdirectory=skills-ref",
-# ]
-# ///
+#!/usr/bin/env -S uv run
 """Exercise skill validation and worker installation without live agent calls."""
 
 from __future__ import annotations

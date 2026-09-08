@@ -8,8 +8,8 @@ as `Not run`; passing text searches or tooling tests does not establish agent
 behavior.
 
 `scripts/test_skills.py` separately automates worker-profile installation and
-skill-validator behavior. Run that suite with `uv run --script
-scripts/test_skills.py -v`, or through `just check-skills`. The renderer-only
+skill-validator behavior. Run that suite with
+`uv run --locked scripts/test_skills.py -v`, or through `just check-skills`. The renderer-only
 subset needs no third-party Python packages: `python scripts/test_skills.py
 WorkerProfileTests -v`.
 

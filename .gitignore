@@ -1,3 +1,4 @@
 /target/
+/.venv/
 .rumdl_cache
 __pycache__

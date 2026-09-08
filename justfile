@@ -19,8 +19,8 @@ test:
     cargo test --workspace --all-features --all-targets --locked
 
 check-skills:
-    uv run --script scripts/check_skills.py
-    uv run --script scripts/test_skills.py -v
+    uv run --locked scripts/check_skills.py
+    uv run --locked scripts/test_skills.py -v
 
 check-skill-snippets *args:
     cargo xtask check-skill-snippets {{args}}
