@@ -28,9 +28,17 @@ Prefer ordinary unit, integration, or compile-fail/UI tests for:
 - Examples using `?` often need an explicit `fn main() -> Result<..., ...>` shape or another visible return-value pattern.
 - Prefer `no_run` when an example should compile but not execute in CI.
 - Use `ignore` only when neither compilation nor execution is appropriate in the normal doctest environment, and explain why when practical.
-- Use `compile_fail` only for stable, meaningful invalid-usage examples.
+- Use `compile_fail` only for stable, meaningful invalid-usage examples; a passing negative doctest does not by itself establish why compilation failed.
 - Avoid relying on exact rustc wording in doctest `compile_fail`; use a UI-test or `trybuild` harness when exact diagnostics are the contract.
 - rustdoc supports `--emit` and `--remap-path-prefix`; when a repository uses those flags, preserve its documented command and account for emitted or remapped paths in generated-output review.
+
+For new or changed `compile_fail` examples, follow
+[rejection-reason verification](compile-fail-and-diagnostics.md#verify-the-rejection-reason).
+Inspect the intended diagnostic and verify a closely related positive example
+under the same compilation conditions. A minimally repaired version should
+compile with the negative-test expectation removed; an unresolved import or
+missing feature is not evidence of the documented API restriction. Disclose
+missing verification instead of reporting arbitrary rejection as contract proof.
 
 ## Idioms
 

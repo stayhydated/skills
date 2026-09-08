@@ -77,14 +77,31 @@ and the private coordination lock, never the bundled template. If it creates or 
 
 ## Select the worker
 
+Resolve the effective agent definition before choosing either spawn path. Inspect
+available runtime agent metadata and applicable personal definitions under the
+effective `$CODEX_HOME/agents` (normally `~/.codex/agents`) and project-scoped
+`.codex/agents` definitions. Match the TOML `name` field, not just the filename.
+A custom agent can shadow a built-in name such as `worker`, and its explicit
+`model` or `model_reasoning_effort` takes precedence over spawn arguments; see
+[Codex custom-agent precedence](https://developers.openai.com/codex/subagents#custom-agents).
+Do not assume that passing both overrides defeats a conflicting custom profile.
+
+Check which definition the current session actually resolves, including any
+same-name definition of `use_subagents_codex`. Files on disk are inspection
+evidence, not proof that the session loaded them. If `worker` is shadowed or its
+effective definition cannot be established, do not use it as a built-in fallback.
+Use another verified path below or report the resolution blocker. Do not edit,
+rename, delete, or overwrite a user's custom agent to bypass shadowing, and do
+not invent a spawn option that supposedly forces built-in resolution.
+
 Use the first available path that preserves both resolved worker settings:
 
-1. Spawn the custom agent named `use_subagents_codex` when the current session has already loaded the resolved profile.
-2. Otherwise, when the spawn surface accepts explicit model **and** explicit reasoning-effort overrides, pass both resolved values to a built-in `worker`. Include the worker constraints below in the assignment.
+1. Spawn the custom agent named `use_subagents_codex` only when its effective definition in the current session is the loaded, resolved managed profile, not a conflicting same-name definition.
+2. Otherwise, when `worker` is verified to resolve to the built-in definition and the spawn surface accepts explicit model **and** explicit reasoning-effort overrides, pass both resolved values. Include the worker constraints below in the assignment.
 3. Do not use an explicit-model fallback that cannot also preserve the resolved reasoning effort; it could accidentally inherit the parent's effort.
 4. If neither exact path is available, report that the requested subagent profile cannot be executed in the current session. Do not silently substitute the parent model, another worker model, or another reasoning level.
 
-When runtime metadata exposes the selected worker model, reasoning effort, or custom-agent path, verify it. Otherwise state only what the runtime actually confirms. Never treat the installed TOML alone as proof of the runtime used.
+When runtime metadata exposes the selected worker model, reasoning effort, or custom-agent path, verify it against the resolved profile. If it conflicts, stop that worker before further task execution and report the mismatch rather than treating it as the requested worker. Otherwise state only what the runtime actually confirms. Never treat the installed TOML alone as proof of the runtime used.
 
 ## Choose the delegation topology
 

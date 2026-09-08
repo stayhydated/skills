@@ -456,9 +456,14 @@ fn derive_command_spec_emits_trait_impl() {
 ```
 
 For user-facing diagnostics, add compile-pass and compile-fail fixtures when the
-macro is public or when spans are part of the contract:
+macro is public or when spans are part of the contract.
 
-```rust
+The driver below is an unexecuted outline because its proc-macro crate and UI
+fixtures are application-specific. An executable doctest version must provide
+those inputs and use `rust,test_harness`; an ordinary `rust` fence does not run
+contained `#[test]` functions. Do not count this ignored outline as UI validation.
+
+```rust,ignore (requires the application's proc-macro crate and UI fixtures)
 #[test]
 fn ui() {
     let t = trybuild::TestCases::new();

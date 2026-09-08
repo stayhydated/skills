@@ -18,6 +18,7 @@
 - [ ] Doctests cover public documentation examples and API samples, not private implementation details, and use rustdoc mechanics such as hidden setup lines, `no_run`, and `compile_fail` intentionally.
 - [ ] Snapshots are used only when reviewable diffs are clearer than ordinary assertions.
 - [ ] Compile-fail/UI tests cover proc macros, diagnostics, type-level contracts, or compile-time failures when relevant, and `.stderr`/UI expectations were generated through the repository workflow and reviewed.
+- [ ] New or changed compile-fail examples reject the intended operation, not broken imports, missing dependencies, or feature/setup errors; matching positive cases and minimally repaired variants establish valid setup, or missing verification is disclosed.
 - [ ] Property tests cover invariants, round trips, or generated-input behavior when the repository already uses or requests that style.
 - [ ] Fuzz tests cover untrusted-input, parser, deserializer, protocol, or unsafe-code surfaces when fuzzing is configured or requested.
 - [ ] Async/concurrency tests cover cancellation, shutdown, timeouts, channels, streams, task joins, or synchronization contracts without relying on arbitrary sleeps.

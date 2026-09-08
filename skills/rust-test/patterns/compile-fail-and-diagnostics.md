@@ -30,6 +30,33 @@ Use rustdoc `compile_fail` for documentation examples, not as a replacement for 
 - Keep public docs, examples, and diagnostics aligned when public macro behavior changes.
 - Treat Rust version changes as expectation-file risk: a new stable compiler can alter accepted syntax, warnings, path rendering, symbol spelling, or diagnostic wording even when the public contract is unchanged.
 
+## Verify the rejection reason
+
+A passing rustdoc `compile_fail` example establishes compilation failure, not its
+cause. A broken import, missing dependency, disabled feature, or unrelated setup
+error can mask an API that now accepts the prohibited operation.
+
+For each new or changed negative example:
+
+1. State the rule that should reject the operation and inspect the actual
+   diagnostic using the existing harness or an equivalent isolated compilation.
+   Confirm that the intended rejection, not an unrelated error, caused failure.
+2. Pair it with a closely related passing example or fixture that uses the same
+   imports, dependencies, features, target, and toolchain. Reuse an existing
+   positive case when it establishes that setup; add a missing case only in an
+   authorized editing request.
+3. Check a minimally repaired variant with only the prohibited operation made
+   valid and the negative-test expectation removed. It should compile without
+   repairing unrelated setup. Perform this check in an isolated copy when the
+   request is read-only; do not weaken the real negative test to make it pass.
+4. Review UI expectations for the intended diagnostic. Do not accept regenerated
+   `.stderr` that merely records a broken fixture or unrelated compiler error.
+
+Report the rejection evidence and positive-control results, or disclose that
+those checks were not run. Listing or running the negative test alone does not
+establish its validity. Keep these checks within existing doctest or UI tooling;
+a new testing dependency is not required by this rule.
+
 ## trybuild workflow
 
 When the repository uses `trybuild`:
@@ -68,6 +95,10 @@ the established harness and review the diff; do not handwrite compiler output.
 ## Doctest compile-fail boundary
 
 Use rustdoc `compile_fail` when the invalid example belongs in public documentation and does not need exact stderr matching. Keep the visible example short and focused on the public rule. For exact diagnostics, proc-macro output, or multiple UI fixtures, prefer the repository's established diagnostic harness.
+
+Apply [rejection-reason verification](#verify-the-rejection-reason) to doctests
+too. Avoiding exact stderr assertions does not mean accepting failure for an
+unrelated reason.
 
 ## Validation
 
