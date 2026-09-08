@@ -28,6 +28,13 @@ Prefer, in order:
 
 In workspaces, identify the affected package graph before selecting validation. Prefer package-scoped commands first, then dependent package tests when public APIs or shared fixtures changed. Avoid defaulting to full-workspace tests unless the change crosses package boundaries or no narrower command proves the contract.
 
+After a filtered run, confirm from execution output that the intended tests were
+selected, executed, and passed. A successful exit with no relevant tests is not
+behavioral validation. Report unmatched filters, ignored tests, and exclusions
+from features or `cfg` gates. Unrelated executables may legitimately run zero
+tests; check the intended tests, not a blanket nonzero count per executable.
+Discovery and compilation-only checks do not establish test execution.
+
 ## Common command shapes
 
 Use only when evidenced or directly runnable in the repository:
@@ -106,6 +113,12 @@ Use `cargo hack` only when the repository already uses it or the recommendation 
 - `cargo hack --feature-powerset --depth 2 --no-dev-deps check`
 - `cargo hack --version-range <min>..=<max> check`
 
+`--no-dev-deps` temporarily rewrites real `Cargo.toml` files, even with `check`.
+In read-only modes, run these commands only in an isolated workspace copy or
+report them as not run. Do not edit manifests concurrently, and do not treat a
+separate build-output directory as source isolation. Follow the
+[cargo-hack isolation and handoff guidance](feature-msrv-matrix.md#cargo-hack-guidance).
+
 Disclose mutually exclusive features, missing target toolchains, unavailable linkers, MSRV toolchain gaps, Rust 1.98-only APIs or configuration that were not safe for an explicitly declared lower MSRV, or target tests that could be checked but not executed.
 
 ## Rust 1.98-specific validation
@@ -166,7 +179,8 @@ Use coverage or mutation-testing results only as supporting evidence. Do not int
 
 Use exact validation wording:
 
-- `Validated with: <command>` only when the command ran successfully.
+- `Validated with: <command>` only when the command ran successfully and exercised the claimed scope. Behavioral test claims require evidence that the intended tests executed; compilation-only checks must be labeled as such.
 - `Attempted validation with: <command>` when the command ran but failed; include the relevant failure summary and whether the failure appears related to the change.
 - `Reviewed only; not executed because: <reason>` for static review without execution.
 - `Not validated; missing repo access / command unavailable / outside requested scope: <reason>` when validation was not possible or not attempted.
+- `Not validated; intended tests not executed: <command and reason>` when a successful command left the intended tests unmatched, ignored, or excluded by features or `cfg` gates.

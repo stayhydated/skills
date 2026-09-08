@@ -68,6 +68,21 @@ Common recommended shapes:
 - `cargo hack --feature-powerset --depth 2 --no-dev-deps check`
 - `cargo hack --version-range <min>..=<max> check`
 
+The `--no-dev-deps` examples temporarily remove development dependencies from
+real `Cargo.toml` files and restore them afterward, as documented by
+[cargo-hack](https://github.com/taiki-e/cargo-hack#usage). Concurrent manifest edits
+can be lost during restoration. The trailing `check` does not make the operation
+read-only.
+
+In Audit, Strategy, and Checklist modes, run `--no-dev-deps` only in an isolated
+copy of the relevant workspace and required local dependencies. Ensure selected
+manifest paths resolve into that copy rather than the original checkout. A
+separate build-output directory is not source isolation. If safe isolation is
+unavailable, report the command as not run. In Patch mode, prefer isolation too,
+and never run the command concurrently with manifest edits by another process,
+editor, or worker. Name the isolated copy in the handoff and confirm that the
+original checkout remained unchanged.
+
 Avoid exhaustive feature powersets when they are too slow or semantically invalid. Prefer `--depth`, documented groups, or CI-evidenced combinations.
 
 ## Handoff

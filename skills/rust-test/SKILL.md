@@ -83,7 +83,7 @@ Do not use it for non-Rust testing unless the repository explicitly routes that 
 10. Use Criterion or the repository's benchmark harness when performance is part of the contract or regression risk.
 11. Refuse mock-object interaction verification. Replace it with state or output assertions through the smallest real integration/e2e seam, fixture, deterministic stub, or local fake that preserves the observable contract. If no viable mock-free seam exists within scope, report the evidence gap and the production seam needed instead of generating a mock test.
 12. Normalize nondeterministic output before asserting, snapshotting, goldening, fuzzing, or benchmarking it.
-13. Validate with focused commands and review expectation-file diffs intentionally.
+13. Validate with focused commands and review expectation-file diffs intentionally. Confirm from execution output that the intended tests ran; a successful exit with no relevant tests is not behavioral validation.
 14. Treat feature flags, mutually exclusive features, `cfg` gates, target triples, MSRV, and `no_std`/WASM/embedded constraints as part of the tested contract when they affect behavior or compilation.
 15. For async, concurrent, time-sensitive, or background-task behavior, prefer deterministic synchronization, fake or paused time, joined tasks, and repository-standard runtime patterns over sleeps and timing assumptions.
 16. For unsafe, FFI, atomics, custom allocators, or memory-invariant changes, pair public functional tests with invariant-focused regressions and use Miri, sanitizers, loom, or fuzzing only when configured, requested, or clearly labeled as recommended.
@@ -186,7 +186,8 @@ Include applicable items:
 
 Use exact validation wording:
 
-- `Validated with: <command>` only when the command ran successfully.
+- `Validated with: <command>` only when the command ran successfully and exercised the claimed scope. Behavioral test claims require evidence that the intended tests executed; compilation-only checks must be labeled as such.
 - `Attempted validation with: <command>` when the command ran but failed; include the relevant failure summary and whether the failure appears related to the change.
 - `Reviewed only; not executed because: <reason>` for static review without execution.
 - `Not validated; missing repo access / command unavailable / outside requested scope: <reason>` when validation was not possible or not attempted.
+- `Not validated; intended tests not executed: <command and reason>` when a successful command left the intended tests unmatched, ignored, or excluded by features or `cfg` gates.

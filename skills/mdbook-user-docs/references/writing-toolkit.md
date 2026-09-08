@@ -73,15 +73,23 @@ Use this sequence:
 4. If yes, explain the smallest mechanism that enables the action.
 5. Link to internal documentation for implementation depth.
 
+For this example, assume public documentation and tests establish that submission
+returns before processing finishes and that a `status` command reports
+completion. Those facts must be verified separately; the implementation sentence
+alone does not establish them.
+
 Instead of:
 
 > The coordinator spawns a background Tokio task and sends work through an MPSC channel.
 
 Write:
 
-> The command returns before processing finishes. Run `status` to confirm completion. Processing continues asynchronously, so completion order can differ from submission order.
+> The command returns before processing finishes. Run `status` to confirm completion.
 
-The mechanism is included only to explain timing and ordering.
+The rewrite states the verified user impact without exposing incidental machinery.
+Asynchronous execution alone does not establish completion ordering; a background
+worker may process requests sequentially. Verify ordering independently, preserve
+any guaranteed order, and omit commands or behaviors not supported by evidence.
 
 ## Tables
 

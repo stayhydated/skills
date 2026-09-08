@@ -50,7 +50,9 @@
 ## Validation
 
 - [ ] The narrowest proving command was run when possible, and the handoff does not overclaim surfaces that command did not exercise.
+- [ ] Filtered runs executed the intended tests; unmatched filters, ignored tests, and feature/`cfg` exclusions are disclosed, and successful zero-relevant-test or compilation-only runs are not reported as behavioral validation.
 - [ ] Workspace package graph, dependent crate impact, feature combinations, MSRV, Cargo warning policy, selected lockfile, and target/platform commands were considered when relevant.
+- [ ] `cargo hack --no-dev-deps` ran only in an isolated workspace copy in read-only modes; manifests were not edited concurrently, a separate build-output directory was not mistaken for isolation, and the handoff identifies the isolated copy or explains why the check was not run.
 - [ ] When nextest is used, doctests were validated separately when affected.
 - [ ] Rust 1.98-specific library, compiler, Cargo/rustdoc, formatting, and target behavior was validated only with commands that exercise the affected surface.
 - [ ] When `trybuild` is used, missing `wip/` outputs, `TRYBUILD=overwrite`, and changed `.stderr` files were handled intentionally.

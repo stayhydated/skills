@@ -25,6 +25,19 @@ Common focused target selections:
 - `cargo test -p <crate> --example <example_name>` runs tests for a selected example target when applicable.
 - `cargo test -p <crate> --bins` or `--bin <name>` is relevant when binary targets contain unit tests or when binary-specific compilation matters.
 
+A name filter can match no tests while the command still exits successfully.
+After a filtered run, inspect the executed test names and counts to confirm that
+the intended tests ran and passed. Report unmatched filters, ignored tests, and
+feature- or `cfg`-gated exclusions rather than treating exit status as proof.
+Other test executables may legitimately run zero tests; the requirement is that
+the intended tests executed, not that every executable has a nonzero count.
+
+For libtest targets, `cargo test -p <crate> --test <integration_test> -- --list`
+can help diagnose selection under the same features and target, but listing tests
+is discovery, not execution. Likewise, `--no-run` or `cargo check` establishes
+compilation only. Do not unignore tests or change feature policy merely to obtain
+a nonzero count.
+
 Do not claim that a selected command proves doctests, examples, benches, target-specific builds, all feature combinations, warning-free policy, or a particular lockfile unless the command and applicable configuration actually select those contracts.
 
 ## Integration tests and binaries
@@ -47,7 +60,8 @@ For binary crates or crates with CLI targets, first consider Cargo's built-in bi
 
 When reporting validation, state exactly what the command covered. Examples:
 
-- `Validated with: cargo test -p parser parse_round_trip` covers matching normal tests for that package under the active Cargo configuration, not all feature combinations.
+- `Validated with: cargo test -p parser parse_round_trip` covers matching normal tests for that package under the active Cargo configuration, not all feature combinations; confirm the intended tests executed and passed.
+- `Not validated; intended tests not executed: cargo test -p parser old_test_name; filter matched no tests.` reports an unmatched filter even when the command exited successfully.
 - `Validated with: cargo test --doc -p parser` covers doctests under the selected package, target, feature, and rustdoc configuration, not integration tests.
 - `Validated with: cargo check -p parser --target wasm32-unknown-unknown` covers target compilation, not runtime behavior on that target.
 - `Validated with: cargo test --locked -p parser` covers the lockfile selected by the active Cargo configuration; identify it when `resolver.lockfile-path` is set.
