@@ -148,8 +148,17 @@ mod tests {
 
         let library = fs::read_to_string(output.path().join("src/lib.rs")).unwrap();
         assert_eq!(library.matches("include_str!").count(), 2);
-        assert!(library.contains("example/SKILL.md"));
-        assert!(library.contains("example/references/guide.md"));
+        let skill_root = fs::canonicalize(skills.path().join("example")).unwrap();
+        for markdown in [
+            skill_root.join("SKILL.md"),
+            skill_root.join("references/guide.md"),
+        ] {
+            let markdown = markdown.to_str().unwrap();
+            assert!(
+                library.contains(&format!("include_str!({markdown:?})")),
+                "generated library did not import {markdown}\n{library}"
+            );
+        }
         assert!(output.path().join("Cargo.toml").is_file());
     }
 }
