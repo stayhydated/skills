@@ -11,7 +11,6 @@ npx skills add stayhydated/skills
 
 - [manage-workspace-agents-md](skills/manage-workspace-agents-md)
 - [use-subagents-codex](skills/use-subagents-codex)
-- [use-windows-vm-computer-use-codex](skills/use-windows-vm-computer-use-codex)
 
 ## Passive
 

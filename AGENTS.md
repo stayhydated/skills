@@ -90,13 +90,6 @@ Start here:
   orchestration behavior, worker settings, installation requirements, or visible
   metadata changes.
 
-- `skills/use-windows-vm-computer-use-codex/`
-  Role: SSH-orchestrated, VM-local Codex computer-use in interactive Windows
-  sessions, including forced full-access execution, approval, task lifecycle,
-  and troubleshooting guidance.
-  Sync: keep `SKILL.md` and `agents/openai.yaml` aligned when activation text,
-  workflow boundaries, full-access guidance, or display text changes.
-
 ### Skill Contract Validation
 
 - `scripts/check_skills.py`
