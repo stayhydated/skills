@@ -82,14 +82,6 @@ Start here:
   `agents/openai.yaml` aligned when modes, handoff wording, evidence rules, or
   validation wording change.
 
-- `skills/use-subagents-codex/`
-  Role: user-requested Codex subagent orchestration and management of the
-  bundled worker profile.
-  Sync: keep `SKILL.md`, `assets/use-subagents-codex.toml`,
-  `scripts/configure_worker_profile.py`, and `agents/openai.yaml` aligned when
-  orchestration behavior, worker settings, installation requirements, or visible
-  metadata changes.
-
 ### Skill Contract Validation
 
 - `scripts/check_skills.py`

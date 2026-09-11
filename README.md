@@ -10,7 +10,6 @@ npx skills add stayhydated/skills
 ## Active
 
 - [manage-workspace-agents-md](skills/manage-workspace-agents-md)
-- [use-subagents-codex](skills/use-subagents-codex)
 
 ## Passive
 
