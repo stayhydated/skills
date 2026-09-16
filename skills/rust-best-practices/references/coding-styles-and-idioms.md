@@ -43,11 +43,12 @@ fn checkpoint(template: &PacketTemplate) -> PacketTemplate {
 }
 ```
 
-Avoid accidental clones inside loops. Prefer iterator adapters that show intent.
+Avoid accidental clones inside loops. When a second owned copy of an entire
+slice is needed, use `to_vec()` directly.
 
 ```rust
 let labels = [String::from("fast"), String::from("safe")];
-let copied: Vec<String> = labels.iter().cloned().collect();
+let copied = labels.to_vec();
 assert_eq!(copied, labels);
 ```
 

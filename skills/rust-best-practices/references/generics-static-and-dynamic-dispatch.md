@@ -63,15 +63,18 @@ fn emit_line(mut write: impl std::io::Write, line: &str) -> std::io::Result<()> 
 ```
 
 Do not use `impl Trait` when two arguments must be the same concrete type. Use a
-named generic instead.
+named generic instead. Moving the owned inputs does not require `Clone`.
 
 ```rust
-fn same_codec<C>(left: C, right: C) -> (C, C)
-where
-    C: Clone,
-{
-    (left.clone(), right)
+fn same_codec<C>(left: C, right: C) -> (C, C) {
+    (left, right)
 }
+
+struct Codec(u8);
+
+let (left, right) = same_codec(Codec(1), Codec(2));
+assert_eq!(left.0, 1);
+assert_eq!(right.0, 2);
 ```
 
 ## Return-Position `impl Trait`
