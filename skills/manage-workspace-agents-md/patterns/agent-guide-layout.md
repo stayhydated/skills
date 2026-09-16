@@ -15,54 +15,38 @@ These patterns are source material, not default output. Before using any bullet 
 
 ## Default guide layout pattern
 
-Use this order unless the repository has a strong reason to differ:
+`AGENTS.md` is ordinary Markdown with no required headings or schema. Start with the instructions that most help an agent work correctly, not a fixed outline. The following are optional content areas, not sections to fill:
 
-1. `# AGENTS.md`
-2. One paragraph: “This is the working guide for contributors and coding agents in the `<workspace>` workspace.”
-3. `Use it to decide:` with 4-5 bullets about ownership, audience, docs sync, tests/fixtures/generated outputs, and validation.
-4. `Start here` lines for the main facade, default package, app, docs surface, or runner file when it is the repository entry point.
-5. Optional `## Common Commands` when commands are repository-evidenced and useful for most edits.
-6. `## Project Summary`
-7. `## Quick Decision Flow`
-8. `## Audience Labels`
-9. `## Documentation Placement`
-10. `## Synchronization Rules`
-11. `## Workspace Map`
-12. `## Repository Standards`, only for standards evidenced by the repository.
-13. `## Validation and Editing Rules`
-14. Optional narrowly scoped sections for generated outputs, public docs, examples, macros, schemas, or path-specific workflows.
+- **Working commands:** setup, run, build, test, lint, and generation commands that are useful in this scope.
+- **Conventions and constraints:** local implementation and testing conventions, compatibility guarantees, dependency policies, security boundaries, and review expectations.
+- **Verification and completion:** focused checks for iteration and all applicable checks or requirements before finishing or opening a PR.
+- **Pointers and pitfalls:** where to start, applicable local guidance, and known mistakes worth preventing.
+- **Routing and synchronization:** a workspace map, decision flow, audience labels, or docs/generated-output sync rules only when they resolve real editing ambiguities.
 
-For small repositories, combine or omit sections aggressively. Do not create a section solely because it appears in this layout.
+For small repositories, a few commands and working agreements may be enough. Preserve a useful existing structure. Do not require a project summary, audience taxonomy, documentation policy, decision flow, or workspace map merely to match this pattern.
 
-Keep the file example-first and command-focused. Prefer bullets and short paragraphs over dense prose. When common setup, test, lint, generation, or docs commands are central to everyday work, place a short evidenced command block in the first third of the guide rather than burying commands near the end.
+Keep the file actionable. Prefer bullets and short paragraphs over dense prose. When common setup, test, lint, generation, or docs commands are central to everyday work, place a short evidenced command block early rather than burying commands near the end.
 If the repository already has a canonical command runner or command index, such
 as a `justfile`, `Makefile`, `Taskfile.yml`, or package scripts, prefer an early
-pointer to that source over copying a long command list. If the guide already
-points to that source, such as `Start with just --list`, omit `## Common
-Commands` unless 1-3 commands are non-obvious, not discoverable from the runner,
-or needed before normal editing or handoff. Verify each listed command exists.
+pointer to that source over copying a long command list. Preserve concise
+instructions about which commands to run, when to run them, and what is required
+before finishing; a command index alone does not communicate those obligations.
+Verify each listed command exists.
 
 ## Size budget
 
 Prefer concise root guidance unless repository complexity clearly justifies more:
 
-- Root `AGENTS.md`: as short as practical; usually under 220 lines. Many small repositories should be well below 120 lines.
-- Workspace map entry: 2-5 lines per important surface.
-- Validation section: only commands that exist and are commonly needed.
-- Common commands: point to the evidenced runner file when it is the canonical
-  command list; do not duplicate the whole runner.
-- Sync rules: only surfaces that exist and routinely need synchronized edits.
-- Manifests, lockfiles, dependency automation config, package-manager config,
-  runner files, and CI files: use as evidence; omit from the guide unless an
-  exact file has a documented, non-obvious editing procedure that agents must
-  follow during ordinary work. In Patch mode, remove entries that only say
-  to keep lockfiles aligned, update dependency automation schedules/groups, or
-  route ordinary dependency metadata edits. In reporting modes, flag them
-  without applying removals.
-- Long procedures: move to nested `AGENTS.md` or docs.
+- Root `AGENTS.md`: as short as practical; usually under 220 lines. Many small repositories should be well below 120 lines. These are concision heuristics, not format requirements, target lengths, or completeness tests.
+- Workspace map entry, when useful: 2-5 lines per important surface.
+- Validation section: distinguish focused checks from required completion checks; preserve both even when a required check is broad or infrequent.
+- Common commands: point to the evidenced runner file when it is the canonical command list; do not duplicate the whole runner.
+- Sync rules: only existing surfaces with evidenced or explicitly required synchronized edits.
+- Manifests, lockfiles, dependency automation config, package-manager config, runner files, and CI files: use as evidence, not an inventory to reproduce. Retain useful working agreements about them, including routine ones, when they clarify an action, prevent a mistake, or express a maintainer requirement.
+- Long procedures: move to nested `AGENTS.md` or docs without dropping essential root-level constraints or completion requirements.
 - Target-platform limits: when an evidenced agent runtime has an instruction size or truncation limit, keep the applicable root and nested guidance below that limit or split local procedures closer to the files they govern.
 
-If exceeding 220 lines or a known platform limit, name the reason in the handoff: distinct public surfaces, unavailable nested guidance, generated-output complexity, public-contract complexity, or explicit user request.
+If exceeding 220 lines or a known platform limit, name the reason in the handoff: required working agreements, distinct public surfaces, unavailable nested guidance, generated-output complexity, public-contract complexity, or explicit user request. A known platform limit needs a mitigation, not just an explanation.
 
 ## Split guidance triggers
 
@@ -70,32 +54,30 @@ Prefer a nested `AGENTS.md` or local docs when:
 
 - one subtree has a different runner, release flow, generator, or public contract evidenced by repository files;
 - a procedure needs more than 8-10 bullets;
-- a rule applies to fewer than two top-level surfaces;
+- a rule is specific to one subtree rather than repository-wide;
 - validation requires specialized setup not needed for most edits;
 - generated output or snapshot review has a multi-step workflow;
 - public docs, examples, or APIs have local conventions that would clutter the root guide.
 
 ## Quick decision flow pattern
 
-Use a decision flow near the top because it helps agents route changes before editing:
+Use a decision flow only when routing changes is genuinely ambiguous. A small repository does not need a classification step before every edit. Adapt this optional pattern to actual workflows:
 
 <!-- EXAMPLE ONLY: replace every route, surface, command, and sync rule with repository evidence before use. -->
 
 ```md
 ## Quick Decision Flow
 
-Before editing, classify the change:
-
-1. **Find the surface in the workspace map.** Use its audience label to decide how much public explanation the change needs.
-2. **Place documentation by content and audience.** User-facing workflows belong in the existing user guides, examples, books, public site docs, or API docs. Implementation rationale should stay close to the code, tests, fixtures, schemas, generator inputs, or examples that prove the behavior. Preserve existing maintainer books and design records and update them when they document the changed contract; do not require new narrative documents for every internal change.
-3. **Follow repository standards, not ecosystem defaults.** Use the package manager, runner, generated-output flow, and test style evidenced by this repository.
-4. **Sync documented workflow changes.** If behavior, commands, generated output, feature flags, API shape, or recommended usage changes, update the relevant examples, user or maintainer docs, and existing `AGENTS.md` guidance in the same change when applicable.
-5. **Validate narrowly.** Run the smallest evidenced command that proves the edited behavior or documentation surface is still sound.
+1. **Find the owning surface and local guidance.** Consult the workspace map when ownership is unclear.
+2. **Follow repository working agreements.** Use the implementation conventions, dependency policy, runner, generated-output flow, and test style required by this repository.
+3. **Place documentation by content and audience.** User-facing workflows belong in existing user guides, examples, books, public site docs, or API docs. Keep implementation rationale close to the code and supporting evidence. Preserve and update existing maintainer books and design records when they document the changed contract; do not require new narrative documents for every internal change.
+4. **Sync affected contracts.** When behavior, commands, generated output, feature flags, API shape, or recommended usage changes, update the relevant examples, user or maintainer docs, and existing `AGENTS.md` guidance in the same change when applicable.
+5. **Validate in stages.** Start with focused checks, then satisfy all applicable completion requirements, including required broader checks, before finishing. Report any checks that could not be run.
 ```
 
 ## Audience labels
 
-Define labels once, then use them in the workspace map.
+Use labels only when distinguishing audiences helps agents choose the correct editing or documentation workflow. If used, define them once and reuse them in the workspace map; otherwise omit the taxonomy.
 
 <!-- EXAMPLE ONLY: keep, rename, or omit labels based on repository evidence. -->
 
@@ -115,7 +97,7 @@ Treat these as public contracts when present: CLI flags and output, configuratio
 
 ## Documentation placement rules
 
-Include these rules only when the repository has the named surfaces:
+Include these rules only when the repository has the named surfaces and the guidance helps an agent place or update documentation:
 
 - Determine a document's audience from its stated purpose, readers, and repository usage, not its filename or rendering system. READMEs and books may be user-facing, maintainer-facing, or mixed; classify mixed books by chapter when needed.
 - Keep user-facing docs example-first. Prefer runnable commands or tested snippets over prose-only descriptions.
@@ -124,11 +106,11 @@ Include these rules only when the repository has the named surfaces:
 
 ## Synchronization rules
 
-Make sync rules explicit and mechanical. Use “when X changes, update Y” language.
+Make useful sync rules explicit and mechanical. Use “when X changes, update Y” language. Do not require a separate synchronization section when a concise instruction near the relevant command or convention is enough.
 
 Common sync contract pattern:
 
-<!-- EXAMPLE ONLY: include only surfaces that exist and routinely need synchronized edits. -->
+<!-- EXAMPLE ONLY: include only surfaces that exist and have evidenced or explicitly required synchronized edits. -->
 
 ```md
 ## Synchronization Rules
@@ -151,23 +133,23 @@ For generated output:
 - State exact regeneration commands only after confirming they exist.
 - Do not create a standalone generated or ignored-output section,
   workspace-map entry, or validation/editing rule merely to restate
-  `.gitignore` or build-output paths. Mention generated outputs only where they
+  `.gitignore` or build-output paths. Mention generated outputs where they
   change editing behavior: in a sync rule, workspace-map entry, or short
   boundary note that names the owning generator or source.
 
 ## Edit boundary notes
 
-Include a short edit-boundary note only when repository evidence identifies a surface as generated, vendored, release-critical, deployment-sensitive, migration-sensitive, production-configured, or otherwise restricted. Keep it mechanical:
+Include a short edit-boundary note when repository evidence or an explicit maintainer requirement identifies a surface as generated, vendored, release-critical, deployment-sensitive, migration-sensitive, production-configured, or otherwise restricted. Keep it mechanical:
 
 - name the exact path or surface;
 - state whether to edit the source, ask first, or avoid ordinary edits;
 - point to the owning generator, docs, checklist, or local guidance when it exists.
 
-Do not add broad safety language that does not help an agent route edits in this repository.
+Do not add broad safety language that does not help an agent work correctly in this repository.
 
 ## Workspace map pattern
 
-The workspace map is the highest-value part of the file. Keep it accurate and terse. Map owned editing surfaces, not every important file. Exclude routine manifests, lockfiles, dependency automation config, package-manager config, runner files, and CI files unless the repository documents a non-obvious editing procedure for that exact file. In Patch mode, remove existing workspace-map entries for these files when they only describe standard dependency metadata, lockfile synchronization, update schedules, grouping, labels, or ordinary CI/dependency routing. In reporting modes, recommend the removal without changing files.
+A workspace map is optional. Include one when it reduces meaningful uncertainty about ownership or entry points, and keep it accurate and terse. Map useful editing surfaces, not every important file. Do not categorically exclude manifests, lockfiles, dependency configuration, runner files, or CI; include an entry only when it helps an agent act correctly. A useful working agreement about such a file can belong elsewhere in the guide without needing a map entry. Remove or shorten stale, misleading, irrelevant, or redundant entries only in authorized Patch mode; reporting modes recommend changes without applying them.
 
 <!-- EXAMPLE ONLY: use real repository paths and omit sections that do not apply. -->
 
