@@ -229,14 +229,16 @@ Raw pointers are for FFI, low-level data structures, and performance-sensitive
 code where safe references cannot model the operation. Keep unsafe blocks small
 and document the invariants.
 
+Prefer safe APIs whenever they express the operation. A bounds-checked read needs
+no raw pointer or `unsafe` block:
+
 ```rust
 fn read_at(bytes: &[u8], index: usize) -> Option<u8> {
-    if index >= bytes.len() {
-        return None;
-    }
-
-    let ptr = bytes.as_ptr();
-    // SAFETY: `index < bytes.len()` was checked above, so this read is in-bounds.
-    Some(unsafe { *ptr.add(index) })
+    bytes.get(index).copied()
 }
+
+assert_eq!(read_at(b"abc", 1), Some(b'b'));
+assert_eq!(read_at(b"abc", 3), None);
+assert_eq!(read_at(b"", 0), None);
+assert_eq!(read_at(b"abc", usize::MAX), None);
 ```

@@ -458,7 +458,7 @@ fn derive_command_spec_emits_trait_impl() {
 For user-facing diagnostics, add compile-pass and compile-fail fixtures when the
 macro is public or when spans are part of the contract:
 
-```rust
+```rust,ignore (application-specific UI test; proc-macro crate and fixtures are omitted)
 #[test]
 fn ui() {
     let t = trybuild::TestCases::new();
@@ -467,6 +467,12 @@ fn ui() {
     t.compile_fail("tests/ui/command_spec_unknown_attribute.rs");
 }
 ```
+
+Adapt this outline into the consuming crate's integration tests and provide its
+proc-macro implementation, UI fixtures, and reviewed `.stderr` expectations.
+For a runnable bundled example containing `#[test]` functions, supply those
+resources and use `rust,test_harness` so rustdoc executes the tests. A plain
+`rust` fence does not run the contained test functions.
 
 Prefer exact fixture comparisons for small file outputs. Use snapshots only when
 the repository already uses snapshot review or the generated shape is large
