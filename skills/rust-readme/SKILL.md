@@ -5,7 +5,8 @@ description: >
   workspace roots, and member crates. Use for README structure, concise project
   overviews, crate navigation, publication-aware links, and verified top-level
   badges ordered CI, Codecov, Book, crates.io. Omit license content, installation
-  instructions, and mdBook chapter links or duplicated book navigation.
+  instructions, contribution sections or links, and mdBook chapter links or
+  duplicated book navigation.
 ---
 
 # Rust README
@@ -43,8 +44,8 @@ Inspect the smallest relevant set before writing:
    `book.toml` and book deployment, and relevant published crates.io pages.
    Verify destinations and ownership rather than constructing plausible URLs.
 4. Public API docs, CLI help, tests, or maintained examples that substantiate
-   the description and any example. Read existing contribution/support routes
-   before linking them.
+   the description and any example. Read existing user-support routes before
+   linking them.
 
 Treat Cargo packages as the publication unit even when casually called crates.
 A package may contain both library and binary targets. Count workspace members,
@@ -53,8 +54,9 @@ not Rust source targets, when choosing a README layout. A `[workspace]` without
 both tables is a workspace with a root package; it is not automatically a
 single-package repository. Follow the evidence even in a one-member workspace.
 
-See [research and Cargo semantics](references/repository-survey.md) for sources.
-Do not import another project's conventions when they contradict this skill.
+See [Cargo and badge mechanics](references/technical-references.md) for sources.
+Use those references to verify mechanics, not to infer README structure or
+import another project's authoring conventions.
 
 ## Fixed badge policy
 
@@ -88,7 +90,7 @@ repository's badge tokens; use public URLs or an explicitly public badge token.
 
 Do not add badges for licenses, docs.rs, MSRV, downloads, dependencies, security
 scores, chat, sponsorship, stars, or anything outside the four categories.
-Ordinary, verified API-reference or contribution links are not badges, but add
+Ordinary, verified API-reference or user-support links are not badges, but add
 them only when they provide a distinct useful route.
 
 ### Workspace badge selection
@@ -129,8 +131,8 @@ Do not create empty headings to satisfy a template.
    a compact map of package name, purpose, and the owning README/source route.
 6. **Example** only when one short, maintained API or CLI example communicates
    the project's value. It must not become an installation walkthrough.
-7. **Contributing** or **Support** only for existing, distinct destinations.
-   Link to the owning guide rather than copying contributor setup instructions.
+7. **Support** only for an existing, distinct user-support destination. Do not
+   use it to reintroduce contribution guidance or contributor setup.
 8. **Link definitions** for reference-style links, with no visible heading.
 
 ### Single-package repository
@@ -175,6 +177,10 @@ use verified absolute URLs where relative paths would not resolve correctly.
   summaries, and contribution-license boilerplate. Leave `LICENSE*`, notices,
   and Cargo license metadata unchanged; this is a README policy, not a request
   to change the project's license.
+- Omit README contribution sections, contribution-guide links, contributor
+  setup, and contribution invitations, including under alternate headings such
+  as `Support`. Leave `CONTRIBUTING.md` and other contributor guides unchanged;
+  rely on repository-host discovery instead of repeating that route in READMEs.
 - Do not add installation sections, `cargo add` / `cargo install` commands,
   dependency/version snippets, package-manager recipes, or clone/build setup.
   The crates.io badge is the package-discovery route and the Book badge is the

@@ -61,16 +61,12 @@ ONLY-DISTINCTIVE-VERIFIED-CAPABILITIES-OR-CONSTRAINTS
 ## Example
 
 ONE-SHORT-MAINTAINED-USAGE-EXAMPLE-WITHOUT-INSTALLATION-STEPS
-
-## Contributing
-
-See the [contribution guide][contributing].
 ```
 
-Add only the definitions actually used, including a verified `contributing`
-destination. Omit Overview, Example, or Contributing when they are unnecessary.
-Do not add a Documentation section that repeats the Book badge, or an
-Installation section to fill the gap when there is no book.
+Add only the definitions actually used. Omit Overview or Example when they are
+unnecessary. Do not add a Contributing section or contribution-guide link,
+including under Support. Do not add a Documentation section that repeats the
+Book badge, or an Installation section to fill the gap when there is no book.
 
 ## Workspace root with an established primary package
 
@@ -111,10 +107,6 @@ PROJECT provides SHARED-CAPABILITY. Choose the crate for your use case below.
 | --- | --- | --- |
 | `PACKAGE-A` | VERIFIED-PURPOSE-A | [README][package-a-readme] |
 | `PACKAGE-B` | VERIFIED-PURPOSE-B | [README][package-b-readme] |
-
-## Contributing
-
-See the [contribution guide][contributing].
 ```
 
 Use these additional definition shapes, with actual package names and routes:
@@ -173,9 +165,11 @@ They describe expected behavior, not permission to create external services.
 | Failing CI or low coverage from a verified service | Keep the real status; do not hide it or create a static passing badge. |
 | Registry name exists but belongs to another project | No registry badge until ownership/package identity is resolved. |
 | Shared inherited README that describes the wrong member | Report the package/readme mapping issue; do not silently publish a misleading overview or change manifests out of scope. |
+| Existing `CONTRIBUTING.md` or contributor guide | Omit contribution sections, links, and invitations from root and member READMEs, including under Support; leave contributor guides unchanged. |
 | Review-only request on generated READMEs | Report proposed source/template changes; do not regenerate or modify files. |
 
-For every case, reject license sections/badges/boilerplate, installation commands
-or dependency snippets, mdBook chapter links, repeated book landing links, extra
-badge categories, and unused template placeholders. Confirm any optional usage
-example is not setup material under a different heading.
+For every case, reject license sections/badges/boilerplate, contribution sections
+or links, contributor setup or invitations, installation commands or dependency
+snippets, mdBook chapter links, repeated book landing links, extra badge
+categories, and unused template placeholders. Confirm any optional usage example
+is not setup material under a different heading.
