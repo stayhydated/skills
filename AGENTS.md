@@ -69,6 +69,12 @@ Start here:
   Sync: keep `SKILL.md`, `references/`, and `agents/openai.yaml` aligned when
   the Rust baseline, referenced chapters, or visible skill description changes.
 
+- `skills/rust-readme/`
+  Role: concise Rust README authoring and review for single-package repositories,
+  workspace roots, and member crates, with verified ordered badges.
+  Sync: keep `SKILL.md`, `references/`, and `agents/openai.yaml` aligned when
+  badge policy, README layouts, source evidence, or visible metadata changes.
+
 - `skills/rust-test/`
   Role: Rust test strategy and validation guidance.
   Sync: keep `SKILL.md`, `patterns/`, `checklists/`, and `agents/openai.yaml`

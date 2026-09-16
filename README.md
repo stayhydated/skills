@@ -17,4 +17,5 @@ npx skills add stayhydated/skills
 - [mdbook-user-docs](skills/mdbook-user-docs)
 - [pre-1-0-forward-only](skills/pre-1-0-forward-only)
 - [rust-best-practices](skills/rust-best-practices)
+- [rust-readme](skills/rust-readme)
 - [rust-test](skills/rust-test)
