@@ -69,10 +69,12 @@ named generic instead. Moving the owned inputs does not require `Clone`.
 fn same_codec<C>(left: C, right: C) -> (C, C) {
     (left, right)
 }
-# struct Codec(u8);
-# let (left, right) = same_codec(Codec(1), Codec(2));
-# assert_eq!(left.0, 1);
-# assert_eq!(right.0, 2);
+
+struct Codec(u8);
+
+let (left, right) = same_codec(Codec(1), Codec(2));
+assert_eq!(left.0, 1);
+assert_eq!(right.0, 2);
 ```
 
 ## Return-Position `impl Trait`
