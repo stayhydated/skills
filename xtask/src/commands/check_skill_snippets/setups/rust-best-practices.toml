@@ -4,14 +4,14 @@ rust-version = "1.98"
 [dependencies]
 anyhow = "1"
 askama = "=0.16.1"
-bon = { features = [ "experimental-overwritable" ], version = "3.9" }
+bon = { features = [ "experimental-overwritable" ], version = "3.10" }
 genco = "0.19"
 proc-macro2 = "1"
 quote = "1"
 statum = "0.9"
 strum = "0.28"
 strum_macros = "0.28"
-syn = { features = [ "full" ], version = "2" }
+syn = { features = [ "full" ], version = "3" }
 thiserror = "2"
 tracing = "0.1"
 trybuild = "=1.0.121"
