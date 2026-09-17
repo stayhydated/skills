@@ -74,6 +74,21 @@ manifest and lockfile conventions. Report a concrete incompatibility rather than
 inventing an approval requirement. Keep adoption within the requested change;
 do not migrate unrelated constructors, state machines, or APIs.
 
+Prefer declaring shared direct dependencies in the workspace root's
+`[workspace.dependencies]` table. Inherit them in member manifests with the
+explicit `{ workspace = true }` inline-table form when the members can share the
+same version, source, and baseline feature policy. Prefer this form to dotted
+`dependency.workspace = true` syntax so member-specific settings such as
+`features` can be added to the same declaration. Keep a declaration member-local,
+or use explicitly renamed workspace dependencies, when members genuinely
+require different direct versions, sources, or feature defaults. A transitive
+disagreement, such as two dependencies requiring semver-incompatible versions
+of a third crate, is not by itself a reason to keep the direct dependencies
+local: Cargo resolves transitive versions independently and may build multiple
+semver-incompatible versions.
+Account for resolver failures and crates whose native `links` declarations
+prevent multiple versions from coexisting.
+
 For other libraries, including Strum, template engines, and error-handling
 libraries, preserve established dependencies, versions, patterns, and dependency
 policy unless adoption or migration is part of the requested scope. Apply their
