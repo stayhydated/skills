@@ -17,10 +17,13 @@ octocrab = { default-features = false, features = [
   "rustls",
   "rustls-ring",
 ], version = "0.54" }
+prettyplease = "0.3"
 pulldown-cmark = { default-features = false, version = "0.13" }
+quote = "1"
 regex = "1"
 reqwest = { default-features = false, features = [ "rustls" ], version = "0.13" }
 serde = { features = [ "derive" ], version = "1" }
+syn = { features = [ "full" ], version = "3" }
 tempfile = "3"
 tokio = { features = [ "macros", "rt-multi-thread" ], version = "1" }
 toml = "1.1"

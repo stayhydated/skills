@@ -398,8 +398,14 @@ use std::time::Duration;
 
 use tracing::Instrument;
 
+# #[cfg(not(test))]
 use crate::queue::WorkItem;
+# #[cfg(not(test))]
 use crate::telemetry::SpanName;
+# #[cfg(test)]
+# use self::queue::WorkItem;
+# #[cfg(test)]
+# use self::telemetry::SpanName;
 # }
 ```
 

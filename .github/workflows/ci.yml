@@ -35,8 +35,8 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: Compile and run skill Rust snippets
-        run: cargo xtask check-skill-snippets
+      - name: Lint and run skill Rust snippets
+        run: cargo xtask check-skill-snippets --deny-ignored
 
   test:
     name: test (${{ matrix.os }})

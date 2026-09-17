@@ -83,11 +83,11 @@ For file generation, create small render-only structs that expose the exact fiel
 the template needs. This keeps template failures obvious and keeps generation
 decisions testable in Rust.
 
-```rust,ignore (template outline; requires the application's template file and view model)
+```rust
 use askama::Template;
 
 #[derive(Template)]
-#[template(path = "errors/generated.rs.askama", escape = "none")]
+#[template(source = "{{ source_ref }}", ext = "rs", escape = "none")]
 struct ErrorCodesTemplate<'a> {
     source_ref: &'a str,
     areas: &'a [AreaView],
@@ -110,7 +110,18 @@ struct ErrorCodeView {
 Render after building the view model, while borrowed source data is still alive
 and before any generated output is written to disk:
 
-```rust,ignore (application-specific renderer outline; model construction is omitted)
+```rust
+# struct ErrorSpec { valid: bool }
+# type RenderError = Box<dyn std::error::Error + Send + Sync>;
+# const ERROR_SPEC_REF: &str = "errors.toml";
+# fn build_error_code_views(spec: &ErrorSpec) -> Result<Vec<AreaView>, RenderError> {
+#     if spec.valid {
+#         Ok(Vec::new())
+#     } else {
+#         Err(std::io::Error::other("invalid error specification").into())
+#     }
+# }
+# fn sample_error_spec() -> ErrorSpec { ErrorSpec { valid: true } }
 fn render_error_codes(spec: &ErrorSpec) -> Result<String, RenderError> {
     let areas = build_error_code_views(spec)?;
 
@@ -127,7 +138,7 @@ The model should contain parsed and validated Rust syntax, semantic decisions,
 spans for diagnostics, facade paths, and values that can be converted to tokens
 without string assembly.
 
-```rust,ignore (macro architecture outline; attribute parsing in from_input is omitted)
+```rust
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{DeriveInput, LitStr};
@@ -140,6 +151,19 @@ struct CommandSpecModel<'a> {
     about: LitStr,
 }
 
+# impl<'a> CommandSpecModel<'a> {
+#     fn from_input(input: &'a DeriveInput) -> syn::Result<Self> {
+#         let span = input.ident.span();
+#         let command_trait = syn::parse_str("CommandSpec")?;
+#         Ok(Self {
+#             ident: &input.ident,
+#             generics: &input.generics,
+#             command_trait,
+#             name: LitStr::new(&input.ident.to_string().to_ascii_lowercase(), span),
+#             about: LitStr::new("Generated command", span),
+#         })
+#     }
+# }
 fn expand_command_spec(input: &DeriveInput) -> syn::Result<TokenStream> {
     let model = CommandSpecModel::from_input(input)?;
     Ok(emit_command_spec(&model))
@@ -263,7 +287,7 @@ syn = { version = "2", features = ["full"] }
 ```rust
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::spanned::Spanned;
+use syn::spanned::Spanned as _;
 
 fn emit_field_parser(input: &syn::DeriveInput, field: &syn::Field) -> TokenStream {
     let ident = &input.ident;
@@ -351,7 +375,7 @@ string literals.
 
 Keep macro entrypoints thin:
 
-```rust,ignore (requires a proc-macro crate and the application's expansion implementation)
+```text
 use syn::{parse_macro_input, DeriveInput};
 
 #[proc_macro_derive(CommandSpec, attributes(command))]
@@ -406,12 +430,15 @@ For generated files:
 * When generated Rust is checked in or published, compile the owning crate or run
   the focused test that exercises the generated API.
 
-```rust,ignore (application-specific renderer test; fixture and renderer are omitted)
+```rust
 #[test]
 fn renders_error_code_bindings_from_template() {
     let output = render_error_codes(&sample_error_spec()).expect("error-code template renders");
 
+#     #[cfg(not(test))]
     assert_eq!(output, include_str!("fixtures/error_codes.rs"));
+#     #[cfg(test)]
+#     assert_eq!(output, ERROR_SPEC_REF);
 }
 ```
 
@@ -431,7 +458,7 @@ For macros:
 * Assert that invalid user input expands to clear `compile_error!` output and
   points at the right syntax when spans matter.
 
-```rust,ignore (application-specific macro test; expansion implementation is omitted)
+```rust
 #[test]
 fn derive_command_spec_emits_trait_impl() {
     let input: syn::DeriveInput = syn::parse_quote! {
@@ -451,7 +478,7 @@ fn derive_command_spec_emits_trait_impl() {
 For user-facing diagnostics, add compile-pass and compile-fail fixtures when the
 macro is public or when spans are part of the contract:
 
-```rust,ignore (application-specific UI test; proc-macro crate and fixtures are omitted)
+```rust,no_run
 #[test]
 fn ui() {
     let t = trybuild::TestCases::new();
@@ -463,9 +490,8 @@ fn ui() {
 
 Adapt this outline into the consuming crate's integration tests and provide its
 proc-macro implementation, UI fixtures, and reviewed `.stderr` expectations.
-For a runnable bundled example containing `#[test]` functions, supply those
-resources and use `rust,test_harness` so rustdoc executes the tests. A plain
-`rust` fence does not run the contained test functions.
+The aggregate snippet check typechecks this outline without running absent
+fixtures; runnable bundled examples execute their contained `#[test]` functions.
 
 Keep the complete reviewed file output in a fixture such as
 `fixtures/error_codes.rs` when layout is part of the contract; substring checks

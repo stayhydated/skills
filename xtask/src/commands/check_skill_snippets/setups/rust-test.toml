@@ -1,4 +1,6 @@
 # Dependencies used by rust-test Markdown examples.
+rust-version = "1.98"
+
 [dependencies]
 insta = { features = [ "json", "redactions", "yaml" ], version = "1" }
 rstest = "0.26"

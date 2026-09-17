@@ -20,7 +20,7 @@ Integration tests belong under `tests/` and should exercise the public API.
 Doc tests belong in rustdoc examples and should cover public happy paths and
 important edge cases.
 
-```rust,test_harness
+```rust
 # fn parse_frame(input: &str) -> Result<&str, &'static str> {
 #     input.split_once(':').map(|(_, body)| body).ok_or("missing separator")
 # }
@@ -49,7 +49,7 @@ Keep each test focused on one behavior, not necessarily one assertion. Multiple
 assertions can describe a single outcome; avoid broad "happy path" tests with
 unrelated checks.
 
-```rust,test_harness
+```rust
 # fn normalize_marker(input: &str) -> String {
 #     let trimmed = input.trim();
 #     if trimmed.is_empty() { "default".to_owned() } else { trimmed.to_ascii_lowercase() }
@@ -92,7 +92,7 @@ parse outcomes, or other values where the mismatched debug shape should appear i
 the failure. Import the macro explicitly from `std` in ordinary tests or from
 `core` in `no_std` test contexts.
 
-```rust,test_harness
+```rust
 use std::assert_matches;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -142,7 +142,7 @@ enough. Use `rstest` when named cases help navigation and the repository already
 uses it or its adoption is explicitly authorized; a table alone needs no new
 dev-dependency.
 
-```rust,test_harness
+```rust
 # fn normalize_marker(input: &str) -> String { input.trim().to_ascii_lowercase() }
 #[test]
 fn trims_outer_whitespace() {
@@ -154,7 +154,7 @@ fn trims_outer_whitespace() {
 
 With `rstest`, keep case names descriptive:
 
-```rust,test_harness
+```rust
 # fn normalize_marker(input: &str) -> String { input.trim().to_ascii_lowercase() }
 use rstest::rstest;
 
@@ -237,7 +237,7 @@ a few counts.
 insta = { version = "1", features = ["yaml", "json", "redactions"] }
 ```
 
-```rust,test_harness
+```rust
 # #[derive(serde::Serialize)]
 # struct SummaryReport { processed: u32, rejected: u32 }
 #[test]

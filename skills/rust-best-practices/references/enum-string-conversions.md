@@ -313,7 +313,7 @@ values. Keep the name list and the canonical `into_str()` label mapping aligned
 with tests, especially when using `to_string` overrides or parse aliases.
 
 ```rust
-use strum::VariantNames;
+use strum::VariantNames as _;
 use strum_macros::{IntoStaticStr, VariantNames};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, IntoStaticStr, VariantNames)]

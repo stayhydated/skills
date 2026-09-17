@@ -111,7 +111,7 @@ pub enum SyncError {
 where the user needs context more than typed matching.
 
 ```rust
-use anyhow::{Context, Result};
+use anyhow::{Context as _, Result};
 
 fn load_settings(path: &std::path::Path) -> Result<String> {
     std::fs::read_to_string(path)

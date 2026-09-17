@@ -66,7 +66,19 @@ Prefer a better name, a smaller function, or a test that names the behavior.
 
 Instead of narrating every step, extract functions with names that encode intent.
 
-```rust,ignore (application-specific pipeline outline; stage implementations are omitted)
+```rust
+# struct Frame { payload: Option<Vec<u8>> }
+# #[derive(Clone, Copy, Debug)]
+# struct IngestError;
+# fn validate_frame_header(frame: &Frame) -> Result<(), IngestError> {
+#     frame.payload.as_ref().filter(|payload| !payload.is_empty()).map(|_| ()).ok_or(IngestError)
+# }
+# fn decode_payload(frame: Frame) -> Result<Vec<u8>, IngestError> {
+#     frame.payload.ok_or(IngestError)
+# }
+# fn store_payload(payload: Vec<u8>) -> Result<(), IngestError> {
+#     (!payload.is_empty()).then_some(()).ok_or(IngestError)
+# }
 fn ingest_frame(frame: Frame) -> Result<(), IngestError> {
     validate_frame_header(&frame)?;
     let payload = decode_payload(frame)?;
@@ -76,16 +88,22 @@ fn ingest_frame(frame: Frame) -> Result<(), IngestError> {
 
 Tests can then document each stage:
 
-```rust,ignore (test naming outline; assertions and implementations are omitted)
+```rust
+# fn validate_frame_header_rejects(input: &str) -> bool { !input.contains("kind:") }
+# fn decode_payload_rejects(input: &[u8]) -> bool { input.last() != Some(&0) }
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     fn validate_frame_header_rejects_missing_kind() {
+#         assert!(validate_frame_header_rejects("payload:data"));
         // ...
     }
 
     #[test]
     fn decode_payload_rejects_invalid_checksum() {
+#         assert!(decode_payload_rejects(&[1, 2, 3]));
         // ...
     }
 }
@@ -106,7 +124,16 @@ condition.
 Use `///` for public items and include behavior, errors, panics, safety, and
 examples where relevant.
 
-```rust,ignore (API documentation outline; domain types and implementation are omitted)
+```rust
+# pub struct Marker(String);
+# impl Marker {
+#     pub fn as_str(&self) -> &str { &self.0 }
+# }
+# #[derive(Debug, thiserror::Error)]
+# pub enum MarkerError {
+#     #[error("marker is empty")]
+#     Empty,
+# }
 /// Parses a wire marker into a normalized lowercase marker.
 ///
 /// # Errors
@@ -123,6 +150,11 @@ examples where relevant.
 /// ```
 pub fn parse_marker(input: &str) -> Result<Marker, MarkerError> {
     // ...
+#     let marker = input.trim();
+#     if marker.is_empty() {
+#         return Err(MarkerError::Empty);
+#     }
+#     Ok(Marker(marker.to_ascii_lowercase()))
 }
 ```
 

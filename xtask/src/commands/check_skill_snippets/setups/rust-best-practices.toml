@@ -1,6 +1,9 @@
 # Dependencies used by rust-best-practices Markdown examples.
+rust-version = "1.98"
+
 [dependencies]
 anyhow = "1"
+askama = "=0.16.1"
 bon = { features = [ "experimental-overwritable" ], version = "3.9" }
 genco = "0.19"
 proc-macro2 = "1"
@@ -11,3 +14,4 @@ strum_macros = "0.28"
 syn = { features = [ "full" ], version = "2" }
 thiserror = "2"
 tracing = "0.1"
+trybuild = "=1.0.121"
