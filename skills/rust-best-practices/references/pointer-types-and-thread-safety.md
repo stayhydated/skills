@@ -36,7 +36,7 @@ bounds.
 | `LazyCell<T>` | Single-thread lazy init | Use when value construction can be delayed. |
 | `OnceLock<T>` | Thread-safe one-time init | Use for global or shared initialization. |
 | `LazyLock<T>` | Thread-safe lazy init | Use for global lazy initialization. |
-| `*const T`, `*mut T` | Raw pointer | Unsafe; caller must uphold invariants. |
+| `*const T`, `*mut T` | Raw pointer | Neither `Send` nor `Sync` by default; dereferencing requires `unsafe` and upheld invariants. |
 
 ## Borrowing
 
@@ -65,8 +65,9 @@ assert_eq!(buffer, "batch:ready");
 
 ## `Box<T>`
 
-Use `Box<T>` for heap allocation, recursive data, trait-object ownership, or large
-values that should not move on the stack.
+Use `Box<T>` for owning heap indirection, recursive data, trait-object ownership,
+or reducing the size of a containing value. Moving a box does not move its
+allocation, but heap allocation alone does not pin the value.
 
 ```rust
 enum Expr {
@@ -189,9 +190,11 @@ std::thread::scope(|scope| {
 assert_eq!(bytes, [0, 1, 2, 3]);
 ```
 
-Use the weakest ordering that satisfies the synchronization contract; `Relaxed`
-is correct only when the atomic value itself is the complete communication. The
-exclusive borrow prevents safe non-atomic access while the atomic view exists.
+Use an ordering justified by the synchronization contract. `Relaxed` provides
+atomic access without ordering other memory; the scoped-thread joins above
+establish completion before the non-atomic read. The exclusive borrow prevents
+safe non-atomic access while the atomic view exists. Do not weaken an ordering
+without verifying how other memory is published and observed.
 For integer and pointer atomics wider than a byte, these view methods are
 available only on targets where the primitive and atomic alignments match. Use
 the applicable `target_has_atomic` and

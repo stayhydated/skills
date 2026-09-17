@@ -162,9 +162,10 @@ fn emit_command_spec(model: &CommandSpecModel<'_>) -> TokenStream {
 ```
 
 A view model or semantic model should be deterministic. Sort maps and inventories
-before storing them in the model; deduplicate or reject conflicting source rows
-before rendering; resolve feature flags, `cfg` choices, namespace choices,
-facade-crate paths, and generated identifiers before emission.
+when order is not part of the input contract; preserve meaningful source order.
+Deduplicate equivalent rows only when the contract allows it, and reject
+conflicting rows before rendering. Resolve feature flags, `cfg` choices,
+namespace choices, facade-crate paths, and generated identifiers before emission.
 
 ## Prepare Rust Fragments Before Rendering
 
@@ -237,8 +238,6 @@ fn emit_registration_module(
     quote! {
         #[doc(hidden)]
         mod #module_ident {
-            use super::*;
-
             const COMMAND_NAME: &str = #command_name;
         }
     }
@@ -353,11 +352,9 @@ string literals.
 Keep macro entrypoints thin:
 
 ```rust,ignore (requires a proc-macro crate and the application's expansion implementation)
-use proc_macro_error2::proc_macro_error;
 use syn::{parse_macro_input, DeriveInput};
 
 #[proc_macro_derive(CommandSpec, attributes(command))]
-#[proc_macro_error]
 pub fn derive_command_spec(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
@@ -414,11 +411,7 @@ For generated files:
 fn renders_error_code_bindings_from_template() {
     let output = render_error_codes(&sample_error_spec()).expect("error-code template renders");
 
-    assert!(output.contains("pub(crate) mod auth"));
-    assert!(output.contains("pub(crate) const RATE_LIMITED: ErrorCode"));
-    assert!(output.contains("code: \"AUTH-429\""));
-    assert!(output.contains("#[doc = \"Token expired. Sign in again.\"]"));
-    assert!(output.find("RATE_LIMITED").unwrap() < output.find("TOKEN_EXPIRED").unwrap());
+    assert_eq!(output, include_str!("fixtures/error_codes.rs"));
 }
 ```
 
@@ -474,10 +467,15 @@ For a runnable bundled example containing `#[test]` functions, supply those
 resources and use `rust,test_harness` so rustdoc executes the tests. A plain
 `rust` fence does not run the contained test functions.
 
-Prefer exact fixture comparisons for small file outputs. Use snapshots only when
-the repository already uses snapshot review or the generated shape is large
-enough for a snapshot to be clearer than ordinary assertions. Normalize
-nondeterminism before asserting or snapshotting generated output.
+Keep the complete reviewed file output in a fixture such as
+`fixtures/error_codes.rs` when layout is part of the contract; substring checks
+alone can miss missing, duplicated, or malformed items. Pair text comparisons
+with parsing or compilation where Rust validity matters.
+
+Use snapshots when the adopted workflow makes a larger output easier to review;
+propose a new snapshot dependency explicitly under the dependency boundary.
+Normalize only incidental nondeterminism outside the tested contract. Preserve
+meaningful ordering, values, and diagnostics rather than masking regressions.
 
 ## Keep Generated Output and Sources in Sync
 

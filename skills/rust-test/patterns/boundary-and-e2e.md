@@ -25,7 +25,8 @@ For binary integration tests, first consider Cargo's built-in binary path suppor
 - Integration tests can use `CARGO_BIN_EXE_<name>` to locate the compiled binary for a package binary target.
 - For small CLI e2e tests, `std::process::Command` plus assertions over exit status, stdout, stderr, and filesystem effects may be enough.
 - Add crates such as `assert_cmd`, `predicates`, snapshot helpers, or local command harnesses only when the repository already uses them, the user asks to standardize on them, or the addition is clearly labeled as **Recommended**.
-- Normalize paths, line endings, environment-dependent output, and temporary directories before asserting CLI text.
+- Set child-specific environment and working directories with `Command::env` and `Command::current_dir` rather than mutating process-global state. Use per-test temporary resources and ensure child processes are waited on and cleaned up.
+- Normalize incidental paths, line endings, environment-dependent output, and temporary directories only when they are outside the CLI contract. Preserve meaningful output bytes and ordering.
 
 ## Mock-free boundary
 

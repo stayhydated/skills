@@ -9,7 +9,7 @@
 * [Dyn compatibility](#dyn-compatibility-checklist)
 * [Trade-offs](#trade-off-summary)
 
-> Static where you can, dynamic where you must.
+> Choose dispatch to fit type relationships, heterogeneity, and measured costs.
 
 Rust supports polymorphism through generics, `impl Trait`, and trait objects. The
 right choice depends on whether the concrete type is known at compile time, needs
@@ -91,9 +91,11 @@ let segments: Vec<_> = non_empty_segments("/alpha//beta/").collect();
 assert_eq!(segments, ["alpha", "beta"]);
 ```
 
-For public traits, be careful with return-position `impl Trait`: the hidden type
-is still part of the compiler-checked API surface. Do not expose private hidden
-return types in ways that conflict with visibility or object-safety requirements.
+A public function can return `impl Trait` backed by a private concrete type;
+that hiding is intentional. Exposed trait bounds, auto-traits, and captured
+lifetimes still affect callers. In public traits, methods returning `impl Trait`
+or using `async fn` are not dynamically dispatchable; add `where Self: Sized`
+when excluding those methods from trait objects fits the API.
 
 ## Static Dispatch
 
@@ -119,8 +121,10 @@ concrete type, and code that does not need runtime heterogeneity.
 
 ## Dynamic Dispatch with `dyn Trait`
 
-Use trait objects when you need heterogeneous values behind one interface or a
-runtime plugin boundary.
+Use trait objects for heterogeneous values behind one interface or deliberate
+type erasure. They can also reduce monomorphization when compile time or code
+size is a measured concern. Rust trait objects do not provide a stable FFI or
+dynamic-library ABI; those boundaries need an explicit compatible representation.
 
 ```rust
 struct Batch {
@@ -144,45 +148,72 @@ struct LowercaseStage;
 impl Stage for LowercaseStage {
     fn run(&self, batch: &mut Batch) {
         for line in &mut batch.lines {
-            *line = line.to_ascii_lowercase();
+            line.make_ascii_lowercase();
         }
     }
 }
 
-fn run_pipeline(stages: &[Box<dyn Stage>], batch: &mut Batch) {
+fn run_pipeline(stages: &[&dyn Stage], batch: &mut Batch) {
     for stage in stages {
         stage.run(batch);
     }
 }
+
+let mut batch = Batch {
+    lines: vec![" Alpha ".to_owned(), "BETA ".to_owned()],
+};
+run_pipeline(&[&TrimStage, &LowercaseStage], &mut batch);
+assert_eq!(batch.lines, ["alpha", "beta"]);
 ```
 
 Prefer `&dyn Trait` when you do not need ownership, `Box<dyn Trait>` for owned
 heterogeneous values, and `Arc<dyn Trait + Send + Sync>` for shared objects across
-threads.
+threads. Borrowing the stages above lets callers choose their storage instead of
+requiring a box for every stage.
 
 ## Dyn Compatibility Checklist
 
-A trait must be dyn-compatible before it can be used as `dyn Trait`. Keep dynamic
-traits simple:
+A trait must be [dyn-compatible](https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility)
+before it can be used as `dyn Trait`:
 
-* Methods should take `&self`, `&mut self`, or an explicitly boxed/owned receiver.
-* Avoid generic methods on dynamic traits.
-* Avoid methods that return bare `Self` unless they are restricted with
-  `where Self: Sized`.
-* Keep associated constants and complex generic associated types out of trait
-  objects unless the dyn-compatibility rules allow the exact shape.
+* The trait must not require `Self: Sized`, and its supertraits must also be
+  dyn-compatible.
+* Associated constants prevent dyn compatibility. Generic associated types must
+  opt out of the dyn interface with `where Self: Sized`. Ordinary associated
+  types are permitted and must be specified where required.
+* Dispatchable methods use supported receivers such as `&self`, `&mut self`,
+  `Box<Self>`, `Rc<Self>`, `Arc<Self>`, or supported pinned forms. An ordinary
+  by-value `self` method cannot be called through a trait object.
+* Dispatchable methods have no type or const parameters and no opaque return
+  type (`impl Trait` or `async fn`). Lifetime parameters and specified associated
+  types such as `Self::Item` are allowed. The implementing `Self` type cannot be
+  another argument or return value, including inside a container.
+* Constructors, generic methods, and methods returning `Self` or opaque types
+  can remain on the trait with `where Self: Sized`, excluding those methods from
+  dynamic dispatch without excluding the whole trait.
+
+`Runnable` supports dynamic dispatch:
 
 ```rust
 trait Runnable {
     fn run(&self);
 }
 
-trait Factory {
-    fn create<T>() -> T;
+fn run(task: &dyn Runnable) {
+    task.run();
 }
 ```
 
-`Runnable` can be a trait object. `Factory` cannot because `create` is generic.
+`Factory` does not: `create` is generic, has no receiver, and is not excluded with
+`where Self: Sized`:
+
+```rust,compile_fail
+trait Factory {
+    fn create<T>() -> T;
+}
+
+fn accept_factory(_: &dyn Factory) {}
+```
 
 ## Trade-Off Summary
 
@@ -191,7 +222,7 @@ trait Factory {
 | Named generics | Express type relationships clearly | More syntax |
 | `impl Trait` arguments | Concise static dispatch | Cannot name or relate hidden type |
 | Return `impl Trait` | Hides concrete iterator/future | Hidden type still affects public API |
-| `dyn Trait` | Runtime heterogeneity and stable boundary | Vtable dispatch, object-safety limits |
+| `dyn Trait` | Runtime heterogeneity and type erasure | Vtable dispatch, dyn-compatibility limits |
 
-Start static. Introduce dynamic dispatch when type erasure is part of the design,
-not just to avoid generics.
+Start static when it fits the API. Introduce dynamic dispatch when type erasure
+or measured compile-time/code-size trade-offs are part of the design.

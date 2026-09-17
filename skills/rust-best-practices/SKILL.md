@@ -18,6 +18,36 @@ declares a lower MSRV or the user gives a different target. Respect existing
 `rust-toolchain.toml`, CI, `Cargo.toml`, workspace lints, target support, and
 public API stability before introducing an API that exceeds the declared MSRV.
 
+## Idiomatic Rust Requirement
+
+All Rust implementations, API recommendations, generated code, and examples
+produced or revised with this skill must be idiomatic for the repository's
+edition, MSRV, and domain. Clearly label intentional counterexamples.
+
+* Use conventional Rust names and standard traits such as `From`, `TryFrom`,
+  `AsRef`, `IntoIterator`, `Display`, and `Error` when their contracts fit. Derive
+  common traits when their semantics are correct; avoid redundant custom APIs.
+* Make ownership explicit with borrowing, moves, and RAII. Do not introduce
+  unnecessary clones, reference counting, shared mutability, or `unsafe` merely
+  to work around the borrow checker.
+* Choose the clearest `match`, `let-else`, `?`, iterator chain, or loop. Keep
+  generic bounds minimal and abstractions proportional to the actual problem.
+* Model absence and recoverable failure with `Option` and `Result`, preserving
+  useful error sources and context. Reserve panics for explicit contracts or
+  justified invariants rather than ordinary external-input failures.
+* Prefer suitable standard-library APIs and established crate conventions. A
+  newer feature, shorter expression, or additional dependency is not inherently
+  more idiomatic.
+
+Use the [Rust API Guidelines checklist](https://rust-lang.github.io/api-guidelines/checklist.html)
+as a review aid, not permission to expand scope or override repository policy.
+Review prose and examples together; passing compilation, rustfmt, or Clippy alone
+is not proof that a design is idiomatic.
+
+Named-library preferences and profile/lint presets are this skill's house style,
+not a claim that alternatives are inherently non-idiomatic. Apply the dependency
+boundary below without confusing authorization with a need for an abstraction.
+
 ## Repository and Dependency Adoption Boundary
 
 Bon (`bon`) and Statum (`statum`) are authorized by default in both new and
@@ -90,8 +120,9 @@ solely because a preferred library could generate it.
   when the function stores, transforms, or consumes the value.
 * Prefer `impl Trait` for single-use input polymorphism. Use named generics when
   multiple parameters or a return value must share the same type.
-* Prefer static dispatch until heterogeneity, plugin boundaries, or ABI-like
-  abstraction require `dyn Trait`.
+* Prefer static dispatch unless heterogeneity, deliberate type erasure, or
+  measured compile-time/code-size trade-offs justify `dyn Trait`. Rust trait
+  objects do not provide a stable FFI or dynamic-library ABI.
 * Keep runtime-symbol and FFI definitions lint-clean. Do not globally suppress
   `invalid_runtime_symbol_definitions`, `suspicious_runtime_symbol_definitions`,
   or `c_void_returns`; use a narrow, documented exception only at a real runtime

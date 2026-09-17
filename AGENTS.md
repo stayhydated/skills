@@ -92,8 +92,8 @@ Start here:
 
 - `scripts/check_skills.py`
   Role: validates every immediate directory under `skills/` with the pinned
-  Agent Skills reference validator, then checks progressive-disclosure resources
-  and `agents/openai.yaml` metadata.
+  Agent Skills reference validator, then checks repository-required
+  `agents/openai.yaml` metadata.
   Sync: keep the `just check-skills` recipe and the CI `skills` job aligned when
   the command, dependency pin, or validated metadata shape changes.
 
@@ -130,7 +130,7 @@ Start here:
   is part of the change.
 - Use `just check`, `just clippy`, or `just test` for focused Rust workspace
   validation when the edited surface affects typechecking, lints, or tests.
-- Use `just check-skills` after changing a skill's `SKILL.md`, bundled resources,
+- Use `just check-skills` after changing a skill's `SKILL.md`,
   `agents/openai.yaml`, or skill-validation tooling. It runs contract validation.
 - Use `just check-skill-snippets` after changing Rust examples or their runner.
   It requires Cargo and resolves each skill's example dependencies in generated crates under `target/`

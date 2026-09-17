@@ -114,7 +114,8 @@ not use `IntoStaticStr` for that string.
 
 For payload-bearing enums, prefer Strum's `EnumDiscriminants` when the label
 contract is about the variant kind. Derive the static label on the generated
-fieldless discriminant enum.
+fieldless discriminant enum and use its generated `From<&Event>` conversion
+rather than duplicating the variant mapping in a manual match.
 
 ```rust
 use strum_macros::{EnumDiscriminants, IntoStaticStr};
@@ -136,10 +137,7 @@ impl EventKind {
 
 impl Event {
     fn kind(&self) -> EventKind {
-        match self {
-            Self::Click { .. } => EventKind::Click,
-            Self::KeyPress(_) => EventKind::KeyPress,
-        }
+        EventKind::from(self)
     }
 
     fn metric_label(&self) -> &'static str {
@@ -294,6 +292,10 @@ assert_eq!(
     OutputFormat::NewlineDelimitedJson
 );
 assert_eq!(OutputFormat::NewlineDelimitedJson.label(), "ndjson");
+for format in [OutputFormat::Json, OutputFormat::NewlineDelimitedJson] {
+    assert_eq!(format.label().parse::<OutputFormat>().unwrap(), format);
+}
+assert!("xml".parse::<OutputFormat>().is_err());
 ```
 
 Use `ascii_case_insensitive` only when ASCII case folding is the intended input

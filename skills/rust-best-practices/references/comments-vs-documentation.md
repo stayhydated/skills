@@ -48,6 +48,9 @@ Use named prefixes for recurring comment types:
 let value = unsafe { *ptr.add(index) };
 ```
 
+This illustrates explaining an unsafe invariant, not a reason to introduce raw
+pointers. Prefer safe indexing or `get` when those operations express the task.
+
 ## Bad Comments Restate Code
 
 ```rust

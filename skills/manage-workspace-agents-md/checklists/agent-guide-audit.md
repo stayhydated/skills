@@ -1,9 +1,11 @@
 # Agent guidance audit checklist
 
-Use this checklist before finalizing a generated or patched `AGENTS.md` guide, running an alignment review, or reviewing guide quality. Checklist results are read-only unless the user separately authorizes edits. Optional sections are not required merely because this checklist mentions them.
+Use this checklist only after the explicit invocation gate in `SKILL.md` is satisfied, before finalizing a generated or patched `AGENTS.md` guide, running an alignment review, or reviewing guide quality. Checklist results are read-only unless the user separately authorizes edits. Optional sections are not required merely because this checklist mentions them.
 
 ## Mode and output boundary
 
+- [ ] The user explicitly selected this skill or asked to use it by name for the current task; task relevance, repository guidance, and agent-initiated loading were not treated as authorization.
+- [ ] The requested `AGENTS.md` task and target scope are clear; skill selection alone was not treated as permission to edit or expand the scope.
 - [ ] The handoff states the selected mode: Draft, Patch, Audit, Alignment, or Checklist.
 - [ ] The selected mode is the smallest useful mode for the request.
 - [ ] Audit, Alignment, and Checklist report proposed changes without editing files or running fix commands.
@@ -88,10 +90,19 @@ Use this checklist before finalizing a generated or patched `AGENTS.md` guide, r
 
 ## Regression review scenarios
 
-Use these hypothetical cases to review changes to this skill. They are expected behaviors, not instructions to copy into a repository's guide or claims that a behavioral evaluation ran.
+Use these hypothetical cases to review changes to this skill. They are expected behaviors, not instructions to copy into a repository's guide or claims that a behavioral evaluation ran. Except for the activation cases, assume the user explicitly invoked this skill for the stated `AGENTS.md` task.
 
 | Input situation | Expected behavior |
 | --- | --- |
+| The user asks to create, improve, or review `AGENTS.md` without selecting or asking to use this skill by name. | Do not invoke or apply this skill; handle the user's request without it. |
+| An agent notices missing or stale `AGENTS.md` guidance while implementing a feature, or another skill suggests using this one. | Do not invoke this skill or start its workflow as an incidental follow-up. |
+| The skill name appears in repository instructions, a skill listing, quoted text, or a question about the skill's activation policy. | Treat it as context or material to inspect, not authorization to run the `AGENTS.md` workflow. |
+| The host loads the skill without explicit user authorization. | Do not proceed to mode selection or repository inspection for this workflow. |
+| The user invokes `$manage-workspace-agents-md` without a task or target scope. | Ask one focused question; do not infer Draft, Patch, Audit, or repository-wide scope. |
+| The user asks to use `manage-workspace-agents-md` to audit a named `AGENTS.md`. | Audit only the requested guide and relevant evidence; report fixes without editing files. |
+| The user explicitly invokes this skill to patch a named nested `AGENTS.md`. | Patch only the requested scope; do not refactor other guides or implementation files. |
+| After an explicitly invoked Audit, the user says “apply your recommended improvements.” | Treat this as Patch authorization for the same `AGENTS.md` task, not broader repository maintenance. |
+| After completing an explicitly invoked `AGENTS.md` task, the user requests an unrelated code change. | Do not carry skill authorization forward or start automatic guide maintenance. |
 | A maintainer requires an existing domain error type at public API boundaries, with no routing or docs-sync consequence. | Include the useful local coding convention; verify the type separately and do not claim all code already complies. |
 | An existing `AGENTS.md` requires manifest and lockfile changes together or approval before adding dependencies; no other document repeats the rule. | Preserve the applicable working agreement rather than deleting it as routine or unsupported. |
 | A focused package test passes, but repository guidance requires a broader suite before finishing. | Preserve and run the required broader checks when available; otherwise report them as skipped, not satisfied. |

@@ -25,7 +25,8 @@ Prefer ordinary unit, integration, or compile-fail/UI tests for:
 - Unmarked Rust code fences in public docs are usually treated as Rust doctests.
 - Ordinary doctests pass when they compile and run without panicking.
 - Use hidden `#` setup lines to keep examples compilable without cluttering rendered documentation, including hidden imports such as `# use std::assert_matches;` when the example uses `assert_matches!`.
-- Examples using `?` often need an explicit `fn main() -> Result<..., ...>` shape or another visible return-value pattern.
+- Prefer `?` for fallible public-API usage. Supply an explicit `fn main() -> Result<..., ...>` or hidden return scaffolding such as `# Ok::<(), ErrorType>(())` so the example compiles without teaching panic-based handling of routine failures.
+- Defining a `#[test]` function in an ordinary Rust fence does not run it. Use `rust,test_harness` for test-function examples, or call the behavior directly in the doctest.
 - Prefer `no_run` when an example should compile but not execute in CI.
 - Use `ignore` only when neither compilation nor execution is appropriate in the normal doctest environment, and explain why when practical.
 - Use `compile_fail` only for stable, meaningful invalid-usage examples.

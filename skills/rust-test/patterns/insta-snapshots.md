@@ -26,8 +26,8 @@ Prefer normal assertions for:
 ## Snapshot hygiene
 
 - Keep snapshots focused on the public or regression-relevant contract.
-- Normalize or redact paths, timestamps, random IDs, ordering, hostnames, process IDs, and platform-specific separators.
-- Sort maps, sets, and generated inventories before snapshotting when order is not part of the contract.
+- Normalize or redact only incidental paths, timestamps, random IDs, hostnames, process IDs, and platform-specific separators outside the tested contract. Assert relevant formats and relationships before redacting values.
+- Sort maps, sets, and generated inventories before snapshotting only when order is not part of the contract; never sort away an ordering regression.
 - For generated Rust or proc-macro output, test public behavior first; snapshot expanded or generated code only when normalized, stable, and review-relevant.
 - Do not snapshot unstable compiler-expanded output, incidental hygiene, nondeterministic spans, or machine-local paths unless the repository already normalizes and reviews that output.
 - Prefer one clear snapshot per contract over a giant unrelated dump.

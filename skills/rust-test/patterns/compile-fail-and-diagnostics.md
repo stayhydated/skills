@@ -23,6 +23,7 @@ Use rustdoc `compile_fail` for documentation examples, not as a replacement for 
 
 - Keep failing examples minimal and named after the contract.
 - Put only one main failure mode in a compile-fail fixture when practical.
+- Pair meaningful rejection cases with valid compile-pass usage and verify the failure is for the intended contract, not a missing import, dependency, or unrelated syntax error.
 - Avoid line-number-sensitive expectations unless line numbers are part of the harness output and unavoidable.
 - Avoid compile-fail tests that merely call every API with arbitrary wrong types; they add churn without protecting a meaningful diagnostic.
 - Update `.stderr` or diagnostic snapshots only when the diagnostic change is intentional.
