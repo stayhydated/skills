@@ -41,7 +41,10 @@ Keep this skill test-scoped. Use it for assertion choice, test harness shape, do
 
 ## Rust 1.98 test-specific baseline
 
-Assume Rust 1.98 stable unless the repository explicitly declares a lower MSRV.
+Assume **Rust 1.98 stable** and **edition 2024** unless the repository explicitly
+declares a lower MSRV or the user gives a different target. Respect existing
+`rust-toolchain.toml`, CI, `Cargo.toml`, workspace lints, target support, and
+public API stability before introducing an API that exceeds the declared MSRV.
 Keep version-specific guidance test-scoped:
 
 - use stable `assert_matches!` for a single structured pattern when it improves
