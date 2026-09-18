@@ -111,7 +111,7 @@ pub enum SyncError {
 where the user needs context more than typed matching.
 
 ```rust
-use anyhow::{Context, Result};
+use anyhow::{Context as _, Result};
 
 fn load_settings(path: &std::path::Path) -> Result<String> {
     std::fs::read_to_string(path)
@@ -125,28 +125,49 @@ application framework or plugin host where typed errors are not part of the API.
 ## Error Translation and Observation
 
 Use `map_err` when changing error types. Use `inspect_err` for logging or metrics
-without changing the error. Keep the translated error in the same domain as the
-failed operation:
+without changing the error, only at the layer responsible for that observation.
+Keep the translated error in the same domain as the failed operation and retain
+its useful cause through `Error::source` rather than discarding it:
 
 ```rust
 #[derive(Debug, thiserror::Error)]
 enum PortError {
-    #[error("invalid port `{0}`")]
-    InvalidPort(String),
+    #[error("invalid port `{input}`: {source}")]
+    InvalidPort {
+        input: String,
+        #[source]
+        source: std::num::ParseIntError,
+    },
 }
 
 fn parse_port(input: &str) -> Result<u16, PortError> {
     input
         .parse::<u16>()
         .inspect_err(|err| tracing::debug!(%err, "port parse failed"))
-        .map_err(|_| PortError::InvalidPort(input.to_owned()))
+        .map_err(|source| PortError::InvalidPort {
+            input: input.to_owned(),
+            source,
+        })
 }
+
+assert_eq!(parse_port("8080").unwrap(), 8080);
+let error = parse_port("not-a-port").expect_err("non-numeric ports are rejected");
+assert!(
+    std::error::Error::source(&error)
+        .is_some_and(|source| source.is::<std::num::ParseIntError>()),
+    "port errors must preserve their integer parsing source"
+);
 ```
 
 ## Async Errors
 
-When spawning tasks, ensure captured errors and outputs satisfy the runtime's
-bounds. In Tokio task boundaries this often means `Send + Sync + 'static`.
+Use the actual runtime bounds rather than adding blanket constraints.
+[`tokio::spawn`](https://docs.rs/tokio/latest/tokio/task/fn.spawn.html) requires
+both the future and its output to be `Send + 'static`; it does not require them
+to be `Sync`. Local task APIs can support non-`Send` futures. Keep concrete errors
+when callers need typed handling. At an application boundary, this common erased
+error also includes `Sync` for interoperability with error-reporting libraries,
+not because spawning itself requires it:
 
 ```rust
 type BoxError = Box<dyn std::error::Error + Send + Sync + 'static>;

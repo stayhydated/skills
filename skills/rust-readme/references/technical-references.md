@@ -1,13 +1,17 @@
-# Cargo and badge reference mechanics
+# Cargo, example, and badge reference mechanics
 
-These references explain Cargo metadata, publication, and badge URL mechanics.
-They are not README layout examples or an alternative authoring policy. Follow
-`SKILL.md` and the bundled layouts for structure, exclusions, and the fixed
-CI, Codecov, Book, crates.io badge order. Recheck technical details before
-relying on behavior that may have changed.
+These references explain Cargo metadata, publication, Rust example conventions,
+and badge URL mechanics. They are not README layout examples or an alternative
+authoring policy. Follow `SKILL.md` and the bundled layouts for structure,
+exclusions, and the fixed CI, Codecov, Book, crates.io badge order. Recheck
+technical details before relying on behavior that may have changed.
 
 ## Authoritative mechanics
 
+- [Rust API Guidelines: fallible examples](https://rust-lang.github.io/api-guidelines/documentation.html#c-question-mark)
+  explains why public examples should demonstrate `?` rather than unwrapping
+  routine failures. Apply the example guidance to the actual public API and
+  supported toolchain, not as a reason to import crate-doc layouts into READMEs.
 - [Cargo manifest: README](https://doc.rust-lang.org/cargo/reference/manifest.html#the-readme-field)
   explains registry rendering, explicit README paths, default discovery, and
   `readme = false`.

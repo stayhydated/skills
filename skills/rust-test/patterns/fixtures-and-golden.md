@@ -8,7 +8,7 @@ Use fixtures and golden files when the input/output relationship is clearer as f
 - Name fixtures after the behavior or public contract they protect.
 - Avoid fixture reuse that couples unrelated tests.
 - Put generated or golden outputs next to the harness when the repository already uses that layout; otherwise follow local conventions.
-- Normalize nondeterministic data before writing golden output.
+- Normalize only incidental nondeterministic data before writing golden output. Preserve ordering, values, and formatting that the contract requires; normalization must not conceal a regression.
 - Before adding or updating fixtures, snapshots, goldens, corpora, benchmark inputs, or minimized regressions, check that they do not contain credentials, tokens, private URLs, personal data, secrets, or machine-local paths.
 - When a property test or fuzz target finds a bug, reduce the failing case and add the minimized input as a focused regression fixture when practical.
 

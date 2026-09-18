@@ -11,6 +11,8 @@ use walkdir::WalkDir;
 pub(super) struct Snippet {
     pub(super) line: usize,
     pub(super) info: String,
+    pub(super) attributes: Vec<String>,
+    pub(super) code: String,
     pub(super) ignored: bool,
 }
 
@@ -81,14 +83,19 @@ fn extract(source: &str) -> Result<Vec<Snippet>> {
                 "line {line}: ignore requires a reason in parentheses"
             );
         }
+        let mut code = String::new();
         for (event, _) in events.by_ref() {
-            if event == Event::End(TagEnd::CodeBlock) {
-                break;
+            match event {
+                Event::Text(text) => code.push_str(&text),
+                Event::End(TagEnd::CodeBlock) => break,
+                _ => {},
             }
         }
         snippets.push(Snippet {
             line,
             info: info.to_string(),
+            attributes: attributes.into_iter().map(str::to_owned).collect(),
+            code,
             ignored,
         });
     }
@@ -129,7 +136,6 @@ fn rust_attribute(attribute: &str) -> bool {
             | "compile_fail"
             | "should_panic"
             | "ignore"
-            | "test_harness"
             | "edition2015"
             | "edition2018"
             | "edition2021"
@@ -144,7 +150,7 @@ mod tests {
 
     #[test]
     fn discovery_preserves_source_lines_and_excludes_nested_examples() {
-        let source = "heading\n```sh\necho hello\n```\n````markdown\n```rust\nnot real Rust\n```\n````\n~~~rust,no_run\nlet value = 42;\n~~~\n```rust,test_harness\n#[test]\nfn works() { assert!(true); }\n```\n";
+        let source = "heading\n```sh\necho hello\n```\n````markdown\n```rust\nnot real Rust\n```\n````\n~~~rust,no_run\nlet value = 42;\n~~~\n```rust\n#[test]\nfn works() { assert!(true); }\n```\n";
         let snippets = extract(source).unwrap();
         assert_eq!(
             snippets
@@ -153,6 +159,9 @@ mod tests {
                 .collect::<Vec<_>>(),
             [10, 13]
         );
+        assert_eq!(snippets[0].attributes, ["rust", "no_run"]);
+        assert_eq!(snippets[1].attributes, ["rust"]);
+        assert_eq!(snippets[1].code, "#[test]\nfn works() { assert!(true); }\n");
     }
 
     #[test]
@@ -172,6 +181,7 @@ mod tests {
     fn invalid_fences_cannot_silently_drop_checks() {
         for source in [
             "```rust,no_rnu\nloop {}\n```\n",
+            "```rust,test_harness\n#[test] fn works() {}\n```\n",
             "```rust,ignore\n?\n```\n",
             "```rust (reason),no_rnu\nloop {}\n```\n",
             "```rust ( ),ignore\n?\n```\n",

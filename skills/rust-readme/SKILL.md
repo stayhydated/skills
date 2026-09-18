@@ -1,12 +1,12 @@
 ---
 name: rust-readme
 description: >
-  Create, revise, or audit Rust READMEs for single-package repositories,
-  workspace roots, and member crates. Use for README structure, concise project
-  overviews, crate navigation, publication-aware links, and verified top-level
-  badges ordered CI, Codecov, Book, crates.io. Omit license content, installation
-  instructions, contribution sections or links, and mdBook chapter links or
-  duplicated book navigation.
+  Create, revise, or audit concise Rust READMEs with idiomatic usage examples for
+  single-package repositories, workspace roots, and member crates. Use for README
+  structure, concise project overviews, crate navigation, publication-aware links,
+  and verified top-level badges ordered CI, Codecov, Book, crates.io. Omit license
+  content, installation instructions, contribution sections or links, and mdBook
+  chapter links or duplicated book navigation.
 ---
 
 # Rust README
@@ -28,6 +28,28 @@ This skill owns README presentation and routing. Use `mdbook-user-docs` for
 user-guide chapters, `mdbook-internals` for maintainer architecture, `rust-test`
 for example validation, and `rust-best-practices` for implementation or API
 style. Those are separate tasks, not permission to expand a README edit.
+
+## Idiomatic Rust requirement
+
+Every Rust usage example authored, retained, or recommended must demonstrate
+idiomatic use of the package's actual public API for its edition, MSRV, and
+feature set. Prefer existing tested examples, but review their style and behavior
+rather than treating compilation as proof of idiomaticity.
+
+- Use conventional names, straightforward control flow, and the public API's
+  intended ownership model. Avoid unnecessary clones, allocations, wrappers, or
+  invented APIs merely to shorten the example.
+- Prefer `?` for fallible usage and handle meaningful `Option`/`Result` cases.
+  Use `expect` only for an explained invariant, not to hide normal input or I/O
+  failures. Hidden rustdoc setup is appropriate only when the actual README
+  rendering and test workflow supports it.
+- Keep examples small and runnable or explicitly compile-only through the
+  existing harness. Do not add dependencies, raise the MSRV, or refactor
+  production APIs solely to make README code look more idiomatic.
+
+Use `rust-best-practices` for example-level implementation guidance and
+`rust-test` for validation without expanding the README write boundary. Report
+an API limitation that needs a separate change instead of inventing a better API.
 
 ## Required evidence
 
@@ -54,20 +76,21 @@ not Rust source targets, when choosing a README layout. A `[workspace]` without
 both tables is a workspace with a root package; it is not automatically a
 single-package repository. Follow the evidence even in a one-member workspace.
 
-See [Cargo and badge mechanics](references/technical-references.md) for sources.
+See [Cargo, example, and badge mechanics](references/technical-references.md) for sources.
 Use those references to verify mechanics, not to infer README structure or
 import another project's authoring conventions.
 
 ## Fixed badge policy
+
+The badge order and exclusions are this skill's editorial policy, not universal
+Rust conventions.
 
 Put one compact badge paragraph immediately below the H1, before the opening
 prose. Keep badges on consecutive Markdown source lines with no blank lines
 between them. Use linked images with meaningful alt text and reference-style
 links; keep the reference definitions together at the end of the file.
 
-The only allowed badge categories, in this exact order, are:
-
-**CI → Codecov → Book → crates.io**
+The only allowed badge categories, in this exact order, are **CI → Codecov → Book → crates.io**.
 
 Select the applicable, verified entries in that order. Omit missing categories
 without placeholders, empty badges, explanatory absence prose, or reordering
@@ -211,6 +234,8 @@ use verified absolute URLs where relative paths would not resolve correctly.
    READMEs, update the owning source rather than editing generated output alone.
 5. Check Markdown rendering, heading order, resolved links/images, badge labels
    and destinations, and the complete absence of disallowed README content.
+   Review each retained Rust example against the idiomatic-Rust requirement and
+   the actual public API, edition, MSRV, and features.
 6. Use existing repository lint/link/example checks. An arbitrary README Rust
    fence is not automatically a doctest; verify the actual harness before
    claiming that a Cargo test command checks it. Validate package/readme mapping

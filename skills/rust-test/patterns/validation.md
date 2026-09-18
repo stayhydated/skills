@@ -68,7 +68,7 @@ On Cargo 1.98, also inspect applicable configuration:
 - `resolver.lockfile-path` changes the lockfile used by resolution and `--locked`;
 - configuration may come from parent directories or the user's Cargo home, not only the repository.
 
-Do not claim a command validates doctests, examples, all packages, all targets, all features, a particular lockfile, or binary behavior unless those surfaces were selected and the applicable configuration was verified.
+Do not claim a command validates doctests, examples, all packages, all targets, all features, a particular lockfile, or binary behavior unless those surfaces were selected and the applicable configuration was verified. Check reported counts and ignored tests: a green command that ran zero matching tests is not behavioral validation. Report compile-only checks separately from execution.
 
 ## cargo-nextest guidance
 

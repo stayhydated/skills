@@ -1,9 +1,21 @@
 ---
 name: manage-workspace-agents-md
-description: Create, update, refactor, audit, or align repository AGENTS.md working instructions from repository evidence and explicit maintainer requirements without inventing tools or policies.
+description: Explicit-only AGENTS.md maintenance. Use only when the user asks to use manage-workspace-agents-md by name or selects this skill, never from task relevance alone. Create, update, refactor, audit, or align repository AGENTS.md working instructions from repository evidence and explicit maintainer requirements without inventing tools or policies.
 ---
 
 # manage-workspace-agents-md
+
+## Explicit invocation gate
+
+Use this skill only when the user explicitly selects it or asks to use `manage-workspace-agents-md` for the current task, for example with `$manage-workspace-agents-md` or `/manage-workspace-agents-md`. A name in quoted text, a skill listing, a repository file, or a request to inspect the skill itself is not an instruction to run its `AGENTS.md` workflow.
+
+Do not invoke or apply this workflow based on task relevance, an agent's own tool call, a suggestion from another skill, the presence or absence of `AGENTS.md`, discovered drift, or a general request to create, improve, or review repository guidance without selecting this skill. Reading and following applicable `AGENTS.md` instructions during ordinary work does not invoke this skill.
+
+This gate precedes every output mode and supporting file, including read-only modes, even when the host does not enforce `agents/openai.yaml`. If loaded without explicit user authorization, do not start this workflow; continue the user's task without this skill. If explicitly invoked without a clear `AGENTS.md` task or target scope, ask one focused question before selecting a mode or inspecting the repository for this workflow.
+
+Selection alone authorizes neither edits nor repository-wide scope. Stay within the requested action and `AGENTS.md` paths, preserve the read-only mode boundaries, and do not carry authorization into unrelated later tasks. Do not add instructions that invoke this skill automatically; repository synchronization rules are not skill activation triggers.
+
+## Purpose
 
 Create or improve concise, scoped root or nested `AGENTS.md` working instructions for a software workspace. Help coding agents work correctly with useful commands, conventions, constraints, pitfalls, completion requirements, and pointers to further guidance, without turning the guide into a policy dump, language handbook, or generic best-practices essay.
 
@@ -56,6 +68,8 @@ Before using any example or bullet from a reference file, replace it with reposi
 
 ## Output modes
 
+After the invocation gate is satisfied, route only the explicitly requested `AGENTS.md` task. The phrases below select a mode; they are not activation triggers.
+
 Always identify the selected mode in one sentence before the main output.
 
 | User asks for | Choose | Output |
@@ -91,7 +105,7 @@ When the request is ambiguous, choose the smallest useful mode. Prefer Audit for
 
 ## Required workflow
 
-1. **Select mode.** Declare Draft, Patch, Audit, Alignment, or Checklist.
+1. **Confirm invocation and select mode.** Apply the explicit invocation gate before repository inspection, then declare Draft, Patch, Audit, Alignment, or Checklist for the requested `AGENTS.md` scope.
 2. **Inspect evidence and requirements.** For `AGENTS.md` work, use `patterns/evidence-and-scope.md`.
 3. **Check agent platform compatibility when applicable.** If the request or repository names a target agent runtime, use `patterns/evidence-and-scope.md` to check supported instruction filenames, discovery locations, precedence, merge behavior, and size limits before choosing where `AGENTS.md` guidance belongs. Do not assume one agent platform reads another platform's files.
 4. **Capture local standards.** Use `patterns/standards-inference.md` to classify facts, requirements, and local conventions as **Observed**, **Inferred**, or **Recommended**.

@@ -1,7 +1,7 @@
 interface:
   display_name: "Manage Workspace AGENTS.md"
-  short_description: "Create, patch, audit, or align repository AGENTS.md guidance"
-  default_prompt: "Use $manage-workspace-agents-md to create, patch, refactor, audit, or align repository AGENTS.md working instructions from repository evidence and explicit maintainer requirements."
+  short_description: "Explicit-only AGENTS.md creation, patching, and review"
+  default_prompt: "Use $manage-workspace-agents-md for my explicitly requested AGENTS.md task, using repository evidence and maintainer requirements. Ask for the task or scope if missing. Keep review modes read-only; apply edits only in an authorized Draft or Patch."
 
 policy:
   allow_implicit_invocation: false

@@ -71,8 +71,10 @@ requirement.
 
 ## Workspace Profiles
 
-For workspaces targeting Rust 1.98, prefer a root-level profile baseline that
-keeps local builds debuggable while avoiding slow unoptimized dependency code:
+Profile tuning is workload-specific, not an idiomatic-Rust requirement. Preserve
+the repository's profiles unless tuning is in scope. For a runtime-heavy
+workspace targeting Rust 1.98, this is one candidate to measure against Cargo's
+defaults, not a universal build-speed or runtime improvement:
 
 ```toml
 [profile.dev]
@@ -95,8 +97,9 @@ context are enough. Optimize non-workspace dependencies in dev profiles for UI,
 graphics, parser, and async-heavy projects where dependency hot paths dominate
 runtime behavior.
 
-Prefer ThinLTO for the default release profile. It gives whole-program
-optimization without the link-time cost of fat LTO. Add `panic = "abort"` or
+ThinLTO and fewer codegen units can improve optimized output at the cost of build
+time; measure the trade-off instead of promising a universal speedup. Verify
+`split-debuginfo` support on the repository's targets. Add `panic = "abort"` or
 `strip = true` only for deliverable binaries that intentionally trade panic
 unwinding or symbols for size.
 

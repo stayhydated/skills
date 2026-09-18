@@ -167,9 +167,14 @@ They describe expected behavior, not permission to create external services.
 | Shared inherited README that describes the wrong member | Report the package/readme mapping issue; do not silently publish a misleading overview or change manifests out of scope. |
 | Existing `CONTRIBUTING.md` or contributor guide | Omit contribution sections, links, and invitations from root and member READMEs, including under Support; leave contributor guides unchanged. |
 | Review-only request on generated READMEs | Report proposed source/template changes; do not regenerate or modify files. |
+| Usage example with unnecessary clones or panics for routine failures | Show idiomatic borrowing and fallible control flow using the actual public API; do not invent APIs or expand into production refactors. |
+| Usage example exceeds the package's edition, MSRV, or enabled features | Use a compatible idiom and evidenced feature context; do not raise requirements for README styling. |
+| README Rust fence outside the actual example harness | Review the example and disclose the execution gap; do not claim an unrelated Cargo test command validated it. |
 
 For every case, reject license sections/badges/boilerplate, contribution sections
 or links, contributor setup or invitations, installation commands or dependency
 snippets, mdBook chapter links, repeated book landing links, extra badge
 categories, and unused template placeholders. Confirm any optional usage example
-is not setup material under a different heading.
+is idiomatic for the actual public API, edition, MSRV, and features, and is not
+setup material under a different heading. Record what the example harness
+actually compiled or executed rather than inferring coverage from a green build.

@@ -10,6 +10,13 @@
 - [ ] New test, fuzzing, benchmark, snapshot, async-runtime, fake-time, Miri, sanitizer, loom, coverage, mutation-testing, cargo-hack, or command-runner dependencies were added only when evidenced, requested, or clearly labeled as recommendations.
 - [ ] Public docs, README examples, CLI behavior, generated output, diagnostics, protocols, schemas, target/platform guarantees, performance claims, or compatibility files affected by the tests were inspected.
 
+## Idiomatic Rust
+
+- [ ] Test bodies, helpers, and examples use conventional Rust for the repository's edition and MSRV, with clear ownership, minimal setup, and RAII cleanup.
+- [ ] Assertions express observable contracts, preserve useful failure context, and still run in release tests; expected errors are asserted rather than propagated as setup failures.
+- [ ] Assertion helpers and multiple assertions serve one coherent behavior rather than hiding unrelated checks.
+- [ ] Language idioms are distinguished from the skill's mock-free policy and repository-specific harness preferences; passing tests or Clippy did not replace this review.
+
 ## Test fit
 
 - [ ] Unit tests cover pure logic and narrow invariants.
@@ -38,7 +45,8 @@
 
 ## Determinism and hygiene
 
-- [ ] Paths, timestamps, random IDs, map order, environment-specific data, hostnames, process IDs, platform-specific separators, scheduling artifacts, runtime timing, Rust 1.98 character escaping, v0 symbols, rustfmt module discovery, and path-remapping differences are normalized or intentionally reviewed.
+- [ ] Incidental paths, timestamps, random IDs, map order, environment-specific data, hostnames, process IDs, platform-specific separators, scheduling artifacts, runtime timing, Rust 1.98 character escaping, v0 symbols, rustfmt module discovery, and path-remapping differences are normalized or intentionally reviewed without hiding contractual ordering, values, or diagnostics.
+- [ ] Per-test temporary resources and child-specific environment/working directories avoid process-global mutation; tasks and child processes are joined or waited on and cleaned up.
 - [ ] Snapshots, golden files, corpora, benchmark fixtures, generated outputs, and minimized regressions avoid credentials, tokens, private URLs, personal data, secrets, and machine-local paths.
 - [ ] Property strategies and fuzz targets are bounded, reproducible when failing, and free from uncontrolled network/time/environment dependencies.
 - [ ] Async/concurrency tests use deterministic synchronization, fake or paused time, local fakes, and joined tasks where practical.
@@ -49,7 +57,7 @@
 
 ## Validation
 
-- [ ] The narrowest proving command was run when possible, and the handoff does not overclaim surfaces that command did not exercise.
+- [ ] The narrowest proving command was run when possible, actual test counts and ignored cases were checked, and the handoff does not overclaim surfaces that command did not exercise.
 - [ ] Workspace package graph, dependent crate impact, feature combinations, MSRV, Cargo warning policy, selected lockfile, and target/platform commands were considered when relevant.
 - [ ] When nextest is used, doctests were validated separately when affected.
 - [ ] Rust 1.98-specific library, compiler, Cargo/rustdoc, formatting, and target behavior was validated only with commands that exercise the affected surface.

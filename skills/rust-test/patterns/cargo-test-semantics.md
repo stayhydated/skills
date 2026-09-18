@@ -24,6 +24,11 @@ Common focused target selections:
 - `cargo test --doc -p <crate>` runs the package's library doctests only.
 - `cargo test -p <crate> --example <example_name>` runs tests for a selected example target when applicable.
 - `cargo test -p <crate> --bins` or `--bin <name>` is relevant when binary targets contain unit tests or when binary-specific compilation matters.
+- `cargo test --all-targets` does not include library doctests; run a separate `cargo test --doc` when those examples are affected.
+- `cargo test --no-run` establishes compilation of selected non-doctest test targets, not successful execution.
+
+Check reported test counts and ignored tests. A successful command with a filter
+that matched zero tests does not prove the intended behavior.
 
 Do not claim that a selected command proves doctests, examples, benches, target-specific builds, all feature combinations, warning-free policy, or a particular lockfile unless the command and applicable configuration actually select those contracts.
 

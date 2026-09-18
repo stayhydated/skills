@@ -1,6 +1,6 @@
 ---
 name: rust-test
-description: Design, patch, audit, or align Rust tests with evidence-based, mock-free guidance for unit tests, integration/e2e tests, doctests, insta snapshots, compile-fail/UI tests, golden files, fixtures, property tests, fuzz tests, async/concurrency tests, unsafe-code validation, Criterion benchmarks, Cargo test semantics, Rust 1.98 test idioms, feature/target/MSRV matrices, flaky-test triage, coverage/mutation evidence, and focused validation.
+description: Design, patch, audit, or align idiomatic Rust tests with evidence-based, mock-free guidance for unit tests, integration/e2e tests, doctests, insta snapshots, compile-fail/UI tests, golden files, fixtures, property tests, fuzz tests, async/concurrency tests, unsafe-code validation, Criterion benchmarks, Cargo test semantics, Rust 1.98 test idioms, feature/target/MSRV matrices, flaky-test triage, coverage/mutation evidence, and focused validation.
 ---
 
 # rust-test
@@ -13,13 +13,38 @@ Tests should express the contract clearly and fail with useful diffs. Match the 
 
 Refuse mock-object tests that program expectations for collaborator calls and then verify call arguments, counts, or ordering. They couple tests to implementation choreography, can fail during behavior-preserving refactors, and can pass while the public outcome is wrong. If a user asks for this style, explain the refusal briefly and implement or propose a contract-focused alternative instead. Prefer the smallest real integration/e2e seam that proves public behavior. When a real boundary is impractical, a deterministic stub or lightweight fake may control inputs or provide an in-memory implementation, but assertions must target observable state, outputs, artifacts, or public protocol effects rather than calls into the double. Do not add a mocking framework, extend mock expectations already present, or disguise a spy as a fake. Do not rewrite unrelated existing mocks unless they are in the requested scope.
 
+## Idiomatic Rust requirement
+
+All test code, helpers, harness examples, and recommendations must use idiomatic
+Rust for the repository's edition and MSRV, not merely compile.
+
+- Prefer ordinary `#[test]` functions, focused test modules, and the established
+  runtime or harness over unnecessary custom test infrastructure.
+- Keep setup small and ownership clear. Use borrowing, moves, and RAII for
+  fixtures and cleanup rather than needless clones, shared mutable state, or
+  leaked resources.
+- Use `assert_eq!`, `assert_ne!`, `assert!`, or suitable pattern assertions for
+  observable behavior. Do not use `debug_assert*` for checks that must also run
+  in release tests. `?`, `unwrap`, and `expect` are appropriate for expected-success
+  test setup; assert expected failures explicitly instead of propagating them.
+- Isolate per-test resources. Prefer child-specific `Command::env` and
+  `Command::current_dir` over process-global environment or directory mutation.
+- Review assertion strength, error handling, fixture lifetimes, and cleanup;
+  passing tests or Clippy does not replace that review.
+
+Mock-free testing is this skill's explicit policy, not a definition of Rust
+idiomaticity. Keep the policy and the language-level guidance distinct.
+
 ## Boundary with rust-best-practices
 
 Keep this skill test-scoped. Use it for assertion choice, test harness shape, doctest behavior, UI/diagnostic expectations, snapshot/golden review, fuzz/property/benchmark harnesses, async/concurrency validation, unsafe-code evidence, and Cargo validation semantics. Do not use it to give broad implementation style guidance such as API ownership, generic dispatch, error type design, builder/type-state selection, comment policy, lint policy, or production performance refactors unless those choices are the explicit test contract. When the user asks for overall Rust code patterns, route that work to `rust-best-practices`; when the user asks whether tests prove the behavior, stay here.
 
 ## Rust 1.98 test-specific baseline
 
-Assume Rust 1.98 stable unless the repository explicitly declares a lower MSRV.
+Assume **Rust 1.98 stable** and **edition 2024** unless the repository explicitly
+declares a lower MSRV or the user gives a different target. Respect existing
+`rust-toolchain.toml`, CI, `Cargo.toml`, workspace lints, target support, and
+public API stability before introducing an API that exceeds the declared MSRV.
 Keep version-specific guidance test-scoped:
 
 - use stable `assert_matches!` for a single structured pattern when it improves
@@ -82,7 +107,7 @@ Do not use it for non-Rust testing unless the repository explicitly routes that 
 9. Use fuzz tests for parser, deserializer, protocol, unsafe, or untrusted-input surfaces when fuzzing is configured or explicitly requested.
 10. Use Criterion or the repository's benchmark harness when performance is part of the contract or regression risk.
 11. Refuse mock-object interaction verification. Replace it with state or output assertions through the smallest real integration/e2e seam, fixture, deterministic stub, or local fake that preserves the observable contract. If no viable mock-free seam exists within scope, report the evidence gap and the production seam needed instead of generating a mock test.
-12. Normalize nondeterministic output before asserting, snapshotting, goldening, fuzzing, or benchmarking it.
+12. Normalize only incidental nondeterminism outside the tested contract. Never sort away required ordering, redact fields being tested, or alter property/fuzz inputs or benchmark workloads to make results agree.
 13. Validate with focused commands and review expectation-file diffs intentionally.
 14. Treat feature flags, mutually exclusive features, `cfg` gates, target triples, MSRV, and `no_std`/WASM/embedded constraints as part of the tested contract when they affect behavior or compilation.
 15. For async, concurrent, time-sensitive, or background-task behavior, prefer deterministic synchronization, fake or paused time, joined tasks, and repository-standard runtime patterns over sleeps and timing assumptions.

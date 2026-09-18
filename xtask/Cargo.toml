@@ -15,10 +15,13 @@ octocrab = { default-features = false, features = [
   "rustls",
   "rustls-ring",
 ], workspace = true }
+prettyplease = { workspace = true }
 pulldown-cmark = { workspace = true }
+quote = { workspace = true }
 regex = { workspace = true }
 reqwest = { default-features = false, features = [ "rustls" ], workspace = true }
 serde = { features = [ "derive" ], workspace = true }
+syn = { features = [ "full" ], workspace = true }
 tempfile = { workspace = true }
 tokio = { features = [ "macros", "rt-multi-thread" ], workspace = true }
 toml = { workspace = true }

@@ -58,7 +58,7 @@ If a type is small and implements `Copy`, passing by value is often clearer and
 at least as efficient as passing by reference.
 
 ```rust
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct GridPoint {
     row: u16,
     col: u16,
@@ -114,19 +114,17 @@ fn parse_header(input: &str) -> Result<Header, HeaderError> {
 ```
 
 Use `let-else` when a missing value is an expected branch and the fallback can
-return, break, continue, or otherwise diverge.
+return, break, continue, or otherwise diverge, as in `parse_header` above. For a
+simple search, iterator adapters can express the intent without bookkeeping:
 
 ```rust
 fn first_non_empty<'a>(lines: impl IntoIterator<Item = &'a str>) -> Option<&'a str> {
-    for line in lines {
-        let trimmed = line.trim();
-        if trimmed.is_empty() {
-            continue;
-        }
-        return Some(trimmed);
-    }
-    None
+    lines.into_iter().map(str::trim).find(|line| !line.is_empty())
 }
+
+assert_eq!(first_non_empty(["", "  ", " ready ", "later"]), Some("ready"));
+assert_eq!(first_non_empty(["", "  "]), None);
+assert_eq!(first_non_empty([]), None);
 ```
 
 Use `match` when each variant carries meaningful behavior.
@@ -255,10 +253,7 @@ at the boundary:
 ```rust
 use core::ops::{Bound, RangeBounds};
 
-fn select_window<R>(bytes: &[u8], range: R) -> Option<&[u8]>
-where
-    R: RangeBounds<usize>,
-{
+fn select_window(bytes: &[u8], range: impl RangeBounds<usize>) -> Option<&[u8]> {
     let start = match range.start_bound() {
         Bound::Included(&index) => index,
         Bound::Excluded(&index) => index.checked_add(1)?,
@@ -274,7 +269,13 @@ where
 }
 
 assert_eq!(select_window(b"abcdef", 2..=4), Some(&b"cde"[..]));
+assert_eq!(select_window(b"abcdef", ..), Some(&b"abcdef"[..]));
 assert_eq!(select_window(b"abcdef", 7..), None);
+assert_eq!(select_window(b"abcdef", ..=usize::MAX), None);
+assert_eq!(
+    select_window(b"abcdef", (Bound::Excluded(usize::MAX), Bound::Unbounded)),
+    None,
+);
 ```
 
 ## Recover Ranges from Derived Substrings and Subslices
@@ -397,8 +398,14 @@ use std::time::Duration;
 
 use tracing::Instrument;
 
+# #[cfg(not(test))]
 use crate::queue::WorkItem;
+# #[cfg(not(test))]
 use crate::telemetry::SpanName;
+# #[cfg(test)]
+# use self::queue::WorkItem;
+# #[cfg(test)]
+# use self::telemetry::SpanName;
 # }
 ```
 

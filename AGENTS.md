@@ -92,16 +92,17 @@ Start here:
 
 - `scripts/check_skills.py`
   Role: validates every immediate directory under `skills/` with the pinned
-  Agent Skills reference validator, then checks progressive-disclosure resources
-  and `agents/openai.yaml` metadata.
+  Agent Skills reference validator, then checks repository-required
+  `agents/openai.yaml` metadata.
   Sync: keep the `just check-skills` recipe and the CI `skills` job aligned when
   the command, dependency pin, or validated metadata shape changes.
 
 - `xtask/src/commands/check_skill_snippets/`
-  Role: discover Rust code fences under `skills/`, generate one Rustdoc test
-  crate per skill under `target/skill-snippets/`, and attach every Markdown file
-  from that skill with `include_str!`. Per-skill dependency setups live under
-  `xtask/src/commands/check_skill_snippets/setups/`.
+  Role: discover Rust code fences under `skills/`, generate one crate per skill
+  and one cumulative integration-test target per Markdown document under
+  `target/skill-snippets/`, apply workspace Clippy lints, run native tests, and
+  preserve special rustdoc checks. Per-skill Rust versions and dependencies live
+  under `xtask/src/commands/check_skill_snippets/setups/`.
   Sync: keep those setups, source examples, the `just check-skill-snippets`
   recipe, and the CI `skill-snippets` job aligned. See `xtask/README.md` for fence
   attributes, exclusions, and focused checks.
@@ -130,11 +131,13 @@ Start here:
   is part of the change.
 - Use `just check`, `just clippy`, or `just test` for focused Rust workspace
   validation when the edited surface affects typechecking, lints, or tests.
-- Use `just check-skills` after changing a skill's `SKILL.md`, bundled resources,
+- Use `just check-skills` after changing a skill's `SKILL.md`,
   `agents/openai.yaml`, or skill-validation tooling. It runs contract validation.
 - Use `just check-skill-snippets` after changing Rust examples or their runner.
-  It requires Cargo and resolves each skill's example dependencies in generated crates under `target/`
-  without changing the workspace lockfile or accepting snapshots.
+  It resolves each skill's example dependencies in generated crates under
+  `target/`, applies workspace Clippy lints, executes native and special rustdoc
+  tests, rejects ignored Rust fences, and leaves the workspace lockfile and
+  snapshots unchanged.
 - Use `just ci` for the full local suite when a change spans skill text, Rust
   tooling, manifests, and CI wiring.
 - For local Rust-stable sync checks, run

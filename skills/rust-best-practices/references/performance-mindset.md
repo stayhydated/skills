@@ -90,9 +90,15 @@ use std::sync::Arc;
 #[derive(Debug)]
 struct LookupTable(Vec<u32>);
 
-fn fan_out(table: Arc<LookupTable>, workers: usize) -> Vec<Arc<LookupTable>> {
-    (0..workers).map(|_| Arc::clone(&table)).collect()
+fn fan_out(table: &Arc<LookupTable>, workers: usize) -> Vec<Arc<LookupTable>> {
+    (0..workers).map(|_| Arc::clone(table)).collect()
 }
+
+let table = Arc::new(LookupTable(vec![1, 2, 3]));
+let handles = fan_out(&table, 2);
+assert_eq!(handles.len(), 2);
+assert!(handles.iter().all(|handle| Arc::ptr_eq(handle, &table)));
+assert!(fan_out(&table, 0).is_empty());
 ```
 
 `Arc::clone` communicates "new owner of the same allocation" better than
@@ -116,8 +122,9 @@ where
 }
 ```
 
-Use `dyn Trait` when you need runtime heterogeneity, not as a default
-abstraction.
+Use `dyn Trait` for runtime heterogeneity or deliberate type erasure, including
+measured compile-time or code-size improvements. Compare the relevant costs
+rather than treating either dispatch choice as universally faster.
 
 ## Use Layout-Aware Types
 

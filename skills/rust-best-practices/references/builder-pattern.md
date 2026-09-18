@@ -137,7 +137,7 @@ mark only the relevant member overwritable.
 
 ```toml
 [dependencies]
-bon = { version = "3.9", features = ["experimental-overwritable"] }
+bon = { version = "3.10", features = ["experimental-overwritable"] }
 ```
 
 ```rust

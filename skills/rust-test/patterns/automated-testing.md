@@ -20,7 +20,7 @@ Integration tests belong under `tests/` and should exercise the public API.
 Doc tests belong in rustdoc examples and should cover public happy paths and
 important edge cases.
 
-```rust,test_harness
+```rust
 # fn parse_frame(input: &str) -> Result<&str, &'static str> {
 #     input.split_once(':').map(|(_, body)| body).ok_or("missing separator")
 # }
@@ -34,7 +34,7 @@ mod tests {
         #[test]
         fn rejects_missing_separator() {
             let result = parse_frame("header-only");
-            assert!(result.is_err());
+            assert!(result.is_err(), "separator-free input was accepted: {result:?}");
         }
     }
 }
@@ -45,9 +45,11 @@ behavior statements.
 
 ## One Behavior per Test
 
-Avoid broad "happy path" tests with many unrelated assertions.
+Keep each test focused on one behavior, not necessarily one assertion. Multiple
+assertions can describe a single outcome; avoid broad "happy path" tests with
+unrelated checks.
 
-```rust,test_harness
+```rust
 # fn normalize_marker(input: &str) -> String {
 #     let trimmed = input.trim();
 #     if trimmed.is_empty() { "default".to_owned() } else { trimmed.to_ascii_lowercase() }
@@ -65,7 +67,12 @@ fn blank_marker_uses_default() {
 }
 ```
 
-Use helper functions for setup, not for hiding assertions.
+Keep setup helpers small. Named assertion helpers are idiomatic when they
+express a shared contract and preserve useful failure context; do not hide
+unrelated checks behind a generic helper. Tests may return `Result<(), E>` and
+use `?` for expected-success setup, or use `expect`/`unwrap` to fail immediately.
+Assert expected errors explicitly. Use ordinary assertions rather than
+`debug_assert*` so checks also execute in release tests.
 
 ```rust
 # struct Batch { id: String, records: Vec<String> }
@@ -85,7 +92,7 @@ parse outcomes, or other values where the mismatched debug shape should appear i
 the failure. Import the macro explicitly from `std` in ordinary tests or from
 `core` in `no_std` test contexts.
 
-```rust,test_harness
+```rust
 use std::assert_matches;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -131,9 +138,11 @@ user-facing message itself is part of the public contract.
 ## Parameterized Tests
 
 Use table-driven loops for tiny pure cases where a single failure message is good
-enough. Use `rstest` when named cases help navigation.
+enough. Use `rstest` when named cases help navigation and the repository already
+uses it or its adoption is explicitly authorized; a table alone needs no new
+dev-dependency.
 
-```rust,test_harness
+```rust
 # fn normalize_marker(input: &str) -> String { input.trim().to_ascii_lowercase() }
 #[test]
 fn trims_outer_whitespace() {
@@ -145,7 +154,7 @@ fn trims_outer_whitespace() {
 
 With `rstest`, keep case names descriptive:
 
-```rust,test_harness
+```rust
 # fn normalize_marker(input: &str) -> String { input.trim().to_ascii_lowercase() }
 use rstest::rstest;
 
@@ -219,14 +228,16 @@ integration suite into a second application.
 ## Snapshot Tests
 
 Use snapshot testing when output is structural, textual, generated, or hard to
-read in `assert_eq!`.
+read in `assert_eq!`, under the skill's dependency boundary. The small report
+below illustrates syntax; prefer ordinary assertions when the contract is only
+a few counts.
 
 ```toml
 [dev-dependencies]
 insta = { version = "1", features = ["yaml", "json", "redactions"] }
 ```
 
-```rust,test_harness
+```rust
 # #[derive(serde::Serialize)]
 # struct SummaryReport { processed: u32, rejected: u32 }
 #[test]
@@ -243,12 +254,13 @@ fn summary_report_shape_is_stable() {
 }
 ```
 
-Commit snapshots. Review changes as carefully as source code. Redact timestamps,
-random identifiers, host paths, and other unstable fields. The JSON example needs
-`json`, and selector-based redactions need `redactions`; enable only the snapshot
-formats and capabilities used by the repository. Put redaction mappings inside
-braces after the snapshot value. Inline snapshots keep the expected output with
-the example.
+Commit snapshots. Review changes as carefully as source code. Redact only
+incidental timestamps, random identifiers, host paths, and other unstable fields
+outside the tested contract; assert relevant formats or relationships before
+redacting them. The JSON example needs `json`, and selector-based redactions need
+`redactions`; enable only the snapshot formats and capabilities used by the
+repository. Put redaction mappings inside braces after the snapshot value.
+Inline snapshots keep the expected output with the example.
 
 ```rust
 # let job_payload = std::collections::BTreeMap::from([
