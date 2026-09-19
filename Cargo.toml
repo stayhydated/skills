@@ -4,8 +4,8 @@ resolver = "3"
 
 [workspace.package]
 edition = "2024"
-license = "MIT OR Apache-2.0"
-rust-version = "1.97"
+license = "UNLICENSE"
+rust-version = "1.98"
 version = "0.1.0"
 
 [workspace.dependencies]
