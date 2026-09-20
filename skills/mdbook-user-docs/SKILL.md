@@ -9,6 +9,14 @@ description: Creates, revises, and reviews en-US user-facing documentation in md
 
 Create accurate en-US documentation that helps users complete a task or understand public behavior with minimal cognitive load. Lead with the outcome, verify claims against authoritative sources, and include implementation detail only when it changes a user decision or observable result.
 
+For a multi-package product workspace, maintain one canonical user-facing
+workspace book that accounts for every public member and provides all needed
+member and cross-member guidance. Treat member crates as parts of that book's
+product surface, not as reasons to create separate books or duplicate book
+navigation in member READMEs. A genuinely distinct product, audience, or
+deployment boundary belongs to its own documentation scope rather than becoming
+a second book for the same workspace product.
+
 ## Request mode and write boundary
 
 Choose the mode before following the workflow:
@@ -36,7 +44,7 @@ outside that scope. A prior review is not standing permission to edit.
 
 ### 1. Locate the correct book and protect existing work
 
-- Find the `book.toml` for the requested documentation. If the repository contains multiple books, use the one that contains the target chapter or serves the requested audience; do not edit every book by default.
+- Find the `book.toml` for the requested documentation. In a multi-package workspace, use the canonical workspace user book for public member documentation and confirm that its navigation accounts for the relevant member. If the repository contains multiple books, distinguish separate products or audiences from redundant member books; do not edit every book by default.
 - Read `[book].src` from `book.toml` and resolve it relative to the book root. Use `<book-src>/SUMMARY.md`; do not assume the source directory is `src/`.
 - Read the target chapter, adjacent chapters, `SUMMARY.md`, and relevant repository or directory-level instructions.
 - Inspect the current working tree or diff when available. Preserve unrelated edits and avoid broad formatting changes outside the requested scope.
@@ -51,6 +59,13 @@ Before drafting, identify:
 - **Starting state:** prerequisites, permissions, supported versions, and required context.
 - **Success signal:** how they know the task worked.
 - **Likely failure:** the one or two problems most worth preventing or diagnosing.
+
+For workspace documentation, also inventory the public members relevant to the
+request and their user-facing responsibilities. Put shared concepts and
+cross-member workflows in common chapters, and add focused member chapters only
+where users need package-specific tasks, behavior, or reference. If a public
+member lacks needed coverage, treat it as a gap in the canonical workspace book
+rather than routing users to a separate member book or relying on its README.
 
 Verify behavior from the strongest available public sources: CLI help, API or configuration schemas, generated reference material, current tests, release notes, and working examples. Treat implementation details as evidence, not automatically as a supported public contract. When authoritative sources conflict, do not silently invent a resolution; document the supported behavior and flag the conflict in the completion report.
 

@@ -4,9 +4,9 @@ description: >
   Create, revise, or audit concise Rust READMEs with idiomatic usage examples for
   single-package repositories, workspace roots, and member crates. Use for README
   structure, concise project overviews, crate navigation, publication-aware links,
-  and verified top-level badges ordered CI, Codecov, Book, crates.io. Omit license
-  content, installation instructions, contribution sections or links, and mdBook
-  chapter links or duplicated book navigation.
+  and verified scope-appropriate badges ordered CI, Codecov, Book, crates.io.
+  Omit license content, installation instructions, contribution sections or
+  links, and mdBook chapter links or duplicated book navigation.
 ---
 
 # Rust README
@@ -100,8 +100,8 @@ backends, start the description after the title without a badge paragraph.
 | Category | Evidence required | Link target and scope |
 | --- | --- | --- |
 | CI | An enabled workflow or existing CI service that actually validates this project, with a usable status endpoint. | The matching workflow/results page; use the actual default or documented support branch. Prefer the aggregate CI workflow rather than separate OS, lint, or release badges. |
-| Codecov | An existing Codecov project with coverage reports and a working badge, not merely a coverage command or configuration file. | That project's Codecov dashboard. Use a package-specific flag/component only when it is configured and verified. |
-| Book | An existing mdBook and its verified, deployed reader-facing site. A source-only `book.toml` is insufficient. | The book's landing/root URL, never a chapter, anchor, source directory, or deployment workflow. A static `Book` / `mdBook` badge is navigation, not a claim that a build passes. |
+| Codecov | An existing Codecov project with coverage reports and a working badge, not merely a coverage command or configuration file. A member badge requires a configured component or flag whose filters isolate that package. | Use the matching project dashboard or another verified Codecov UI route. For a component badge, use the exact configured `component_id` in the badge query and identify the member in its label. |
+| Book | An existing mdBook and its verified, deployed reader-facing site. A source-only `book.toml` is insufficient. In a workspace, the canonical user book must cover the public member set. | Use the book's landing/root URL on a single-package or workspace-root README, never on a workspace-member README. Never target a chapter, anchor, source directory, or deployment workflow. A static `Book` / `mdBook` badge is navigation, not a claim that a build passes. |
 | crates.io | A published package belonging to this project, verified by its exact Cargo package name and registry metadata. Publication permission or a manifest version alone is insufficient. | The package's crates.io landing page, with a dynamic version badge rather than a manually maintained version. |
 
 A failing CI run or low coverage does not make a backend unavailable: preserve
@@ -118,12 +118,25 @@ them only when they provide a distinct useful route.
 
 ### Workspace badge selection
 
-- Repository CI and Codecov may be shared by member READMEs only when they cover
-  that member. Label shared status `Workspace CI` / `Workspace Codecov` rather
-  than implying package-specific measurement.
-- Use the canonical user-facing book for the project or member. Do not select an
-  internals book just because it exists. When several books exist, select the
-  one serving this README's audience; do not turn the row into a book directory.
+- Keep repository-wide or workspace-wide CI and Codecov badges on the workspace
+  root README. Do not repeat the same status in member READMEs merely because the
+  workflow or report includes that member. A member README may include CI or
+  Codecov only when the linked backend exposes genuinely member-specific status
+  or coverage; label and link it at that member scope.
+- Prefer a Codecov component for member coverage when
+  `component_management.individual_components` maps an exact `component_id` to
+  that package through verified path or flag filters. Use the component ID in
+  the badge's `component` query parameter. Confirm that uploaded reports populate
+  the component and that the badge works; configuration alone is insufficient.
+  Link to a verified component-filtered Codecov page when one is available,
+  otherwise link to the verified project dashboard rather than inventing a deep
+  URL.
+- Put the canonical user-facing Book badge on the workspace root README only.
+  The workspace book should account for every public member and provide all
+  needed user documentation. Never repeat the Book badge or its link in member
+  READMEs. If the book does not cover a member, report that workspace-book
+  documentation gap rather than adding member navigation or selecting an
+  internals book.
 - A single-package or member README has at most its own crates.io badge.
 - At a workspace root, use the evidenced primary public package's badge when
   there is one. Otherwise use a named crates.io badge for each published,
@@ -172,6 +185,9 @@ small `Crates` table when useful; sort rows by exact package name, matching the
 registry badge group. Link to existing member READMEs, otherwise their source
 directories. Include an internal tool only when it helps readers navigate the
 repository. Avoid exhaustive dependency graphs and inventories of test crates.
+The root owns repository-wide CI and Codecov status so that member READMEs do
+not repeat identical badges. It also owns the canonical Book badge for the
+workspace-wide user guide that documents the public members.
 
 A virtual root has no crate page of its own. A workspace with a root package
 may reuse its root README for that package only if the content genuinely serves
@@ -183,8 +199,14 @@ published member.
 Make the member README independently understandable on its crates.io page:
 package purpose first, then its role in the project and a canonical repository
 route when useful. Scope examples, capabilities, API links, and version badges
-to that package. Do not repeat the workspace map or the full project overview.
-Create a member README only when publication or a distinct audience needs it.
+to that package. Do not repeat workspace-wide CI or Codecov badges, the
+workspace map, or the full project overview. Include CI or Codecov only when its
+linked result is specific to the member rather than a shared workspace run or
+report. A verified Codecov component whose filters isolate the member is the
+preferred coverage evidence. Do not add a Book badge or repeat the workspace
+book link; the root README owns that navigation and the workspace book owns
+member documentation. Create a member README only when publication or a distinct
+audience needs it.
 
 Resolve explicit `package.readme` paths relative to the package manifest;
 resolve inherited `readme.workspace = true` through `workspace.package.readme`
@@ -206,11 +228,13 @@ use verified absolute URLs where relative paths would not resolve correctly.
   rely on repository-host discovery instead of repeating that route in READMEs.
 - Do not add installation sections, `cargo add` / `cargo install` commands,
   dependency/version snippets, package-manager recipes, or clone/build setup.
-  The crates.io badge is the package-discovery route and the Book badge is the
-  user-guide route. Do not duplicate those routes in a `Getting started` section.
+  The crates.io badge is the package-discovery route and the single-package or
+  workspace-root Book badge is the user-guide route. Do not duplicate those
+  routes in a `Getting started` section.
 - Do not link or enumerate mdBook chapters, reproduce `SUMMARY.md`, embed book
   content with includes, or add a second documentation table of contents. The
-  Book badge owns book navigation. Do not repeat its destination in body prose.
+  single-package or workspace-root Book badge owns book navigation. Do not repeat
+  its destination in body prose or member READMEs.
 - A README without a book or registry page still stays concise. Do not invent a
   badge, create a book, or silently introduce installation material as fallback.
   Preserve verified, distinct API/source/support routes and report any requested

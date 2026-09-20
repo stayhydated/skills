@@ -42,6 +42,21 @@ renders successfully can still link to a wrong package, branch, or workflow.
 Badge status may legitimately be failing; an error/unknown SVG from a fabricated
 backend is not a useful status badge.
 
+For a verified workspace-member component, add the exact configured
+`component_id` to the badge image and identify the member in the badge label:
+
+```markdown
+[![Codecov: MEMBER-PACKAGE][codecov-badge]][codecov]
+
+[codecov-badge]: https://codecov.io/gh/OWNER/REPO/branch/BRANCH/graph/badge.svg?component=COMPONENT-ID
+[codecov]: https://codecov.io/gh/OWNER/REPO
+```
+
+Use a verified component-filtered Codecov UI route as the link target when one
+is available. Otherwise the verified project dashboard is an honest target; do
+not construct an undocumented component deep link. Confirm that the component's
+path or flag filters isolate the member and that uploaded coverage populates it.
+
 ## Single-package layout
 
 ```markdown
@@ -130,9 +145,6 @@ than inventing a file. Do not repeat badge images inside the table.
 ```markdown
 # MEMBER-PACKAGE
 
-[![Workspace CI][ci-badge]][ci]
-[![Workspace Codecov][codecov-badge]][codecov]
-[![Book][book-badge]][book]
 [![crates.io: MEMBER-PACKAGE][crate-badge]][crate]
 
 MEMBER-PACKAGE provides MEMBER-CAPABILITY within [PROJECT][project].
@@ -142,11 +154,17 @@ MEMBER-PACKAGE provides MEMBER-CAPABILITY within [PROJECT][project].
 ONE-SHORT-MEMBER-SPECIFIC-USAGE-EXAMPLE
 ```
 
-Use member-specific CI/coverage labels instead when genuinely measured per
-member. Reuse the workspace Book badge only when that book serves this member's
-users. The crates.io image, visible label, and destination must all name this
-member, not the primary package. A short verified API-reference link can provide
-an additional route without introducing a docs.rs badge.
+The member template intentionally omits workspace-wide CI and Codecov. Add a CI
+or Codecov line before crates.io only when its linked backend exposes genuinely
+member-specific status or coverage; a shared workflow or report that happens to
+include the member is insufficient. Never add a Book badge or repeat the
+workspace book link in a member README; the root README owns the workspace book
+route. For Codecov, prefer an
+`individual_components` entry whose paths or flags isolate the package, and use
+its exact `component_id` in the badge query. The crates.io image, visible label,
+and destination must all name this member, not the primary package. A short
+verified API-reference link can provide an additional route without introducing
+a docs.rs badge.
 
 ## Acceptance cases
 
@@ -160,7 +178,10 @@ They describe expected behavior, not permission to create external services.
 | Single package; no verified backend | Title and description; no badge paragraph or invented installation fallback. |
 | Virtual workspace; public packages `alpha` and `zeta`; no primary | Shared badges first; named `alpha` then `zeta` registry badges; crate map; no workspace-version badge. |
 | Workspace primary `zeta`; other public and internal members | Named `zeta` top-level registry badge; relevant member routes in the map; no registry badge for an internal-only package. |
-| Member `alpha`; shared CI/coverage | `Workspace CI`, `Workspace Codecov`, applicable Book, then only `alpha` on crates.io. |
+| Member `alpha`; workspace-wide CI/coverage and Book | Only `alpha` on crates.io; keep shared status and Book badges at the workspace root. |
+| Member `alpha`; verified Codecov component filters only `alpha` | `Codecov: alpha` component badge, then only `alpha` on crates.io. |
+| Member `alpha`; component exists but filters or uploaded coverage are unverified | No member Codecov badge until its scope and rendered result are verified. |
+| Member `alpha`; workspace book documents `alpha` | No member Book badge or repeated book link; retain the canonical Book badge at the workspace root. |
 | Book sources without a verified deployment | No Book badge and no substitute links to book chapters or source navigation. |
 | Failing CI or low coverage from a verified service | Keep the real status; do not hide it or create a static passing badge. |
 | Registry name exists but belongs to another project | No registry badge until ownership/package identity is resolved. |

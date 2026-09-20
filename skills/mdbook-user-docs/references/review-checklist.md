@@ -16,6 +16,11 @@
 - [ ] Assumed knowledge and prerequisites are explicit where needed.
 - [ ] The chapter does not mix unrelated page types or audiences.
 - [ ] Internal details pass the relevance gate and follow the user impact.
+- [ ] In a multi-package product workspace, the canonical user book accounts for
+      every public member, with shared material kept common and member-specific
+      material split only when users need it.
+- [ ] No separate member book or duplicated member-README book navigation was
+      introduced without a verified product, audience, or deployment boundary.
 
 ## Language and source integrity
 

@@ -26,8 +26,14 @@ technical details before relying on behavior that may have changed.
   documents workflow-file URLs and branch/event selection. Use the actual
   workflow, not a guessed name or a blanket passing label.
 - [Codecov status badges](https://docs.codecov.com/docs/status-badges)
-  describes badges backed by Codecov data. Use the target project's own badge
-  and report scope rather than substituting a generic coverage claim.
+  describes badges backed by Codecov data, including the `component` query for a
+  component name or ID. Use the target project's own badge and verified report
+  scope rather than substituting a generic coverage claim.
+- [Codecov components](https://docs.codecov.com/docs/components) documents
+  `component_management.individual_components`, component IDs, path and flag
+  filters, and component statuses. For a workspace member, verify that the
+  configured filters isolate that package and that uploaded coverage populates
+  the component before treating its badge as member-specific.
 - [Shields crates.io version badge](https://shields.io/badges/crates-io-version)
   provides the package-version image; the surrounding Markdown link must still
   target the correct crates.io package page.

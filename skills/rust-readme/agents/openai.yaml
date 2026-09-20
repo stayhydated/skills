@@ -1,4 +1,4 @@
 interface:
   display_name: "Rust README"
   short_description: "Concise Rust READMEs with idiomatic usage examples"
-  default_prompt: "Use $rust-readme to create, revise, or audit a concise Rust README from repository evidence with idiomatic public-API examples that respect the package's edition and MSRV, CI, Codecov, Book, and crates.io badges in that order, and no license content, installation instructions, contribution sections or links, or book-chapter duplication."
+  default_prompt: "Use $rust-readme to create, revise, or audit a concise Rust README from repository evidence with idiomatic public-API examples that respect the package's edition and MSRV, scope workspace-wide CI, Codecov, and Book badges to the workspace root, use verified component-scoped Codecov badges for members when configured, give each published member only its own crates.io badge, order applicable badges as CI, Codecov, Book, and crates.io, and omit license content, installation instructions, contribution sections or links, and book-chapter duplication."
