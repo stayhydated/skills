@@ -6,7 +6,7 @@ Use doctests when documentation examples are part of the public contract.
 
 - public API examples in rustdoc comments;
 - README examples included by crate docs or validated by the repository's existing workflow;
-- small examples that demonstrate user-facing behavior with `assert!`, `assert_eq!`, or `assert_matches!` on the Rust 1.98 baseline when a public enum/error variant is the documented contract;
+- small examples that demonstrate user-facing behavior with `assert!`, `assert_eq!`, or `assert_matches!` on the Rust 1.99 baseline when a public enum/error variant is the documented contract;
 - public invalid-usage examples where `compile_fail` communicates a type-level contract;
 - examples that should compile but should not run in CI, using `no_run`.
 
@@ -32,6 +32,24 @@ Prefer ordinary unit, integration, or compile-fail/UI tests for:
 - Use `compile_fail` only for stable, meaningful invalid-usage examples.
 - Avoid relying on exact rustc wording in doctest `compile_fail`; use a UI-test or `trybuild` harness when exact diagnostics are the contract.
 - rustdoc supports `--emit` and `--remap-path-prefix`; when a repository uses those flags, preserve its documented command and account for emitted or remapped paths in generated-output review.
+
+## Rust 1.99 compatibility
+
+The [Rust 1.99 compatibility notes](https://doc.rust-lang.org/releases.html#version-1990-2026-10-01)
+change two doctest assumptions:
+
+- Attributes that do not apply to anything are now errors in documentation code
+  blocks. Attach the attribute to its intended item or remove the stray
+  attribute. Do not hide the failure with `ignore`.
+- `doc(cfg(...))` is no longer considered when filtering doctests. It describes
+  documentation availability, not an execution guard. Inspect actual `cfg`
+  conditions and run the relevant feature/target combinations.
+
+The new `rustdoc::unused_footnote_definition` lint belongs to documentation
+validation. Run the repository's rustdoc lint/build command when footnotes or
+warning policy change; passing doctests alone does not prove rendered docs are
+warning-free. `assert_matches!` remains available from Rust 1.96; the current
+baseline does not change its stabilization date or a lower-MSRV contract.
 
 ## Idioms
 

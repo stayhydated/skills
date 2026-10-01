@@ -8,7 +8,7 @@
 * [Inlining](#profile-before-inline)
 * [Buffered integer formatting](#reuse-a-numbuffer-in-allocation-sensitive-code)
 * [Algebraic floating-point operations](#use-algebraic-floating-point-operations-only-with-an-explicit-contract)
-* [Rust 1.98 tooling compatibility](#tooling-compatibility-on-rust-198)
+* [Rust 1.99 tooling compatibility](#tooling-compatibility-on-rust-199)
 
 The first rule of Rust performance work is still: **do not guess, measure**.
 
@@ -53,6 +53,16 @@ fn write_records<'a>(records: impl IntoIterator<Item = &'a str>, out: &mut Strin
     }
 }
 ```
+
+On Rust 1.99, consider `String::from_utf8_lossy_owned` when input is already an
+owned byte vector and lossy decoding is intended. It does not guarantee reuse of
+the original allocation. When strict decoding is attempted first,
+`FromUtf8Error::into_utf8_lossy` can reuse the recorded validation boundary rather
+than rechecking the valid prefix. Benchmark the actual workload; do not infer
+allocation counts from API names. See the
+[owned lossy conversion](https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8_lossy_owned)
+and [error recovery](https://doc.rust-lang.org/std/string/struct.FromUtf8Error.html#method.into_utf8_lossy)
+contracts.
 
 ## Allocate with Intent
 
@@ -214,12 +224,23 @@ Do not use them for reproducible serialization, exact threshold decisions,
 financial calculations, or code that assigns semantic meaning to NaN payloads or
 signed zero.
 
-## Tooling Compatibility on Rust 1.98
+## Tooling Compatibility on Rust 1.99
 
-Rust 1.98 uses v0 symbol mangling by default. If a profiler, debugger, crash
-reporter, or symbol post-processor cannot demangle Rust frames, update that tool
-before restoring legacy mangling. Treat changed backtrace spelling as tooling
+Rust has used v0 symbol mangling by default since 1.97. If a profiler, debugger,
+crash reporter, or symbol post-processor cannot demangle Rust frames, update that
+tool before restoring legacy mangling. Treat changed backtrace spelling as tooling
 compatibility evidence rather than an application performance regression.
+
+Rust 1.99 updates LLVM and optimizes inclusive-range iteration. Re-measure hot
+loops rather than assuming a universal gain. Do not use the endpoints or
+slice-index behavior of an exhausted `core::ops::RangeInclusive` as a stable
+contract; preserve original bounds separately when they are needed later.
+
+For build-time comparisons, record the selected Cargo profile and incremental
+settings. The new built-in `debug` profile currently inherits `dev`, while CI
+turns incremental compilation off by default unless overridden. Compare like
+configurations rather than attributing a local/CI difference to source changes.
+See the [Rust 1.99 release notes](https://doc.rust-lang.org/releases.html#version-1990-2026-10-01).
 
 On WebAssembly targets, undefined linker symbols are not silently accepted. Treat
 link failures as boundary feedback. Override that behavior only when the import

@@ -7,7 +7,7 @@
 - [Cargo configuration boundaries](#cargo-argument-and-configuration-boundaries)
 - [Nextest](#cargo-nextest-guidance)
 - [Feature, target, and MSRV validation](#feature-target-and-msrv-validation)
-- [Rust 1.98 validation](#rust-198-specific-validation)
+- [Rust 1.99 validation](#rust-199-specific-validation)
 - [Expectation-file handoff](#expectation-file-handoff)
 - [Coverage and mutation evidence](#coverage-and-mutation-evidence)
 - [Validation wording](#validation-wording)
@@ -23,7 +23,7 @@ Prefer, in order:
 1. The repository's focused runner recipe for the affected surface.
 2. A package-specific, test-name-filtered, target-filtered, benchmark-name-filtered, doctest, feature-specific, target-specific, fuzz reproduction, or expectation-review command.
 3. Dependent package tests when a public API, shared fixture, generated output, feature, or workspace dependency change can affect downstream crates in the workspace.
-4. The repository's standard full Rust test command when the change spans surfaces or no narrower command exists.
+4. The repository's standard full Rust test command when the change spans surfaces or no narrower command proves the contract.
 5. Static review only, with explicit disclosure, when commands are unavailable.
 
 In workspaces, identify the affected package graph before selecting validation. Prefer package-scoped commands first, then dependent package tests when public APIs or shared fixtures changed. Avoid defaulting to full-workspace tests unless the change crosses package boundaries or no narrower command proves the contract.
@@ -34,14 +34,14 @@ Use only when evidenced or directly runnable in the repository:
 
 - `cargo test -p <crate> <test_name>` for focused crate tests.
 - `cargo test -p <crate> --lib <test_name>` for a library unit-test target.
-- `cargo test -p <crate> --test <integration_test> <filter>` for a specific integration test target.
+- `cargo test -p <crate> --test <integration_test>` for a specific integration test target.
 - `cargo test -p <crate> --example <example_name>` when an example target has tests or must compile.
 - `cargo test -p <crate>` for one crate.
 - `cargo test -p <crate> --no-default-features` for behavior or compilation with default features disabled.
 - `cargo test -p <crate> --all-features` for all compatible feature flags.
 - `cargo test -p <crate> --features <feature>` for a specific feature-gated contract.
 - `cargo test -p <crate> --features <feature_a>,<feature_b>` for a specific compatible feature combination.
-- `cargo check -p <crate> --target <target>` for target-specific compilation when the target cannot run locally.
+- `cargo check -p <crate> --target <target>` for target-specific compilation when the target cannot run in the current environment.
 - `cargo test -p <crate> --target <target>` when the target can run in the environment.
 - `cargo test --doc -p <crate>` for doctests.
 - `cargo test -p <crate> -- --test-threads=1` only when serial runtime execution is required by repository policy or the test contract.
@@ -62,11 +62,18 @@ Do not confuse Cargo arguments with test harness arguments:
 - `-j <n>` controls Cargo build parallelism.
 - `-- --test-threads=<n>` controls libtest runtime test parallelism.
 
-On Cargo 1.98, also inspect applicable configuration:
+On Cargo 1.99, also inspect applicable configuration:
 
 - `build.warnings = "deny"` can turn local-package lint warnings into command failures;
 - `resolver.lockfile-path` changes the lockfile used by resolution and `--locked`;
+- edition-2024 members can override inherited dependency `default-features`, but other dependency edges may still enable those features through unification;
+- the new built-in `debug` profile currently inherits `dev`, while ordinary `cargo test` still uses `test`; distinguish an explicitly selected profile from the `debug` debuginfo setting;
+- incremental compilation is disabled by default when the `CI` environment variable indicates CI; inspect explicit configuration and `CARGO_INCREMENTAL` before interpreting cache or build-time differences;
 - configuration may come from parent directories or the user's Cargo home, not only the repository.
+
+See [Cargo test semantics](cargo-test-semantics.md) for release references and
+lower-Cargo boundaries. `build.warnings` and `resolver.lockfile-path` stabilized
+in Cargo 1.97; they are carried-forward configuration, not new 1.99 features.
 
 Do not claim a command validates doctests, examples, all packages, all targets, all features, a particular lockfile, or binary behavior unless those surfaces were selected and the applicable configuration was verified. Check reported counts and ignored tests: a green command that ran zero matching tests is not behavioral validation. Report compile-only checks separately from execution.
 
@@ -82,7 +89,7 @@ When the repository uses cargo-nextest:
 
 ## Feature, target, and MSRV validation
 
-Treat feature flags, `cfg` gates, target triples, `no_std`, WASM, embedded support, Rust 1.98-sensitive compiler, doctest, formatting, and target behavior, and MSRV as part of the test contract when affected. Useful evidence includes manifests, package `rust-version`, CI matrices, `.cargo/config.toml`, `rust-toolchain.toml`, README support claims, package metadata, and existing target-specific tests.
+Treat feature flags, `cfg` gates, target triples, `no_std`, WASM, embedded support, Rust 1.99-sensitive compiler, doctest, formatting, and target behavior, and MSRV as part of the test contract when affected. Useful evidence includes manifests, package `rust-version`, CI matrices, `.cargo/config.toml`, `rust-toolchain.toml`, README support claims, package metadata, and existing target-specific tests.
 
 Validation examples, only when applicable:
 
@@ -106,13 +113,19 @@ Use `cargo hack` only when the repository already uses it or the recommendation 
 - `cargo hack --feature-powerset --depth 2 --no-dev-deps check`
 - `cargo hack --version-range <min>..=<max> check`
 
-Disclose mutually exclusive features, missing target toolchains, unavailable linkers, MSRV toolchain gaps, Rust 1.98-only APIs or configuration that were not safe for an explicitly declared lower MSRV, or target tests that could be checked but not executed.
+Disclose mutually exclusive features, missing target toolchains, unavailable linkers, MSRV toolchain gaps, Rust 1.99-only APIs or configuration that were not safe for an explicitly declared lower MSRV, or target tests that could be checked but not executed.
 
-## Rust 1.98-specific validation
+## Rust 1.99-specific validation
 
-Use `patterns/rust-1-98-testing-baseline.md` when a patch or recommendation
-depends on Rust 1.98. Apply these rules narrowly:
+Use `patterns/rust-1-99-testing-baseline.md` when a patch or recommendation
+depends on Rust 1.99. Apply these rules narrowly:
 
+- For owned lossy UTF-8 conversion and error recovery, test valid, empty,
+  invalid, and truncated input without replacing a strict-decoding contract or
+  assuming allocation reuse.
+- For `VecDeque::retain_back(n)`, cover retained order, zero, empty input, and
+  lengths equal to or above the current length. Test boxed-array iteration for
+  the public ownership and borrowing contract.
 - For `assert_matches!` changes, run the smallest package/test-target command that
   exercises the assertion; run doctests separately when the macro appears there.
 - For `substr_range` or `subslice_range`, test source-derived repeated and empty
@@ -129,12 +142,27 @@ depends on Rust 1.98. Apply these rules narrowly:
 - For atomic views, run target-aware compile/tests under the applicable
   `target_has_atomic` and `target_has_atomic_primitive_alignment` cfgs, plus the
   configured concurrency evidence; host support does not prove every target.
+- For non-null ownership transfer, raw layout queries, pinning, C variadics, or
+  filesystem timestamps, select safe-wrapper, ABI, and platform tests that
+  exercise the documented invariants; host functional tests do not prove
+  soundness, cross-target calling conventions, or filesystem precision.
 - When `build.warnings = "deny"` is active, distinguish lint-policy failures from
   test failures. When `resolver.lockfile-path` is active, identify the selected
   lockfile before claiming `--locked` validation.
+- For inherited default-feature overrides, test the affected edition-2024 member
+  and relevant workspace combinations, and verify behavior on any lower-Cargo
+  lane instead of assuming feature unification or configuration support.
+- For doctests, fix unattached attributes and validate actual feature/target
+  gates rather than relying on `doc(cfg(...))`; use the documentation build/lint
+  command separately for `rustdoc::unused_footnote_definition`.
 - For compiler diagnostics, auto-traits, repr/transmute checks, escaping,
   temporary scopes, rustfmt `cfg_select!` discovery, or target compatibility,
   update expectations only through the repository workflow and review the diff.
+  Cover exported-macro diagnostics through a separate-crate integration test.
+- For exhausted `RangeInclusive`, assert yielded values and exhaustion rather
+  than unspecified endpoints. Do not use `catch_unwind` or ordinary
+  `#[should_panic]` to recover from a `transmute_copy` size-check failure, which
+  uses a non-unwinding panic on 1.99.
 
 ## Expectation-file handoff
 

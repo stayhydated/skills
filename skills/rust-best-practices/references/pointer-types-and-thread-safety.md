@@ -10,6 +10,7 @@
 * [Atomic views over exclusive storage](#atomic-views-over-exclusive-storage)
 * [Process and environment iterators](#process-and-environment-iterators)
 * [Raw pointers](#raw-pointers)
+* [Non-null ownership and raw layouts](#non-null-ownership-and-raw-layouts)
 
 Rust encodes thread-safety through `Send` and `Sync`:
 
@@ -171,9 +172,10 @@ Use `std::cell::OnceCell` or `LazyCell` for single-threaded local structures.
 
 ## Atomic Views Over Exclusive Storage
 
-Rust 1.98 can borrow primitive storage as atomic storage, or borrow an exclusively
-owned atomic slice as its primitive representation. This avoids allocation and
-unsafe pointer casts when a phase of an algorithm changes its access mode.
+Since Rust 1.98, primitive storage can be borrowed as atomic storage, or an
+exclusively owned atomic slice can be borrowed as its primitive representation.
+This avoids allocation and unsafe pointer casts when a phase of an algorithm
+changes its access mode.
 
 ```rust
 use std::sync::atomic::{AtomicU8, Ordering};
@@ -245,3 +247,25 @@ assert_eq!(read_at(b"abc", 3), None);
 assert_eq!(read_at(b"", 0), None);
 assert_eq!(read_at(b"abc", usize::MAX), None);
 ```
+
+## Non-Null Ownership and Raw Layouts
+
+Rust 1.99 stabilizes `Box::into_non_null`/`from_non_null` and
+`Vec::into_parts`/`from_parts`. Prefer these only when a real boundary must carry
+ownership as a non-null pointer. Keep the element type, allocator/layout,
+initialized length, and capacity consistent with the originating allocation;
+reconstruct ownership exactly once and account for cleanup on every path.
+`NonNull<T>` alone proves neither validity nor exclusive ownership. See the
+[`Box` safety contract](https://doc.rust-lang.org/std/boxed/struct.Box.html#method.from_non_null)
+and [`Vec::from_parts` safety contract](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.from_parts).
+
+The newly stable `size_of_val_raw`, `align_of_val_raw`, and
+`Layout::for_value_raw` avoid creating a reference merely to query layout, but
+remain unsafe and have metadata preconditions. Prefer safe reference-based
+layout queries when a valid reference already exists; do not fabricate a
+reference or trait-object metadata to satisfy an API.
+
+When reviewing existing unsafe abstractions on 1.99, re-check the updated
+[`Pin::new_unchecked` safety requirements](https://doc.rust-lang.org/std/pin/struct.Pin.html#method.new_unchecked).
+Do not use `Box::leak` followed by an assumed-safe reconstruction as an ownership
+round trip; use the explicit ownership-transfer APIs and their safety contracts.

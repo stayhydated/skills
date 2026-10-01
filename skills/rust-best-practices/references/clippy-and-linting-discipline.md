@@ -3,7 +3,7 @@
 ## Contents
 
 - [Default commands](#default-commands)
-- [Cargo warning policy](#cargo-198-warning-policy)
+- [Cargo warning policy](#cargo-199-warning-policy)
 - [CI quality jobs](#ci-quality-jobs)
 - [Workspace profiles and lints](#workspace-profiles)
 - [Fixing and suppressing warnings](#fix-warnings-before-suppressing-them)
@@ -32,7 +32,7 @@ Use `--all-features` when features are additive and compatible. If features are
 mutually exclusive, test the documented feature matrix instead of pretending all
 features can be enabled together.
 
-## Cargo 1.98 Warning Policy
+## Cargo 1.99 Warning Policy
 
 When a repository intentionally requires every ordinary Cargo build, check, or
 test of local packages to reject lint warnings, use Cargo's `build.warnings`
@@ -43,8 +43,9 @@ configuration instead of a global `RUSTFLAGS=-Dwarnings` override:
 warnings = "deny"
 ```
 
-Use this when Rust 1.98 is the effective toolchain baseline and the repository has
-adopted warning-free builds as policy. Keep an explicit
+Use this when Rust 1.99 is the effective toolchain baseline and the repository has
+adopted warning-free builds as policy. The setting was stabilized in Cargo 1.97;
+it is not new in 1.99. Keep an explicit
 `cargo clippy ... -- -D warnings` command for Clippy-specific review. When a
 separate lower-MSRV lane exists, validate its behavior independently instead of
 assuming it interprets the active Cargo configuration identically.
@@ -73,7 +74,7 @@ requirement.
 
 Profile tuning is workload-specific, not an idiomatic-Rust requirement. Preserve
 the repository's profiles unless tuning is in scope. For a runtime-heavy
-workspace targeting Rust 1.98, this is one candidate to measure against Cargo's
+workspace targeting Rust 1.99, this is one candidate to measure against Cargo's
 defaults, not a universal build-speed or runtime improvement:
 
 ```toml
@@ -91,6 +92,14 @@ codegen-units = 1
 lto = "thin"
 opt-level = 3
 ```
+
+Cargo 1.99 adds a built-in `debug` profile, which currently inherits `dev`.
+The profile name is distinct from the `debug` debuginfo setting above. Do not
+rename existing profiles mechanically. Incremental compilation is disabled by
+default when Cargo detects CI through the `CI` environment variable; inspect
+explicit configuration and `CARGO_INCREMENTAL` before comparing build timings.
+See [Cargo profiles](https://doc.rust-lang.org/cargo/reference/profiles.html)
+and the [Rust 1.99 Cargo changes](https://doc.rust-lang.org/releases.html#cargo).
 
 Use `debug = "limited"` instead of full debug info when stack traces and module
 context are enough. Optimize non-workspace dependencies in dev profiles for UI,
@@ -122,6 +131,7 @@ unused_must_use = "deny"
 [workspace.lints.rustdoc]
 bare_urls = "deny"
 broken_intra_doc_links = "deny"
+unused_footnote_definition = "warn"
 
 [workspace.lints.clippy]
 all = { level = "warn", priority = -1 }
@@ -150,22 +160,31 @@ Consider `clippy::pedantic` and `clippy::nursery` as review aids, not automatic
 policy for every repository. Avoid `clippy::restriction` as a group; enable only
 specific restriction lints that match team policy.
 
-On the Rust 1.98 toolchain, `clippy::all` includes the new complexity, style,
-and suspicious lints `unnecessary_unwrap_unchecked`,
-`chunks_exact_to_as_chunks`, `by_ref_peekable_peek`,
-`manual_isolate_lowest_one`, and `for_unbounded_range`. The new
-`with_capacity_zero` and `unused_async_trait_impl` lints are `pedantic`, so enable
-them individually or through an intentional `clippy::pedantic` review policy.
-`empty_enums` is now in `nursery`, and `from_iter_instead_of_collect` is
-deprecated; remove stale configuration rather than pinning a deprecated lint
-name.
+Clippy 1.98 introduced the complexity, style, and suspicious lints
+`unnecessary_unwrap_unchecked`, `chunks_exact_to_as_chunks`,
+`by_ref_peekable_peek`, `manual_isolate_lowest_one`, and `for_unbounded_range`.
+That release also added the pedantic `with_capacity_zero` and
+`unused_async_trait_impl` lints, moved `empty_enums` to `nursery`, and deprecated
+`from_iter_instead_of_collect`. Preserve those historical version labels rather
+than presenting them as new 1.99 lints; remove stale deprecated configuration and
+check the installed Clippy when deciding which groups to enable.
+
+On Rust 1.99, review new or expanded compiler diagnostics separately from Clippy:
+`raw_borrows_via_references` is allow-by-default, `unconditional_panic` also
+checks zero-sized chunks/windows calls, and `unreachable_cfg_select_predicates`
+is included in `unused`. Fix warnings from
+`semicolon_in_expressions_from_non_local_macros` at the macro provider instead of
+silencing them in consumers. The new rustdoc `unused_footnote_definition` lint
+belongs to documentation validation, not a Clippy version pin.
 
 Keep the compiler's `invalid_runtime_symbol_definitions`,
 `suspicious_runtime_symbol_definitions`, and `c_void_returns` diagnostics active.
-A runtime shim or FFI adapter may use a narrow `#[expect(..., reason = "...")]`,
-but a crate-wide allowance can hide an ABI error. Also expect `unsafe_code` to be
-reported consistently on unsafe attributes; lint policy should account for both
-unsafe blocks and unsafe attributes.
+Rust 1.99 extends the runtime-symbol checks to POSIX symbols and makes
+`no_mangle_generic_items` a hard error, not a suppressible warning.
+A runtime shim or FFI adapter may use a narrow `#[expect(..., reason = "...")]`
+for an adjustable lint, but a crate-wide allowance can hide an ABI error. Also
+expect `unsafe_code` to be reported consistently on unsafe attributes; lint
+policy should account for both unsafe blocks and unsafe attributes.
 
 ## Fix Warnings Before Suppressing Them
 
