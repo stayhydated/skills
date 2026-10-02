@@ -2,7 +2,7 @@
 name: rust-best-practices
 description: >
   Guide for writing, refactoring, reviewing, optimizing, and documenting
-  idiomatic Rust code on a Rust 1.98 stable baseline, with Bon and Statum
+  idiomatic Rust code on a Rust 1.99 stable baseline, with Bon and Statum
   authorized by default unless repository cargo-deny policy bans them. Keep
   other dependency adoption explicit and all changes task-scoped.
 ---
@@ -13,7 +13,7 @@ Use this skill when the user asks for Rust code, Rust refactors, code review,
 performance review, error handling, documentation, API design, or lifecycle
 modeling.
 
-Assume **Rust 1.98 stable** and **edition 2024** unless the repository explicitly
+Assume **Rust 1.99 stable** and **edition 2024** unless the repository explicitly
 declares a lower MSRV or the user gives a different target. Respect existing
 `rust-toolchain.toml`, CI, `Cargo.toml`, workspace lints, target support, and
 public API stability before introducing an API that exceeds the declared MSRV.
@@ -77,17 +77,25 @@ do not migrate unrelated constructors, state machines, or APIs.
 Prefer declaring shared direct dependencies in the workspace root's
 `[workspace.dependencies]` table. Inherit them in member manifests with the
 explicit `{ workspace = true }` inline-table form when the members can share the
-same version, source, and baseline feature policy. Prefer this form to dotted
+same version and source. Prefer this form to dotted
 `dependency.workspace = true` syntax so member-specific settings such as
 `features` can be added to the same declaration. Keep a declaration member-local,
 or use explicitly renamed workspace dependencies, when members genuinely
-require different direct versions, sources, or feature defaults. A transitive
+require different direct versions, sources, or feature defaults that their
+supported Cargo versions and editions cannot express through inheritance. A transitive
 disagreement, such as two dependencies requiring semver-incompatible versions
 of a third crate, is not by itself a reason to keep the direct dependencies
 local: Cargo resolves transitive versions independently and may build multiple
 semver-incompatible versions.
 Account for resolver failures and crates whose native `links` declarations
 prevent multiple versions from coexisting.
+
+On Cargo 1.99, edition-2024 members can override inherited `default-features`,
+including `{ workspace = true, default-features = false }` when the workspace
+enables defaults. This does not disable features enabled by other dependency
+edges. Inspect feature unification and validate lower-Cargo lanes before using
+this form; earlier editions and toolchains do not provide the same override.
+See [inheriting workspace dependencies](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#inheriting-a-dependency-from-a-workspace).
 
 For other libraries, including Strum, template engines, and error-handling
 libraries, preserve established dependencies, versions, patterns, and dependency
@@ -101,10 +109,24 @@ Reviews are read-only unless the user asks to apply changes. Separate correctnes
 findings from house-style suggestions; a manual implementation is not a defect
 solely because a preferred library could generate it.
 
-## Rust 1.98 Baseline Guidance
+## Rust 1.99 Baseline Guidance
+
+Use the [Rust 1.99 release notes](https://doc.rust-lang.org/releases.html#version-1990-2026-10-01)
+for the release delta. APIs retained below from earlier releases are not new
+stabilizations in 1.99.
 
 * Prefer stable Rust. Do not suggest nightly-only features unless the repository
   already uses nightly and the reason is explicit.
+* Use `String::from_utf8_lossy_owned` when consuming owned bytes and replacement
+  of invalid UTF-8 is the contract. Use `FromUtf8Error::into_utf8_lossy` when
+  strict decoding is attempted first. Do not promise allocation reuse or replace
+  a strict parser with lossy conversion.
+* Use `VecDeque::retain_back(n)` to retain the last `n` elements, not as a
+  predicate-based filter. Boxed arrays now implement owned and borrowed
+  `IntoIterator`; preserve whether the caller intends to move or borrow elements.
+* Use `Box::into_non_null`/`from_non_null` and `Vec::into_parts`/`from_parts`
+  only at justified ownership boundaries. A non-null pointer does not prove
+  allocation layout, initialization, aliasing, or unique ownership.
 * Use `let PATTERN = expr else { ... };` for early exits where the fallback does
   not need the failed value.
 * Use `?` for straightforward error propagation, `map_err` for typed translation,
@@ -118,7 +140,8 @@ solely because a preferred library could generate it.
 * Use `core::range::{Range, RangeInclusive, RangeFrom}` when a concrete stored
   range benefits from being `Copy`. For public APIs, usually accept
   `impl core::ops::RangeBounds<usize>` unless the concrete type is part of the
-  domain model.
+  domain model. Do not rely on the endpoints or slice-index behavior of an
+  exhausted `core::ops::RangeInclusive`; those details are not stable guarantees.
 * Prefer direct typed operations: integer bit-inspection methods for bit-domain
   logic, `NonZero*::from_str_radix` for non-zero radix parsing, and
   `String::from_utf16le`/`from_utf16be` when byte order is part of the input
@@ -129,8 +152,9 @@ solely because a preferred library could generate it.
 * Use floating-point `algebraic_*` operations only when profiling shows a benefit
   and the API contract tolerates reassociation, unspecified precision, and
   non-deterministic behavior for NaN, infinity, and signed zero.
-* Prefer primitive `char` associated items such as `char::from_u32` and
-  `char::REPLACEMENT_CHARACTER`.
+* Prefer primitive associated items such as `char::from_u32`,
+  `char::REPLACEMENT_CHARACTER`, and `i32::MAX` over legacy modules such as
+  `std::i32`, which are fully deprecated in 1.99.
 * Prefer borrowing (`&str`, `&[T]`, `&T`) for read-only APIs. Take ownership only
   when the function stores, transforms, or consumes the value.
 * Prefer `impl Trait` for single-use input polymorphism. Use named generics when
@@ -141,7 +165,9 @@ solely because a preferred library could generate it.
 * Keep runtime-symbol and FFI definitions lint-clean. Do not globally suppress
   `invalid_runtime_symbol_definitions`, `suspicious_runtime_symbol_definitions`,
   or `c_void_returns`; use a narrow, documented exception only at a real runtime
-  or foreign-function boundary.
+  or foreign-function boundary. Rust 1.99 extends runtime-symbol checks to POSIX
+  names and makes `no_mangle_generic_items` a hard error. Stable C-variadic
+  definitions and `core::ffi::VaList` do not remove target ABI or safety duties.
 * Use `bon` for builders instead of hand-rolling type-state builders for ordinary
   construction. Bon is authorized by default under the cargo-deny boundary above.
 * Use `statum` for real lifecycle or protocol type-state. Statum is authorized by

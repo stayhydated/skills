@@ -7,12 +7,21 @@ Use this pattern before selecting validation commands or explaining what a Rust 
 - `cargo test` builds and runs selected test targets for selected packages. In common library crates this includes unit tests, integration tests, and doctests unless target selection changes that behavior.
 - Package selection matters in workspaces. Prefer `-p <crate>` for focused validation, and expand to dependents only when a public API, shared fixture, feature, or workspace dependency change can affect them.
 - Feature selection changes the tested contract. `--features`, `--all-features`, and `--no-default-features` can compile different APIs, dependencies, `cfg` branches, doctests, and examples.
-- MSRV and package `rust-version` affect which test idioms are allowed. `assert_matches!` is available on the Rust 1.98 baseline, but a test-only cleanup must still compile on any explicitly declared lower-MSRV lane.
+- MSRV and package `rust-version` affect which test idioms are allowed. `assert_matches!` is available on the Rust 1.99 baseline, but a test-only cleanup must still compile on any explicitly declared lower-MSRV lane.
 - Target selection changes both compilation and executability. Ordinary doctests also execute target binaries and need a working runner when they cannot run locally. Cross-target validation may be limited to `cargo check` when the target cannot run in the current environment; that check does not validate doctests.
 - Arguments before `--` are Cargo arguments. Arguments after `--` are test harness arguments, such as a libtest filter option or `--test-threads=1`.
 - `-j <n>` controls Cargo build parallelism. `-- --test-threads=<n>` controls libtest runtime test parallelism.
-- On Cargo 1.98, `build.warnings = "deny"` can turn adjustable lint warnings in local packages into command failures.
-- On Cargo 1.98, `resolver.lockfile-path` can select a non-default `Cargo.lock`; `--locked` applies to that configured lockfile.
+- On Cargo 1.99, `build.warnings = "deny"` can turn adjustable lint warnings in local packages into command failures.
+- On Cargo 1.99, `resolver.lockfile-path` can select a non-default `Cargo.lock`; `--locked` applies to that configured lockfile. These two settings were stabilized in Cargo 1.97, not 1.99.
+- Cargo 1.99 lets edition-2024 members override inherited dependency `default-features`. Inspect both workspace and member declarations, then check feature unification: disabling defaults on one edge does not turn off features enabled by another edge.
+- Cargo 1.99 adds a built-in `debug` profile that currently inherits `dev`. Ordinary `cargo test` still uses the `test` profile; record an explicitly selected profile instead of confusing it with the `debug` debuginfo setting.
+- Cargo 1.99 disables incremental compilation by default when the `CI` environment variable indicates CI. Inspect explicit configuration and `CARGO_INCREMENTAL` when interpreting build-time or cache differences; this does not change libtest runtime parallelism.
+
+See [workspace dependency inheritance](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#inheriting-a-dependency-from-a-workspace),
+[Cargo profiles](https://doc.rust-lang.org/cargo/reference/profiles.html), and the
+[Rust 1.99 release notes](https://doc.rust-lang.org/releases.html#version-1990-2026-10-01).
+Validate lower-Cargo lanes separately, especially when member overrides depend on
+the new edition-2024 behavior.
 
 ## Test target selection
 
@@ -47,6 +56,7 @@ For binary crates or crates with CLI targets, first consider Cargo's built-in bi
 - Keep test environment assumptions visible: environment variables, locale, path separators, target OS, feature flags, and current time can all affect assertions and snapshots.
 - Inspect `.cargo/config.toml`, parent-directory Cargo config, and relevant Cargo-home config when command semantics are material.
 - cfg-specific `rustdocflags`, rustdoc `--emit` or `--remap-path-prefix`, warning policy, and lockfile-path configuration can make an apparently ordinary command cover a different contract than a plain host run.
+- On Rust 1.99, `doc(cfg(...))` is not a doctest filter. Inspect actual `cfg` gates and the selected features/target before claiming an example was skipped or exercised.
 
 ## Handoff discipline
 

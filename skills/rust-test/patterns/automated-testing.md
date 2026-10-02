@@ -86,11 +86,13 @@ fn sample_batch() -> Batch {
 
 ## Prefer `assert_matches!` for Variant Checks
 
-On the Rust 1.98 baseline, prefer `assert_matches!` when the test contract is a
+On the Rust 1.99 baseline, prefer `assert_matches!` when the test contract is a
 single structured pattern: enum variants, typed errors, state-machine phases,
 parse outcomes, or other values where the mismatched debug shape should appear in
 the failure. Import the macro explicitly from `std` in ordinary tests or from
-`core` in `no_std` test contexts.
+`core` in `no_std` test contexts. The macro stabilized in Rust 1.96, not 1.99;
+see the [baseline pattern](rust-1-99-testing-baseline.md) for release-specific
+behavior and lower-MSRV boundaries.
 
 ```rust
 use std::assert_matches;
@@ -205,7 +207,9 @@ Use rustdoc block attributes intentionally:
 If using `cargo nextest`, run doc tests separately with `cargo test --doc`.
 When the repository uses rustdoc `--emit` or `--remap-path-prefix`, preserve its
 rustdoc command and review emitted or remapped paths when documentation output is
-part of the contract.
+part of the contract. On Rust 1.99, fix unattached attributes in doctests and do
+not use `doc(cfg(...))` as an execution guard; follow
+[doctest compatibility guidance](doctests-and-examples.md#rust-199-compatibility).
 
 ## Integration Tests
 

@@ -5,7 +5,7 @@
 - [ ] The evidence tier matched the request size: brief command advice, focused patch, cross-surface audit, or tool-adoption strategy.
 - [ ] Relevant manifests, dev-dependencies, feature flags, feature matrices, bench targets, fuzz manifests, runner files, and CI were inspected.
 - [ ] Cargo test semantics were considered: package selection, target selection, features, doctests, examples, test filters, libtest arguments, build parallelism, runtime test threads, warning policy, and selected lockfile.
-- [ ] MSRV policy, package `rust-version`, `rust-toolchain.toml`, `.cargo/config.toml`, Cargo 1.98 `build.warnings` or `resolver.lockfile-path`, target triples, platform-specific `cfg`s, `no_std`/WASM/embedded support, Rust 1.98-sensitive compiler, doctest, formatting, or target behavior, and feature-combination expectations were inspected when affected.
+- [ ] MSRV policy, package `rust-version`, `rust-toolchain.toml`, `.cargo/config.toml`, Cargo 1.99 inherited `default-features`, profiles, CI incremental defaults, `build.warnings` or `resolver.lockfile-path`, target triples, platform-specific `cfg`s, `no_std`/WASM/embedded support, Rust 1.99-sensitive compiler, doctest, formatting, or target behavior, and feature-combination expectations were inspected when affected.
 - [ ] Existing test, fixture, snapshot, benchmark, fuzz, doctest, async/concurrency, unsafe-code, and e2e layouts were preserved.
 - [ ] New test, fuzzing, benchmark, snapshot, async-runtime, fake-time, Miri, sanitizer, loom, coverage, mutation-testing, cargo-hack, or command-runner dependencies were added only when evidenced, requested, or clearly labeled as recommendations.
 - [ ] Public docs, README examples, CLI behavior, generated output, diagnostics, protocols, schemas, target/platform guarantees, performance claims, or compatibility files affected by the tests were inspected.
@@ -23,14 +23,19 @@
 - [ ] Integration tests cover public APIs, facade behavior, and cross-module seams.
 - [ ] End-to-end tests cover the smallest public workflow that proves behavior across real boundaries.
 - [ ] Doctests cover public documentation examples and API samples, not private implementation details, and use rustdoc mechanics such as hidden setup lines, `no_run`, and `compile_fail` intentionally.
+- [ ] Rust 1.99 doctests contain no unattached attributes, and actual feature/target gates are validated rather than using `doc(cfg(...))` as an execution guard; documentation lint changes are checked separately when relevant.
 - [ ] Snapshots are used only when reviewable diffs are clearer than ordinary assertions.
 - [ ] Compile-fail/UI tests cover proc macros, diagnostics, type-level contracts, or compile-time failures when relevant, and `.stderr`/UI expectations were generated through the repository workflow and reviewed.
+- [ ] Newly stable syntax is not incorrectly retained as a compile-fail contract, and Rust 1.99 exported-macro diagnostics are exercised through a separate-crate integration boundary when affected.
 - [ ] Property tests cover invariants, round trips, or generated-input behavior when the repository already uses or requests that style.
 - [ ] Fuzz tests cover untrusted-input, parser, deserializer, protocol, or unsafe-code surfaces when fuzzing is configured or requested.
 - [ ] Async/concurrency tests cover cancellation, shutdown, timeouts, channels, streams, task joins, or synchronization contracts without relying on arbitrary sleeps.
 - [ ] Unsafe-code tests pair public functional behavior with invariant-focused regressions, and Miri/sanitizer/loom/fuzz validation is used only when configured, requested, or clearly recommended.
 - [ ] Feature, `cfg`, target, MSRV, `no_std`, WASM, embedded, or platform-specific support is validated when it is part of the contract, with mutually exclusive features handled explicitly.
-- [ ] Rust 1.98 range-recovery tests prove provenance rather than value search and handle empty views or zero-sized elements intentionally.
+- [ ] Cargo 1.99 inherited default-feature overrides are tested in affected edition-2024 members and relevant workspace combinations without mistaking one disabled dependency edge for globally disabled features.
+- [ ] Rust 1.99 range-recovery tests prove provenance rather than value search and handle empty views or zero-sized elements intentionally.
+- [ ] Owned lossy UTF-8 decoding covers valid, empty, invalid, and truncated input without changing strict rejection or promising allocation reuse; `retain_back(n)` covers order and length boundaries when affected.
+- [ ] Boxed-array iteration, ownership round trips, raw layout queries, C-variadic boundaries, and filesystem timestamp/symlink behavior are tested only when exposed by the change, with ownership, safety, ABI, and platform limits explicit.
 - [ ] `strip_circumfix`, endian-specific UTF-16, non-zero radix parsing, reusable integer formatting, atomic views, and algebraic floating-point behavior have their documented edge cases when affected.
 - [ ] Algebraic floating-point tests use tolerances or invariants rather than exact bits, deterministic order, or snapshots.
 - [ ] Criterion or benchmark tests cover performance-sensitive behavior without pretending to prove functional correctness.
@@ -38,14 +43,15 @@
 - [ ] Fixtures are small, named by behavior, and not coupled across unrelated tests.
 - [ ] Golden/generated outputs are produced from the source of truth, not hand-edited without reason.
 - [ ] Generated Rust or proc-macro output is tested through public behavior first; snapshots of generated shape are used only when stable, normalized, and review-relevant.
-- [ ] Structural assertions are preferred for typed errors, variants, spans, exit codes, and machine-readable fields; on the Rust 1.98 baseline, `assert_matches!` is used for a single-pattern assertion when it improves failure output; exact text is asserted only when wording is part of the public contract.
+- [ ] Structural assertions are preferred for typed errors, variants, spans, exit codes, and machine-readable fields; on the Rust 1.99 baseline, `assert_matches!` is used for a single-pattern assertion when it improves failure output; exact text is asserted only when wording is part of the public contract.
 - [ ] Mock-object tests and interaction-verification expectations were refused; boundary behavior is asserted through observable state, outputs, artifacts, or public protocol effects using real seams or justified deterministic stubs/fakes.
 - [ ] Existing mocks touched by the change were replaced where scope permitted, no new mock expectations or mocking frameworks were added, and unrelated mocks were left alone.
 - [ ] The test skill did not drift into broad Rust implementation guidance covered by `rust-best-practices` unless that code pattern was itself the tested contract.
 
 ## Determinism and hygiene
 
-- [ ] Incidental paths, timestamps, random IDs, map order, environment-specific data, hostnames, process IDs, platform-specific separators, scheduling artifacts, runtime timing, Rust 1.98 character escaping, v0 symbols, rustfmt module discovery, and path-remapping differences are normalized or intentionally reviewed without hiding contractual ordering, values, or diagnostics.
+- [ ] Incidental paths, timestamps, random IDs, map order, environment-specific data, hostnames, process IDs, platform-specific separators, scheduling artifacts, runtime timing, version-specific character escaping, v0 symbols, rustfmt module discovery, and path-remapping differences are normalized or intentionally reviewed without hiding contractual ordering, values, or diagnostics.
+- [ ] Rust 1.99 U+FF9E/U+FF9F escaping changes are reviewed when relevant; exhausted `RangeInclusive` endpoints are not asserted as stable output, and non-unwinding `transmute_copy` size-check failures are not treated as recoverable in-process panics.
 - [ ] Per-test temporary resources and child-specific environment/working directories avoid process-global mutation; tasks and child processes are joined or waited on and cleaned up.
 - [ ] Snapshots, golden files, corpora, benchmark fixtures, generated outputs, and minimized regressions avoid credentials, tokens, private URLs, personal data, secrets, and machine-local paths.
 - [ ] Property strategies and fuzz targets are bounded, reproducible when failing, and free from uncontrolled network/time/environment dependencies.
@@ -60,7 +66,8 @@
 - [ ] The narrowest proving command was run when possible, actual test counts and ignored cases were checked, and the handoff does not overclaim surfaces that command did not exercise.
 - [ ] Workspace package graph, dependent crate impact, feature combinations, MSRV, Cargo warning policy, selected lockfile, and target/platform commands were considered when relevant.
 - [ ] When nextest is used, doctests were validated separately when affected.
-- [ ] Rust 1.98-specific library, compiler, Cargo/rustdoc, formatting, and target behavior was validated only with commands that exercise the affected surface.
+- [ ] Rust 1.99-specific library, compiler, Cargo/rustdoc, formatting, and target behavior was validated only with commands that exercise the affected surface, using `patterns/rust-1-99-testing-baseline.md` for release-specific guidance.
+- [ ] Earlier stabilization dates and lower-MSRV contracts were preserved instead of mechanically relabeling every available API as new in Rust 1.99.
 - [ ] When `trybuild` is used, missing `wip/` outputs, `TRYBUILD=overwrite`, and changed `.stderr` files were handled intentionally.
 - [ ] Snapshot, golden, diagnostic, corpus, generated-output, or benchmark diffs/results were reviewed or explicitly marked not reviewed.
 - [ ] The handoff distinguishes `Validated with`, `Attempted validation with`, `Reviewed only`, and `Not validated`.

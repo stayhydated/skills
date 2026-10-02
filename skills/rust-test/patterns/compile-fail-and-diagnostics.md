@@ -45,20 +45,37 @@ When the repository uses `trybuild`:
 - Keep fixtures independent of rustc wording that is likely to churn unless the wording itself is the public diagnostic contract.
 - Do not add compile-fail fixtures merely to call every public API incorrectly; protect meaningful diagnostics and type-level contracts.
 
-## Rust 1.98-sensitive compiler contracts
+## Rust 1.99-sensitive compiler contracts
 
-Use Rust 1.98-specific compile-fail guidance only for compiler-facing contracts.
-Relevant fixtures can include:
+Use Rust 1.99-specific compile-fail guidance only for compiler-facing contracts.
+Review the [release notes](https://doc.rust-lang.org/releases.html#version-1990-2026-10-01)
+and [baseline pattern](rust-1-99-testing-baseline.md) for the relevant delta:
 
-- trait-object lifetime elision that now resolves differently;
-- ambiguous imports or glob imports that are now rejected;
-- invalid equality-like where-bound syntax;
-- runtime-symbol definitions or `c_void` returns covered by new lints;
-- stricter `repr(transparent)`, `transmute`, structural-equality, or attribute
-  validation;
-- auto-trait expectations involving `std::env::Vars`/`VarsOs` or
-  `std::process::CommandArgs`;
-- target-specific Emscripten, Solaris, atomic-alignment, or platform contracts.
+- `no_mangle_generic_items` is now a hard error, and runtime-symbol lints cover
+  additional POSIX symbols;
+- `raw_borrows_via_references` is allow-by-default, `unconditional_panic` checks
+  zero-sized chunks/windows calls, and `unreachable_cfg_select_predicates` is
+  part of `unused`;
+- exported macros with trailing semicolons in expression position warn in
+  consumers through `semicolon_in_expressions_from_non_local_macros`; include
+  separate-crate integration coverage rather than testing only in the provider;
+- outlined modules in custom attribute or derive macros and C-variadic
+  definitions are stable, so a fixture that failed only because of its old
+  feature gate may now need to be a compile-pass case;
+- unused `#[path]` on inline modules, invalid doc attributes on macro invocations,
+  inferred `let` pattern types, never-type method resolution, and associated
+  constant lifetimes can change diagnostics or acceptance;
+- unattached doctest attributes are errors, and `doc(cfg(...))` no longer filters
+  doctests; do not accept an unrelated attribute error as proof of the intended
+  invalid usage;
+- legacy integral module deprecations and changed U+FF9E/U+FF9F escaping can affect
+  warnings and rendered expectations.
+
+Keep relevant earlier compatibility cases, without relabeling them as new 1.99
+changes: Rust 1.98 trait-object lifetime elision, ambiguous imports, invalid
+where-bound syntax, repr/transmute and structural-equality checks, auto-traits
+for environment/process iterators, and target-specific contracts still matter
+when exposed by the repository.
 
 Update expectations only when the changed acceptance or diagnostic is relevant to
 the repository's public or type-level contract. If a lower MSRV is explicitly

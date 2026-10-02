@@ -20,7 +20,8 @@ Use fixtures and golden files when the input/output relationship is clearer as f
 - Add or update focused tests for the generator behavior that caused the output change.
 - For generated Rust or proc-macro output, test the public behavior first. Snapshot expanded or generated code only when the generated shape is itself review-relevant, stable, and normalized.
 - Do not snapshot compiler-expanded output that includes unstable formatting, incidental hygiene, nondeterministic spans, or machine-local paths unless the repository already normalizes and reviews that output.
-- On Rust 1.98, account for v0 symbol mangling, expanded character escaping, `assert_eq!`/`assert_ne!` temporary scopes, compiler lint changes, rustfmt discovery through `cfg_select!`, and rustdoc path remapping before accepting backtrace, symbol, stderr, source-format, or documentation goldens.
+- On the Rust 1.99 baseline, continue accounting for earlier v0 symbol mangling, expanded character escaping, `assert_eq!`/`assert_ne!` temporary scopes, compiler lint changes, rustfmt discovery through `cfg_select!`, and rustdoc path remapping before accepting backtrace, symbol, stderr, source-format, or documentation goldens.
+- Rust 1.99 no longer debug-escapes U+FF9E and U+FF9F and adds compiler/rustdoc diagnostics. Review affected text explicitly rather than accepting broad snapshot churn. Exhausted `RangeInclusive` endpoints are not a stable golden contract; assert yielded values instead. See the [baseline compatibility notes](rust-1-99-testing-baseline.md#compiler-and-expectation-file-compatibility).
 
 ## Assertion style
 
@@ -28,7 +29,7 @@ Prefer the clearest assertion for the contract:
 
 - exact equality for small deterministic values;
 - structural assertions for typed data where only selected fields matter;
-- `assert_matches!` on the Rust 1.98 baseline for single-pattern variants or typed errors where mismatch debug output matters;
+- `assert_matches!` on the Rust 1.99 baseline for single-pattern variants or typed errors where mismatch debug output matters;
 - structural error assertions for multi-field typed errors, error kinds, spans, exit codes, and machine-readable fields;
 - snapshots for large or nested deterministic output;
 - property tests when invariants matter across many generated cases and the repository already uses or requests that style;

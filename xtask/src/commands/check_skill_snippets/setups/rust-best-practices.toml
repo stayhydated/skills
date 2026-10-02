@@ -1,5 +1,5 @@
 # Dependencies used by rust-best-practices Markdown examples.
-rust-version = "1.98"
+rust-version = "1.99"
 
 [dependencies]
 anyhow = "1"
