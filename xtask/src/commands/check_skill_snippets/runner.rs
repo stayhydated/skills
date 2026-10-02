@@ -372,7 +372,7 @@ mod tests {
             Path::new("example"),
             output.path(),
             &Setup {
-                rust_version: "1.98".to_owned(),
+                rust_version: "1.99".to_owned(),
                 cargo: String::new(),
             },
             "",
