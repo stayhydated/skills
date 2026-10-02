@@ -86,6 +86,7 @@ pub(super) fn scan_tracked_rust_versions(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::assert_matches;
 
     #[test]
     fn compares_minor_versions() {
@@ -99,8 +100,9 @@ mod tests {
     #[test]
     fn rejects_malformed_minor_versions() {
         for version in ["1", "stable.97", "1.97.beta", "1.97.0.1", "1..97"] {
-            assert!(
-                version.parse::<RustMinorVersion>().is_err(),
+            assert_matches!(
+                version.parse::<RustMinorVersion>(),
+                Err(_),
                 "{version} should be rejected"
             );
         }

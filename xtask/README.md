@@ -6,6 +6,9 @@
 skill documentation aligned. It checks tracked Rust versions against the stable
 channel and validates executable Rust snippets embedded in skill Markdown.
 
+The maintenance workspace requires Rust 1.99 or later. The repository toolchain
+and CI use Rust 1.99.0 so its checks run on the same baseline as the Rust skills.
+
 ## Commands
 
 | Command | Purpose |
