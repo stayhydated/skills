@@ -1,10 +1,11 @@
 # Cargo, example, and badge reference mechanics
 
-These references explain Cargo metadata, publication, Rust example conventions,
-and badge URL mechanics. They are not README layout examples or an alternative
-authoring policy. Follow `SKILL.md` and the bundled layouts for structure,
-exclusions, and the fixed CI, Codecov, Book, crates.io badge order. Recheck
-technical details before relying on behavior that may have changed.
+These references explain Cargo metadata, requirements, features, publication,
+Rust example conventions, and badge URL mechanics. They are not README layout
+examples or an alternative authoring policy. Follow `SKILL.md` and the bundled
+layouts for structure, exclusions, core badge order, and selection of relevant
+additional badges. Recheck technical details before relying on behavior that
+may have changed.
 
 ## Authoritative mechanics
 
@@ -15,10 +16,19 @@ technical details before relying on behavior that may have changed.
 - [Cargo manifest: README](https://doc.rust-lang.org/cargo/reference/manifest.html#the-readme-field)
   explains registry rendering, explicit README paths, default discovery, and
   `readme = false`.
+- [Cargo Rust version](https://doc.rust-lang.org/cargo/reference/rust-version.html)
+  explains the supported minimum declared by `rust-version` and differing
+  support policies within a workspace. Resolve inherited values and scope the
+  README statement to the relevant packages; a selected development or CI
+  toolchain alone does not establish that minimum.
 - [Cargo workspaces](https://doc.rust-lang.org/cargo/reference/workspaces.html)
   distinguishes root packages from virtual manifests and documents membership
   and metadata inheritance. An inherited README path is relative to the
   workspace root; an ordinary package README path is package-relative.
+- [Cargo features](https://doc.rust-lang.org/cargo/reference/features.html)
+  explains declared and default features, implicit optional-dependency features,
+  `dep:` suppression, and dependency-feature forwarding. Use the package's actual
+  feature graph to document its complete inventory, defaults, and bundle members.
 - [Cargo manifest: publication](https://doc.rust-lang.org/cargo/reference/manifest.html#the-publish-field)
   describes publication permissions, which do not prove that a package has
   actually been published. Verify the real crates.io page separately.

@@ -3,10 +3,12 @@ name: rust-readme
 description: >
   Create, revise, or audit concise Rust READMEs with idiomatic usage examples for
   single-package repositories, workspace roots, and member crates. Use for README
-  structure, concise project overviews, crate navigation, publication-aware links,
-  and verified scope-appropriate badges ordered CI, Codecov, Book, crates.io.
-  Omit license content, installation instructions, contribution sections or
-  links, and mdBook chapter links or duplicated book navigation.
+  structure, crate selection, requirements and compatibility, contextual usage
+  examples, complete Cargo feature tables, publication-aware links, and verified
+  scope-appropriate badges, including relevant project-specific badges.
+  Omit license sections and prose, installation instructions,
+  contribution sections or links, and mdBook chapter links or duplicated book
+  navigation.
 ---
 
 # Rust README
@@ -29,7 +31,35 @@ user-guide chapters, `mdbook-internals` for maintainer architecture, `rust-test`
 for example validation, and `rust-best-practices` for implementation or API
 style. Those are separate tasks, not permission to expand a README edit.
 
-## Idiomatic Rust requirement
+## Usage examples
+
+Choose a short, maintained example that demonstrates the package's purpose.
+Identify the required file, package, features, runtime state, or inputs and show
+the expected result or effect. Keep this context close to the example.
+
+Prefer a complete example. When a full host application would overwhelm the
+README, label the code as an excerpt, name the values or initialization supplied
+by its host, and link to the maintained complete example. Verify that the
+excerpt agrees with that source and use its existing harness for validation.
+If no complete source can be verified, use a self-contained example or omit it.
+
+Match the example to the package:
+
+- **Library API:** show the relevant call and its result; identify the context
+  supplying any application-owned state.
+- **CLI:** identify the working directory, required inputs, output, and file or
+  state changes. A compact command table may explain the main operations.
+- **Configuration:** name the file, its location, and the loader or tool that
+  consumes it; show a minimal valid configuration and its effect.
+- **Protocol:** identify the tool, operation, or endpoint, distinguish a payload
+  from a complete message, and explain the expected response or effect.
+
+Use the appropriate fenced language for Rust, shell, TOML, JSON, or other actual
+formats. Keep examples focused on usage; the existing installation exclusions
+still apply. See the [example forms](references/badges-and-layouts.md#example-forms)
+for layout guidance.
+
+### Idiomatic Rust requirement
 
 Every Rust usage example authored, retained, or recommended must demonstrate
 idiomatic use of the package's actual public API for its edition, MSRV, and
@@ -43,9 +73,10 @@ rather than treating compilation as proof of idiomaticity.
   Use `expect` only for an explained invariant, not to hide normal input or I/O
   failures. Hidden rustdoc setup is appropriate only when the actual README
   rendering and test workflow supports it.
-- Keep examples small and runnable or explicitly compile-only through the
-  existing harness. Do not add dependencies, raise the MSRV, or refactor
-  production APIs solely to make README code look more idiomatic.
+- Validate Rust examples as runnable or explicitly compile-only through the
+  existing harness, including the surrounding code for a labeled excerpt.
+  Do not add dependencies, raise the MSRV, or refactor production APIs solely to
+  make README code look more idiomatic.
 
 Use `rust-best-practices` for example-level implementation guidance and
 `rust-test` for validation without expanding the README write boundary. Report
@@ -59,15 +90,20 @@ Inspect the smallest relevant set before writing:
    templates, and the working diff. Edit the source of a generated README and
    follow its existing regeneration workflow only in Edit mode.
 2. Root and relevant member `Cargo.toml` files: package names, targets,
-   descriptions, workspace membership, inherited metadata, `readme`,
-   `repository`, `documentation`, and `publish`. Resolve member globs, exclusions,
-   and local path members; do not equate the directory name with the crate name.
+   descriptions, workspace membership, inherited metadata, `rust-version`, `readme`,
+   `repository`, `documentation`, `publish`, `[features]`, and optional dependency
+   declarations and framework version requirements. Resolve member globs,
+   exclusions, inherited dependencies, and local path members; do not equate the
+   directory name with the crate name. Inspect required patches and platform
+   constraints when they affect consumers.
 3. The actual CI workflow and branch, Codecov upload/report configuration,
-   `book.toml` and book deployment, and relevant published crates.io pages.
-   Verify destinations and ownership rather than constructing plausible URLs.
+   `book.toml` and book deployment, relevant published crates.io pages, and any
+   additional badge services or metadata sources. Verify destinations and
+   ownership rather than constructing plausible URLs.
 4. Public API docs, CLI help, tests, or maintained examples that substantiate
-   the description and any example. Read existing user-support routes before
-   linking them.
+   the description, feature behavior, re-exports and recommended dependency
+   routes, compatibility claims, and example inputs and results. Read existing
+   user-support routes before linking them.
 
 Treat Cargo packages as the publication unit even when casually called crates.
 A package may contain both library and binary targets. Count workspace members,
@@ -80,22 +116,29 @@ See [Cargo, example, and badge mechanics](references/technical-references.md) fo
 Use those references to verify mechanics, not to infer README structure or
 import another project's authoring conventions.
 
-## Fixed badge policy
+## Badge policy
 
-The badge order and exclusions are this skill's editorial policy, not universal
-Rust conventions.
+The core badge order is this skill's editorial policy.
 
 Put one compact badge paragraph immediately below the H1, before the opening
 prose. Keep badges on consecutive Markdown source lines with no blank lines
 between them. Use linked images with meaningful alt text and reference-style
 links; keep the reference definitions together at the end of the file.
 
-The only allowed badge categories, in this exact order, are **CI → Codecov → Book → crates.io**.
+Keep applicable core badges in this relative order: **CI → Codecov → Book → crates.io**.
 
-Select the applicable, verified entries in that order. Omit missing categories
-without placeholders, empty badges, explanatory absence prose, or reordering
-what remains. Never add a backend solely to complete the row. With no verified
-backends, start the description after the title without a badge paragraph.
+Include or retain other relevant, verified badges when they communicate useful
+project status, metadata, or navigation, such as Crowdin translation status for
+an existing localization project. Verify each badge's image, destination,
+ownership, label, and scope. Use relevance and evidence to select badges; place
+additional badges where they make sense, usually after the core group. Preserve
+useful established ordering for those additional badges.
+
+Select the applicable, verified core entries in that order. Omit missing
+categories without placeholders, empty badges, explanatory absence prose, or
+reordering what remains. Never add a backend solely to complete the row. With no
+applicable verified badges, start the description after the title without a
+badge paragraph.
 
 | Category | Evidence required | Link target and scope |
 | --- | --- | --- |
@@ -111,10 +154,8 @@ unreachable; disclose live-verification limits in the handoff. Do not invent new
 badges when evidence is missing. Do not expose secrets or reuse another
 repository's badge tokens; use public URLs or an explicitly public badge token.
 
-Do not add badges for licenses, docs.rs, MSRV, downloads, dependencies, security
-scores, chat, sponsorship, stars, or anything outside the four categories.
-Ordinary, verified API-reference or user-support links are not badges, but add
-them only when they provide a distinct useful route.
+Keep every badge accurate and useful to the README's audience. Ordinary, verified
+API-reference or user-support links may also provide a distinct useful route.
 
 ### Workspace badge selection
 
@@ -158,18 +199,25 @@ Use the following order, omitting optional sections that add no information.
 Do not create empty headings to satisfy a template.
 
 1. **Project or package name** as the single H1.
-2. **Verified badge paragraph** in the fixed order above.
+2. **Verified badge paragraph** with the core order and relevant additional badges above.
 3. **Opening description:** one short paragraph naming the problem, intended
    reader, and concrete value. Prefer supported capabilities to marketing.
-4. **Overview** only when a few differentiating capabilities or action-changing
+4. **Requirements paragraph** with the evidenced minimum Rust version and
+   adoption-relevant compatibility constraints for this README's scope.
+5. **Overview** only when a few differentiating capabilities or action-changing
    constraints add information beyond the opening paragraph.
-5. **Crates** for a multi-package workspace whose members need explanation:
-   a compact map of package name, purpose, and the owning README/source route.
-6. **Example** only when one short, maintained API or CLI example communicates
-   the project's value. It must not become an installation walkthrough.
-7. **Support** only for an existing, distinct user-support destination. Do not
+6. **Crates** for a multi-package workspace whose members need explanation:
+   a two-column `Crate` / `Purpose` table with each crate name linked to its
+   owning README or source directory.
+7. **Features** for a package with Cargo features: a complete table of feature
+   names, default activation, and purpose in the README that owns that package.
+8. **Example** when a short API, CLI, configuration, or protocol example
+   communicates the project's value with its context and expected result.
+   Use `Commands` or `Configuration` when that heading better describes the
+   content. Keep it separate from installation instructions.
+9. **Support** only for an existing, distinct user-support destination. Do not
    use it to reintroduce contribution guidance or contributor setup.
-8. **Link definitions** for reference-style links, with no visible heading.
+10. **Link definitions** for reference-style links, with no visible heading.
 
 ### Single-package repository
 
@@ -181,10 +229,16 @@ when available and its relevant book badge when deployed.
 ### Workspace root
 
 Explain the shared project and help readers choose a public entry point. Use a
-small `Crates` table when useful; sort rows by exact package name, matching the
-registry badge group. Link to existing member READMEs, otherwise their source
-directories. Include an internal tool only when it helps readers navigate the
-repository. Avoid exhaustive dependency graphs and inventories of test crates.
+small `Crates` table with `Crate` and `Purpose` columns when useful; sort rows by
+exact package name, matching the registry badge group. Make each code-formatted
+crate name a reference-style link to its existing member README, otherwise its
+source directory. The crate name carries the navigation link; omit a separate
+`Source` or `README` column that repeats the same route. Include an internal tool
+only when it helps readers navigate the repository. Avoid exhaustive dependency
+graphs and inventories of test crates.
+Use the purpose cells to distinguish application entry points, optional
+integrations, and lower-level building blocks. When the project has a recommended
+starting crate, name it and link it near the table using repository evidence.
 The root owns repository-wide CI and Codecov status so that member READMEs do
 not repeat identical badges. It also owns the canonical Book badge for the
 workspace-wide user guide that documents the public members.
@@ -198,8 +252,14 @@ published member.
 
 Make the member README independently understandable on its crates.io page:
 package purpose first, then its role in the project and a canonical repository
-route when useful. Scope examples, capabilities, API links, and version badges
-to that package. Do not repeat workspace-wide CI or Codecov badges, the
+route when useful. For facade, runtime, derive, and integration packages, explain
+in the opening paragraph who should depend on the package directly. When normal
+application usage goes through a facade, link that facade and name any required
+feature; identify the use case for a direct dependency when one exists. Verify
+the re-exports and intended dependency route from source.
+
+Scope examples, capabilities, API links, and version badges to that package.
+Do not repeat workspace-wide CI or Codecov badges, the
 workspace map, or the full project overview. Include CI or Codecov only when its
 linked result is specific to the member rather than a shared workspace run or
 report. A verified Codecov component whose filters isolate the member is the
@@ -216,12 +276,76 @@ than changing manifests outside the authorized scope. Check image and link
 resolution both on the repository host and in the published package context;
 use verified absolute URLs where relative paths would not resolve correctly.
 
+## Requirements and compatibility
+
+Place one concise requirements paragraph after the opening description. Derive
+the minimum Rust version from the package's `rust-version`, resolving workspace
+inheritance, and use `Requires Rust X.Y or newer.` with the declared version.
+Scope member statements to that package. At a workspace root, identify the
+covered packages and qualify differing requirements instead of assigning every
+member one package's minimum.
+
+A pinned development or CI toolchain is separate from the supported minimum.
+Include it only when it changes a consumer action, and label that role explicitly.
+If the manifest provides no minimum, omit the Rust requirement claim and report
+any requested verification gap in the handoff. Report conflicts between the
+manifest, tests, and documented support policy instead of choosing a new minimum.
+
+Include supported framework versions, platform restrictions, feature conditions,
+or required upstream patches when they affect adoption. Verify them against the
+relevant dependency declarations, implementation, and maintained support docs;
+link the owning API or source reference when more detail is needed. Describe
+the current supported configuration without accumulating historical version
+matrices. Mention the Rust edition only when it changes how consumers use the
+package. See [Cargo mechanics](references/technical-references.md) for the
+distinction between declared support and a selected toolchain.
+
+## Cargo feature documentation
+
+For each single-package or workspace-member README, add a `Features` section
+when the package exposes Cargo features. List every feature in a compact
+`Feature` / `Default` / `Purpose` table, using exact Cargo names. Include the
+declared `default` feature, individual integrations, aggregate features such as
+`full`, and internal or experimental flags. Label restricted audiences or
+stability expectations from repository evidence. An overview of selected
+features or a bundle name alone is insufficient.
+
+Build the inventory from the package's `[features]` table and any implicit
+features exposed by optional dependencies. Honor `dep:` suppression of implicit
+features; dependency activations and forwarded dependency features belong in
+the owning feature's explanation, not as invented package feature names. Verify
+each purpose against feature-gated code or maintained documentation. Explain
+which features each aggregate enables, using its actual membership rather than
+assuming `full` means every feature.
+
+State the default feature set and mark each row according to activation through
+the package's default feature graph, including indirect activation. When no
+features are enabled by default, say so in the section. Keep descriptions short
+and include prerequisites, platform limits, or conflicts when evidenced. This
+table is the crate's feature reference; setup commands and dependency snippets
+remain outside the README layout.
+
+A virtual workspace root routes readers to member READMEs through the crate
+table. Keep each member's feature inventory in its owning README. If the root
+README also serves a root package, include that package's complete feature table
+and identify its scope. Omit the section for a package with no exposed features.
+
 ## Keep documentation single-sourced
 
-- Omit all README license sections, license badges, license-file links, SPDX
-  summaries, and contribution-license boilerplate. Leave `LICENSE*`, notices,
-  and Cargo license metadata unchanged; this is a README policy, not a request
-  to change the project's license.
+- Keep the opening and overview focused on package choice and first correct use.
+  Summarize material constraints briefly and link their maintained API reference
+  for detailed semantics. Avoid accumulating edge-case algorithms, protocol
+  internals, or release-note details in the README.
+- Give shared behavior one documentation owner, such as an API reference or
+  canonical crate README. Member READMEs retain integration-specific guidance
+  and link that owner instead of repeating a shared policy. Preserve each
+  package's complete Cargo feature table and adoption-relevant constraints.
+  Report missing reference material as follow-up work when creating it would
+  exceed the requested documentation scope.
+- Omit README license sections and prose, including standalone license-file
+  links, SPDX summaries, and contribution-license boilerplate. Leave `LICENSE*`,
+  notices, and Cargo license metadata unchanged; this is a README policy, not a
+  request to change the project's license.
 - Omit README contribution sections, contribution-guide links, contributor
   setup, and contribution invitations, including under alternate headings such
   as `Support`. Leave `CONTRIBUTING.md` and other contributor guides unchanged;
@@ -243,21 +367,27 @@ use verified absolute URLs where relative paths would not resolve correctly.
   real command names; mention necessary feature context briefly without adding
   dependency instructions. Prefer an existing tested example and omit it if
   making it meaningful would require reproducing a tutorial.
-- Avoid manual release versions, exhaustive feature matrices, benchmark dumps,
-  contributor commands, and repeated manifest metadata. Retain concise, verified
-  constraints when they materially change a reader's choice or safe use.
+- Avoid manual release versions, benchmark dumps, contributor commands, and
+  manifest dumps. Retain the complete Cargo feature table. Keep other constraints
+  concise and verified when they materially change a reader's choice or safe use.
 
 ## Workflow and validation
 
 1. Select Edit or Review and identify the affected README audience(s).
-2. Build an evidence map of package roles, publication, doc ownership, and each
-   badge's image URL, target URL, label, and status scope.
-3. Apply the layout and fixed badge order. Use
+2. Build an evidence map of package roles and dependency routes, publication,
+   requirements and compatibility, doc ownership, Cargo features and defaults,
+   example context and results, and each badge's image URL, target URL, label,
+   and status scope.
+3. Apply the layout, core badge order, and relevant additional badges. Use
    [badge markup, layouts, and acceptance cases](references/badges-and-layouts.md).
 4. Remove duplication and stale references only within scope. For generated
    READMEs, update the owning source rather than editing generated output alone.
 5. Check Markdown rendering, heading order, resolved links/images, badge labels
    and destinations, and the complete absence of disallowed README content.
+   Compare each feature table with the package's complete Cargo feature inventory;
+   check default activation, aggregate membership, and descriptions against source.
+   Verify facade routes, requirements, and compatibility claims. Check example
+   context, expected results, complete-source links, and shared-behavior links.
    Review each retained Rust example against the idiomatic-Rust requirement and
    the actual public API, edition, MSRV, and features.
 6. Use existing repository lint/link/example checks. An arbitrary README Rust
