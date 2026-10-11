@@ -9,6 +9,7 @@ permissions:
   contents: read
 
 env:
+  RUSTUP_TOOLCHAIN: stable
   CARGO_TERM_COLOR: always
   SCCACHE_GHA_ENABLED: true
   RUSTC_WRAPPER: sccache
@@ -36,9 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: dtolnay/rust-toolchain@fb523f40495206854c36b250850817ae0f83e3d1 # 1.99.0
-        with:
-          toolchain: 1.99.0
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: Lint and run skill Rust snippets
         run: cargo run -p xtask --locked -- check-skill-snippets --deny-ignored
@@ -60,9 +59,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: dtolnay/rust-toolchain@fb523f40495206854c36b250850817ae0f83e3d1 # 1.99.0
-        with:
-          toolchain: 1.99.0
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
@@ -82,9 +79,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: dtolnay/rust-toolchain@fb523f40495206854c36b250850817ae0f83e3d1 # 1.99.0
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: "1.99.0"
           components: rustfmt
       - name: Check formatting
         run: cargo fmt --all -- --check
@@ -97,9 +93,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: dtolnay/rust-toolchain@fb523f40495206854c36b250850817ae0f83e3d1 # 1.99.0
-        with:
-          toolchain: "1.99.0"
+      - uses: dtolnay/rust-toolchain@stable
       - name: Install Taplo and ShellCheck
         uses: taiki-e/install-action@ab6895351a88b908e96a4697860d4ffea5e57dbe # v2.87.27
         with:
@@ -144,7 +138,7 @@ jobs:
       - name: Check dependency advisories and sources
         uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2.1.1, cargo-deny 0.20.2
         with:
-          rust-version: "1.99.0"
+          rust-version: stable
           arguments: "--workspace --all-features --locked"
           command: check
           command-arguments: "advisories sources"
@@ -155,9 +149,8 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: dtolnay/rust-toolchain@fb523f40495206854c36b250850817ae0f83e3d1 # 1.99.0
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.99.0
           components: clippy
 
       - name: Setup sccache
@@ -198,9 +191,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: dtolnay/rust-toolchain@fb523f40495206854c36b250850817ae0f83e3d1 # 1.99.0
-        with:
-          toolchain: 1.99.0
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
