@@ -41,7 +41,7 @@ jobs:
           toolchain: 1.99.0
 
       - name: Lint and run skill Rust snippets
-        run: cargo xtask check-skill-snippets --deny-ignored
+        run: cargo run -p xtask --locked -- check-skill-snippets --deny-ignored
 
   test:
     name: test (${{ matrix.os }})
@@ -90,6 +90,8 @@ jobs:
           components: rustfmt
 
       - uses: cargo-bins/cargo-binstall@3be4ad2b146f3302f92e5956c54fedbb6ae8cccc # main
+        with:
+          version: "1.25.1"
 
       - name: Install pinned quality tools
         run: .github/scripts/install-quality-tools.sh
@@ -109,6 +111,8 @@ jobs:
           toolchain: 1.99.0
 
       - uses: cargo-bins/cargo-binstall@3be4ad2b146f3302f92e5956c54fedbb6ae8cccc # main
+        with:
+          version: "1.25.1"
 
       - name: Install pinned cargo-deny
         run: cargo binstall cargo-deny --version 0.20.2 --locked --no-confirm
@@ -171,6 +175,8 @@ jobs:
         uses: rui314/setup-mold@10ca16bf91dc22e05ebdc935cad9c75ea248f621 # v1
 
       - uses: cargo-bins/cargo-binstall@3be4ad2b146f3302f92e5956c54fedbb6ae8cccc # main
+        with:
+          version: "1.25.1"
 
       - name: Install cargo-llvm-cov
         shell: bash
