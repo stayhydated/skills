@@ -9,6 +9,9 @@ fmt:
     taplo fmt
     rumdl fmt .
 
+fmt-check:
+    .github/scripts/check-quality.sh
+
 clippy:
     cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 

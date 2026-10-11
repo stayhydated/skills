@@ -1,0 +1,9 @@
+# CI runs only advisories and sources. License acceptance needs a maintainer
+# policy; this configuration does not invent one from the current dependencies.
+[advisories]
+ignore = [  ]
+
+[sources]
+allow-git = [  ]
+unknown-git = "deny"
+unknown-registry = "deny"
