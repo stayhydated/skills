@@ -153,8 +153,15 @@ jobs:
         with:
           version: "v0.16.0"
 
+      - uses: cargo-bins/cargo-binstall@3be4ad2b146f3302f92e5956c54fedbb6ae8cccc # main
+        with:
+          version: "1.25.1"
+
+      - name: Install pinned cargo-machete
+        run: cargo binstall cargo-machete --version 0.9.2 --locked --no-confirm
+
       - name: Machete
-        uses: bnjbvr/cargo-machete@135555c9cd9f3b4723dee2766f0cacb99aac092b # main
+        run: cargo machete
 
   rust-coverage:
     runs-on: ubuntu-latest
