@@ -9,6 +9,16 @@ fmt:
     taplo fmt
     rumdl fmt .
 
+fmt-check:
+    cargo fmt --all -- --check
+    cargo sort-derives --check
+    taplo fmt --check
+    rumdl check .
+    typos
+    actionlint
+    git ls-files -z '*.sh' '*.bash' | xargs -0 --no-run-if-empty shellcheck
+    git diff --check
+
 clippy:
     cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 
@@ -27,5 +37,5 @@ check-skill-snippets *args:
 cov:
     cargo llvm-cov --workspace --all-features --all-targets
 
-ci: fmt check clippy test check-skills check-skill-snippets cov
+ci: fmt-check check clippy test check-skills check-skill-snippets cov
     cargo machete

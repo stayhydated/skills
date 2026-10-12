@@ -1,0 +1,12 @@
+# CI runs only advisories and sources. License acceptance needs a maintainer
+# policy; this configuration does not invent one from the current dependencies.
+[advisories]
+# Limit unmaintained reports to direct workspace dependencies; vulnerabilities
+# and yanked dependency checks still cover the complete dependency graph.
+ignore = [  ]
+unmaintained = "workspace"
+
+[sources]
+allow-git = [  ]
+unknown-git = "deny"
+unknown-registry = "deny"
