@@ -6,8 +6,7 @@
 skill documentation aligned. It checks tracked Rust versions against the stable
 channel and validates executable Rust snippets embedded in skill Markdown.
 
-Requires Rust 1.99 or newer. This is the tool's declared minimum; individual
-skill examples have their own generated-crate setup.
+Requires Rust 1.99 or newer.
 
 ## Commands
 
@@ -56,8 +55,7 @@ Edition attributes and `standalone_crate` retain their rustdoc semantics. The
 checker rejects unknown Rust fence attributes.
 
 Other languages, untagged fences, inline code, and Rust fences shown inside an
-outer Markdown example are outside the snippet check. The reported count covers
-Rust snippets rather than shell commands, template fragments, or agent behavior.
+outer Markdown example are outside the snippet check.
 
 [codecov-badge]: https://codecov.io/github/stayhydated/skills/graph/badge.svg?token=34CV04UOU1&component=xtask
 [codecov]: https://codecov.io/github/stayhydated/skills

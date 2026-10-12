@@ -7,11 +7,6 @@ Agent Skills is a collection of focused instructions and supporting resources fo
 coding agents working with Rust repositories, mdBook documentation, and workspace
 guidance. Choose the skill that matches the task below.
 
-Each link opens the skill's `SKILL.md` entry point. Referenced templates,
-checklists, and examples live beside that file and are loaded as the task needs
-them. The repository's internal [maintenance CLI][xtask] checks Rust baseline
-mentions and executable skill examples.
-
 ## Skills
 
 | Skill | Use it for |
@@ -35,4 +30,3 @@ mentions and executable skill examples.
 [rust-best-practices]: skills/rust-best-practices/SKILL.md
 [rust-readme]: skills/rust-readme/SKILL.md
 [rust-test]: skills/rust-test/SKILL.md
-[xtask]: xtask/README.md
