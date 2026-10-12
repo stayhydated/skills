@@ -144,7 +144,7 @@ badge paragraph.
 | --- | --- | --- |
 | CI | An enabled workflow or existing CI service that actually validates this project, with a usable status endpoint. | The matching workflow/results page; use the actual default or documented support branch. Prefer the aggregate CI workflow rather than separate OS, lint, or release badges. |
 | Codecov | An existing Codecov project with coverage reports and a working badge, not merely a coverage command or configuration file. A member badge requires a configured component or flag whose filters isolate that package. | Use the matching project dashboard or another verified Codecov UI route. For a component badge, use the exact configured `component_id` in the badge query and identify the member in its label. |
-| Book | An existing mdBook and its verified, deployed reader-facing site. A source-only `book.toml` is insufficient. In a workspace, the canonical user book must cover the public member set. | Use the book's landing/root URL on a single-package or workspace-root README, never on a workspace-member README. Never target a chapter, anchor, source directory, or deployment workflow. A static `Book` / `mdBook` badge is navigation, not a claim that a build passes. |
+| Book | A canonical mdBook with a verified deployment that serves the README's intended reader audience. A source-only `book.toml` is insufficient. Facade-level documentation may cover underlying members through their normal application use. | Use the book's landing/root URL on a single-package or workspace-root README, never on a workspace-member README. Never target a chapter, anchor, source directory, or deployment workflow. A static `Book` / `mdBook` badge is navigation, not a claim of complete package coverage or a passing build. |
 | crates.io | A published package belonging to this project, verified by its exact Cargo package name and registry metadata. Publication permission or a manifest version alone is insufficient. | The package's crates.io landing page, with a dynamic version badge rather than a manually maintained version. |
 
 A failing CI run or low coverage does not make a backend unavailable: preserve
@@ -173,17 +173,26 @@ API-reference or user-support links may also provide a distinct useful route.
   otherwise link to the verified project dashboard rather than inventing a deep
   URL.
 - Put the canonical user-facing Book badge on the workspace root README only.
-  The workspace book should account for every public member and provide all
-  needed user documentation. Never repeat the Book badge or its link in member
-  READMEs. If the book does not cover a member, report that workspace-book
-  documentation gap rather than adding member navigation or selecting an
-  internals book.
+  Judge coverage by reader workflows: an application guide for the facade may
+  document underlying runtime, derive, and integration members through that
+  facade without separate chapters for each package. A canonical deployed guide
+  that serves the README's application audience may remain when a distinct
+  direct-consumer route, such as parser tooling, is not covered; report that gap
+  in the handoff without claiming the book is comprehensive. Omit the badge when
+  the book is absent, undeployed, non-canonical, or inapplicable to the README's
+  audience. Never repeat the Book badge or its link in member READMEs, substitute
+  an internals book, add chapter links, or expand a README edit into book writing.
 - A single-package or member README has at most its own crates.io badge.
-- At a workspace root, use the evidenced primary public package's badge when
-  there is one. Otherwise use a named crates.io badge for each published,
-  user-facing member represented by the overview, sorted lexicographically by
-  exact Cargo package name. Keep all of these after Book. Never imply one
-  member's version is a workspace-wide release version.
+- At a workspace root, use exactly one crates.io badge for the clear public
+  facade or primary consumer package when its publication is verified. Establish
+  that role from maintained application guidance, examples, and public API
+  dependency routes. Do not add badges for its underlying members. When no one
+  clear facade or primary consumer package exists, use zero root crates.io
+  badges: retain valid shared and additional badges, and use the crate table for
+  package discovery. If the clear primary package is unpublished or unverified,
+  omit its badge rather than substituting a sibling package. Member READMEs
+  retain their own verified package badges. Never imply the primary package's
+  version is a workspace-wide release version.
 - Do not infer a primary package from the repository name, directory order,
   `default-members`, or a shared workspace version. Name each package in both
   the visible badge label and alt text whenever the root could be ambiguous.
@@ -230,7 +239,7 @@ when available and its relevant book badge when deployed.
 
 Explain the shared project and help readers choose a public entry point. Use a
 small `Crates` table with `Crate` and `Purpose` columns when useful; sort rows by
-exact package name, matching the registry badge group. Make each code-formatted
+exact package name. Make each code-formatted
 crate name a reference-style link to its existing member README, otherwise its
 source directory. The crate name carries the navigation link; omit a separate
 `Source` or `README` column that repeats the same route. Include an internal tool
@@ -240,8 +249,8 @@ Use the purpose cells to distinguish application entry points, optional
 integrations, and lower-level building blocks. When the project has a recommended
 starting crate, name it and link it near the table using repository evidence.
 The root owns repository-wide CI and Codecov status so that member READMEs do
-not repeat identical badges. It also owns the canonical Book badge for the
-workspace-wide user guide that documents the public members.
+not repeat identical badges. It also owns the applicable canonical Book badge
+for the workspace's intended reader audience.
 
 A virtual root has no crate page of its own. A workspace with a root package
 may reuse its root README for that package only if the content genuinely serves
@@ -264,9 +273,8 @@ workspace map, or the full project overview. Include CI or Codecov only when its
 linked result is specific to the member rather than a shared workspace run or
 report. A verified Codecov component whose filters isolate the member is the
 preferred coverage evidence. Do not add a Book badge or repeat the workspace
-book link; the root README owns that navigation and the workspace book owns
-member documentation. Create a member README only when publication or a distinct
-audience needs it.
+book link; the root README owns that navigation. Create a member README only when
+publication or a distinct audience needs it.
 
 Resolve explicit `package.readme` paths relative to the package manifest;
 resolve inherited `readme.workspace = true` through `workspace.package.readme`
@@ -336,6 +344,15 @@ and identify its scope. Omit the section for a package with no exposed features.
   Summarize material constraints briefly and link their maintained API reference
   for detailed semantics. Avoid accumulating edge-case algorithms, protocol
   internals, or release-note details in the README.
+- Omit README narration that only explains links, file organization, resource
+  loading, or where examples are repeated or tested. Keep required package,
+  feature, runtime, and input context plus observable results. Preserve shared
+  snippets when repository instructions require them to stay aligned; explain
+  duplication and test-harness evidence in the validation handoff, not the README.
+  Keep useful API/source routes and concise domain-specific guidance, such as
+  "See the API reference for accepted grammar," when it directs readers to
+  maintained semantics or complete code. A necessary input-file location is
+  usage context, not file-layout filler.
 - Give shared behavior one documentation owner, such as an API reference or
   canonical crate README. Member READMEs retain integration-specific guidance
   and link that owner instead of repeating a shared policy. Preserve each
@@ -352,9 +369,9 @@ and identify its scope. Omit the section for a package with no exposed features.
   rely on repository-host discovery instead of repeating that route in READMEs.
 - Do not add installation sections, `cargo add` / `cargo install` commands,
   dependency/version snippets, package-manager recipes, or clone/build setup.
-  The crates.io badge is the package-discovery route and the single-package or
-  workspace-root Book badge is the user-guide route. Do not duplicate those
-  routes in a `Getting started` section.
+  Verified package badges and owning member READMEs provide package discovery;
+  the applicable single-package or workspace-root Book badge is the user-guide
+  route. Do not duplicate those routes in a `Getting started` section.
 - Do not link or enumerate mdBook chapters, reproduce `SUMMARY.md`, embed book
   content with includes, or add a second documentation table of contents. The
   single-package or workspace-root Book badge owns book navigation. Do not repeat
@@ -384,6 +401,9 @@ and identify its scope. Omit the section for a package with no exposed features.
    READMEs, update the owning source rather than editing generated output alone.
 5. Check Markdown rendering, heading order, resolved links/images, badge labels
    and destinations, and the complete absence of disallowed README content.
+   Confirm the root has one verified primary-package registry badge or no
+   registry badges, as supported by consumer-route evidence. Check the book's
+   intended reader audience and report uncovered direct-consumer routes.
    Compare each feature table with the package's complete Cargo feature inventory;
    check default activation, aggregate membership, and descriptions against source.
    Verify facade routes, requirements, and compatibility claims. Check example

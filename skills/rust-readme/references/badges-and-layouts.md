@@ -111,8 +111,9 @@ section to fill the gap when there is no book.
 
 ## Workspace root with an established primary package
 
-Use the same opening and badge paragraph, but make the visible crates.io label
-and alt text identify the primary package. For example, after the Book badge:
+Use the same opening and badge paragraph, with exactly one verified crates.io
+badge for the evidenced public facade or primary consumer package. Make its
+visible label and alt text identify that package. For example, after Book:
 
 ```markdown
 [![crates.io: PRIMARY-PACKAGE][primary-badge]][primary]
@@ -126,11 +127,16 @@ and alt text identify the primary package. For example, after the Book badge:
 Describe the overall project, then add a `Crates` table when choosing a member
 needs explanation. Use the two-column `Crate` / `Purpose` layout below, linking
 each crate name to its README or source directory. Other package routes belong
-in that table or their member READMEs, not in an ambiguous workspace-version badge.
+in that table or their member READMEs. Establish the primary package from actual
+consumer guidance and API routes, never from the repository name or
+`default-members`. If its publication is unverified, omit its badge rather than
+selecting an underlying package's version.
 
 ## Workspace root without a primary package
 
-All named registry badges form one group after Book, sorted by exact package name:
+Keep verified shared CI, Codecov, and applicable Book badges plus relevant
+additional badges. Use zero crates.io badges at the root; the crate table routes
+readers to each member's README and its own package badge:
 
 ```markdown
 # PROJECT
@@ -138,8 +144,6 @@ All named registry badges form one group after Book, sorted by exact package nam
 [![CI][ci-badge]][ci]
 [![Codecov][codecov-badge]][codecov]
 [![Book][book-badge]][book]
-[![crates.io: PACKAGE-A][package-a-badge]][package-a]
-[![crates.io: PACKAGE-B][package-b-badge]][package-b]
 
 PROJECT provides SHARED-CAPABILITY. Choose the crate for your use case below.
 
@@ -156,11 +160,7 @@ Requires Rust VERIFIED-MSRV or newer.
 Use these additional definition shapes, with actual package names and routes:
 
 ```markdown
-[package-a-badge]: https://img.shields.io/crates/v/PACKAGE-A.svg?label=PACKAGE-A
-[package-a]: https://crates.io/crates/PACKAGE-A
 [package-a-readme]: https://github.com/OWNER/REPO/blob/BRANCH/MEMBER-A/README.md
-[package-b-badge]: https://img.shields.io/crates/v/PACKAGE-B.svg?label=PACKAGE-B
-[package-b]: https://crates.io/crates/PACKAGE-B
 [package-b-readme]: https://github.com/OWNER/REPO/blob/BRANCH/MEMBER-B/README.md
 ```
 
@@ -263,8 +263,11 @@ They describe expected behavior, not permission to create external services.
 | Additional badge with an unrelated destination or unsupported claim | Omit or correct it based on evidence and reader value. |
 | Published package; CI and crates.io only | CI then crates.io; no empty Book/Codecov slot or absence explanation. |
 | Single package; no applicable verified badge | Title and description; no badge paragraph or invented installation fallback. |
-| Virtual workspace; public packages `alpha` and `zeta`; no primary | Shared badges first; named `alpha` then `zeta` registry badges; crate map; no workspace-version badge. |
-| Workspace primary `zeta`; other public and internal members | Named `zeta` top-level registry badge; relevant member routes in the map; no registry badge for an internal-only package. |
+| Virtual workspace; public packages `alpha` and `zeta`; no primary | Keep valid shared/additional badges with zero root registry badges; use the crate map for discovery and each member's own registry badge. |
+| Workspace primary `zeta`; other public and internal members | Exactly one named `zeta` root registry badge after shared badges; other package routes in the crate map and own badges in their member READMEs. |
+| Published public facade established by consumer guidance and API routes | Exactly one root registry badge for that facade; no additional root member-version badges. |
+| Repository name or `default-members` points to a package, but consumer evidence establishes no primary | Zero root registry badges; keep valid shared/additional badges and the crate map. |
+| Clear primary package has no verified publication | Omit its root registry badge; do not substitute a published underlying member. |
 | Workspace root needs a crate map, with or without a primary package | Use `Crate` and `Purpose` columns. Link each crate name to its existing README or source directory; omit a redundant `Source` or `README` column. |
 | Package has `fmt`, `full`, `full-fluent`, and individual integration features | List every feature, including each integration, with its purpose and default activation; describe the exact aggregate members. |
 | Package exposes an internal or experimental feature | Include its row and label its intended use from repository evidence. |
@@ -277,6 +280,9 @@ They describe expected behavior, not permission to create external services.
 | Member `alpha`; component exists but filters or uploaded coverage are unverified | No member Codecov badge until its scope and rendered result are verified. |
 | Member `alpha`; workspace book documents `alpha` | No member Book badge or repeated book link; retain the canonical Book badge at the workspace root. |
 | Book sources without a verified deployment | No Book badge and no substitute links to book chapters or source navigation. |
+| Canonical deployed application book documents underlying packages through a public facade | Retain the root Book badge; do not require a chapter for every package or repeat book links in member READMEs. |
+| Useful canonical application book omits a separate direct parser or tooling route | Retain its root badge for the intended application audience and report the direct-consumer documentation gap in the handoff; do not claim complete coverage or write book chapters during a README edit. |
+| Deployed book is non-canonical, internal-only, or inapplicable to the README's readers | Omit its Book badge; do not replace it with invented documentation navigation. |
 | Failing CI or low coverage from a verified service | Keep the real status; do not hide it or create a static passing badge. |
 | Registry name exists but belongs to another project | No registry badge until ownership/package identity is resolved. |
 | Shared inherited README that describes the wrong member | Report the package/readme mapping issue; do not silently publish a misleading overview or change manifests out of scope. |
@@ -287,6 +293,9 @@ They describe expected behavior, not permission to create external services.
 | Declared minimum Rust version differs from a development or CI pin | State the manifest-backed minimum; label the toolchain's separate role only when relevant to consumers. Include evidenced framework or platform constraints affecting adoption. |
 | CLI, configuration, or protocol package | Use its natural example format, with required file or working-directory context and the expected output or effect. |
 | Shared policy repeated across members or detailed edge cases accumulating in an overview | Keep concise adoption-relevant guidance and complete feature tables; link the existing documentation owner for detailed semantics. |
+| Prose only explains links, file layout, resource loading, or where snippets are repeated/tested | Remove it; retain actual feature/runtime/input requirements and expected results. |
+| Concise API/source link identifies accepted grammar, detailed semantics, or a complete example | Keep the useful route and its domain-specific context; do not treat it as navigation filler merely because it names a link. |
+| Repository instructions require a root/member example to stay aligned | Preserve the aligned snippet while omitting duplicate/test-location narration from README prose; report the harness in validation evidence. |
 | Usage example with unnecessary clones or panics for routine failures | Show idiomatic borrowing and fallible control flow using the actual public API; do not invent APIs or expand into production refactors. |
 | Usage example exceeds the package's edition, MSRV, or enabled features | Use a compatible idiom and evidenced feature context; do not raise requirements for README styling. |
 | README Rust fence outside the actual example harness | Review the example and disclose the execution gap; do not claim an unrelated Cargo test command validated it. |
@@ -294,7 +303,8 @@ They describe expected behavior, not permission to create external services.
 For every case, reject standalone license sections/prose/boilerplate,
 contribution sections or links, contributor setup or invitations, installation
 commands or dependency snippets, mdBook chapter links, repeated book landing
-links, inaccurate or irrelevant badges, and unused template placeholders.
+links, inaccurate or irrelevant badges, registry badge piles at workspace roots,
+navigation/testing filler, and unused template placeholders.
 Check feature tables for complete names, accurate defaults, and exact aggregate
 membership against package evidence.
 Check requirements and facade routes against manifests and source. Verify each
