@@ -6,8 +6,8 @@
 skill documentation aligned. It checks tracked Rust versions against the stable
 channel and validates executable Rust snippets embedded in skill Markdown.
 
-The maintenance workspace requires Rust 1.99 or later. The repository toolchain
-and CI use Rust 1.99.0 so its checks run on the same baseline as the Rust skills.
+Requires Rust 1.99 or newer. This is the tool's declared minimum; individual
+skill examples have their own generated-crate setup.
 
 ## Commands
 
@@ -15,6 +15,11 @@ and CI use Rust 1.99.0 so its checks run on the same baseline as the Rust skills
 | --- | --- |
 | `cargo xtask check-rust-stable` | Compare tracked Rust-version mentions with the current stable channel. |
 | `cargo xtask check-skill-snippets` | Discover, lint, compile, and run Rust code fences from the skill bundles. |
+
+Run commands from the workspace root. `check-rust-stable` reads Rust version
+mentions under `skills/` and fetches the current stable channel manifest. It
+prints the comparison and any proposed sync issue; creating an issue requires
+the explicit `--create-issue` option and GitHub environment configuration.
 
 Use each command's `--help` output for its focused filters and automation
 options.
@@ -26,14 +31,17 @@ one generated test crate per skill, applies the workspace Clippy policy, and run
 the accepted examples. Generated manifests, source, and build output stay under
 `target/skill-snippets/`.
 
-The focused options are:
+For example, list and then validate the maintained type-state examples:
 
 ```sh
-cargo xtask check-skill-snippets --list
-cargo xtask check-skill-snippets --filter type-state-pattern
-cargo xtask check-skill-snippets --skills-root /path/to/skills
-cargo xtask check-skill-snippets --deny-ignored
+cargo xtask check-skill-snippets --list --filter type-state-pattern
+cargo xtask check-skill-snippets --deny-ignored --filter type-state-pattern
 ```
+
+The first command reports matching file locations and fence modes without
+compiling them. The second lints, compiles, and runs those examples, and rejects
+ignored Rust fences. `--filter` matches a Markdown file's relative path;
+`--skills-root` selects another skill directory.
 
 The common Rust fence modes are:
 

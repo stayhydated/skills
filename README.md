@@ -7,6 +7,11 @@ Agent Skills is a collection of focused instructions and supporting resources fo
 coding agents working with Rust repositories, mdBook documentation, and workspace
 guidance. Choose the skill that matches the task below.
 
+Each link opens the skill's `SKILL.md` entry point. Referenced templates,
+checklists, and examples live beside that file and are loaded as the task needs
+them. The repository's internal [maintenance CLI][xtask] checks Rust baseline
+mentions and executable skill examples.
+
 ## Skills
 
 | Skill | Use it for |
@@ -23,10 +28,11 @@ guidance. Choose the skill that matches the task below.
 [ci]: https://github.com/stayhydated/skills/actions/workflows/ci.yml
 [codecov-badge]: https://codecov.io/github/stayhydated/skills/graph/badge.svg?token=34CV04UOU1
 [codecov]: https://codecov.io/github/stayhydated/skills
-[manage-workspace-agents-md]: skills/manage-workspace-agents-md
-[mdbook-internals]: skills/mdbook-internals
-[mdbook-user-docs]: skills/mdbook-user-docs
-[pre-1-0-forward-only]: skills/pre-1-0-forward-only
-[rust-best-practices]: skills/rust-best-practices
-[rust-readme]: skills/rust-readme
-[rust-test]: skills/rust-test
+[manage-workspace-agents-md]: skills/manage-workspace-agents-md/SKILL.md
+[mdbook-internals]: skills/mdbook-internals/SKILL.md
+[mdbook-user-docs]: skills/mdbook-user-docs/SKILL.md
+[pre-1-0-forward-only]: skills/pre-1-0-forward-only/SKILL.md
+[rust-best-practices]: skills/rust-best-practices/SKILL.md
+[rust-readme]: skills/rust-readme/SKILL.md
+[rust-test]: skills/rust-test/SKILL.md
+[xtask]: xtask/README.md
