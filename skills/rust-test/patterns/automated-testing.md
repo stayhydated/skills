@@ -89,8 +89,8 @@ fn sample_batch() -> Batch {
 On the Rust 1.99 baseline, prefer `assert_matches!` when the test contract is a
 single structured pattern: enum variants, typed errors, state-machine phases,
 parse outcomes, or other values where the mismatched debug shape should appear in
-the failure. Import the macro explicitly from `std` in ordinary tests or from
-`core` in `no_std` test contexts. The macro stabilized in Rust 1.96, not 1.99;
+the failure. Import the macro explicitly from `std` in ordinary tests and doctests
+or from `core` in `no_std` test contexts. The macro stabilized in Rust 1.96, not 1.99;
 see the [baseline pattern](rust-1-99-testing-baseline.md) for release-specific
 behavior and lower-MSRV boundaries.
 
@@ -121,8 +121,11 @@ invariant checks that intentionally follow debug-assertion behavior. When the
 repository explicitly declares a lower MSRV, preserve an assertion idiom that
 compiles on that lane.
 
-Use `assert_eq!` when equality is the behavior. Use `assert!` for boolean
-properties with a useful failure message.
+Do not rewrite a clearer assertion merely to use the macro. Use `assert_eq!`
+when equality is the behavior, `assert!` with a useful message for boolean
+properties, and structural assertions when several fields matter. Use snapshots
+or goldens for large deterministic output, and compile-fail/UI tests for compiler
+rejection or diagnostics.
 
 ```rust
 # fn normalize_marker(input: &str) -> String { input.trim().to_ascii_lowercase() }
@@ -171,10 +174,10 @@ fn normalizes_whitespace(#[case] input: &str, #[case] expected: &str) {
 
 ## Doc Tests
 
-Rustdoc examples are compiled and run by `cargo test` unless marked otherwise.
-Use hidden lines (`#`) to make examples self-contained without distracting the
-reader. When a doctest uses a macro such as `assert_matches!`, hide the macro
-import unless the import itself teaches the public API.
+Use rustdoc examples for public behavior. Follow
+[rustdoc mechanics](doctests-and-examples.md#rustdoc-mechanics) for hidden setup,
+imports, and compile/run attributes; the example below keeps setup hidden while
+showing the public contract.
 
 ````rust
 /// Normalizes an external marker into the canonical lowercase form.
@@ -196,20 +199,10 @@ pub fn normalize_marker(input: &str) -> String {
 }
 ````
 
-Use rustdoc block attributes intentionally:
-
-* `no_run`: compiles but does not execute, useful for examples with network, file,
-  or process side effects.
-* `compile_fail`: proves an invalid usage stays invalid.
-* `should_panic`: only when panic is the documented behavior.
-* `ignore`: avoid unless the example cannot be compiled in CI.
-
-If using `cargo nextest`, run doc tests separately with `cargo test --doc`.
-When the repository uses rustdoc `--emit` or `--remap-path-prefix`, preserve its
-rustdoc command and review emitted or remapped paths when documentation output is
-part of the contract. On Rust 1.99, fix unattached attributes in doctests and do
-not use `doc(cfg(...))` as an execution guard; follow
-[doctest compatibility guidance](doctests-and-examples.md#rust-199-compatibility).
+For execution and custom rustdoc pipelines, follow
+[doctest validation](doctests-and-examples.md#validation). Use
+[compatibility guidance](doctests-and-examples.md#rust-199-compatibility) when the
+Rust baseline changes.
 
 ## Integration Tests
 

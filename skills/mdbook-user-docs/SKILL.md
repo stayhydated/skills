@@ -99,7 +99,7 @@ State the user impact first, then include only the mechanism needed to explain t
 - Put the answer, outcome, or required action in the opening paragraph.
 - Use sentence-case headings, active voice, concrete verbs, and one main idea per paragraph.
 - Use American spelling and punctuation in original prose, including `behavior`, `modeling`, and `acknowledgment`.
-- Preserve commands, flags, API identifiers, source symbols, UI strings, product names, and quoted text exactly; do not “correct” a public literal for house style.
+- Preserve commands, flags, API identifiers, source symbols, configuration keys, UI strings, product names, protocol terms, and quoted text exactly as they appear in authoritative sources; do not “correct” a public literal for house style.
 - Reuse the book's established terminology. Do not rename a public concept solely to enforce stylistic consistency.
 - Put prerequisites before steps. Use ordered lists only for required sequence and bullets for unordered facts.
 - Make examples minimal, safe, and copyable. Use documented public service URLs, including production API base URLs, when they are part of the supported workflow. Use obvious placeholders such as `<PROJECT_ID>` for user-specific values; never include live credentials, tokens, personal data, or sensitive deployment URLs.

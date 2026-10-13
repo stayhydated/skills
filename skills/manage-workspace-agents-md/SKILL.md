@@ -64,7 +64,7 @@ Supporting files are source material and handoff scaffolding, not default output
 - `patterns/validation-guidance.md`: validation wording, focused checks, required completion checks, and validation-by-change-type routing.
 - `checklists/agent-guide-audit.md`: final checklist for generated or patched `AGENTS.md` guidance.
 
-Before using any example or bullet from a reference file, replace it with repository-specific guidance or omit it. Before final output, search for copied pattern headings, placeholder paths, and example commands from `patterns/*` or `templates/*`; remove or replace anything not backed by repository or artifact evidence or explicit maintainer requirements.
+Before using any example or bullet from a reference file, replace it with repository-specific guidance or omit it.
 
 ## Output modes
 
@@ -95,8 +95,6 @@ If the user provides only an `AGENTS.md` guide and no repository, perform an evi
 
 In Patch mode, make the file changes when repository write access is available. If edits cannot be applied directly, provide a unified diff or exact replacement sections before the handoff. Do not provide only advisory findings unless the selected mode is Audit.
 
-When the request is ambiguous, choose the smallest useful mode. Prefer Audit for existing guidance unless the user clearly asked for edits.
-
 ### Severity definitions for audits
 
 - **Critical**: likely to cause wrong edits, false validation claims, broken commands, stale public-contract guidance, weakened required checks, or unsafe repository-wide assumptions.
@@ -111,20 +109,12 @@ When the request is ambiguous, choose the smallest useful mode. Prefer Audit for
 4. **Capture local standards.** Use `patterns/standards-inference.md` to classify facts, requirements, and local conventions as **Observed**, **Inferred**, or **Recommended**.
 5. **Use reference files selectively.** Layout, evidence, validation, and checklist files are inputs to judgment, not sections to paste.
 6. **Draft, patch, audit, align, or checklist-review.** Keep changes as small as the selected mode allows; reporting modes do not apply edits.
-7. **Check for support-file leakage.** Before final output, search for copied pattern headings, placeholder paths, example commands, and fenced examples from `patterns/*` or `templates/*` that are not supported by evidence or explicit requirements. Remove or replace them in the proposed output, or in repository files only when editing is authorized.
+7. **Check for support-file leakage.** Before final output, apply the [placeholder-hygiene checks](patterns/evidence-and-scope.md#placeholder-hygiene). Remove or replace unsupported material in the proposed output, or in repository files only when editing is authorized.
 8. **Validate or disclose.** Run available checks that fit the scope and mode, including required completion checks, then use exact validation wording in the handoff. Disclose any required check that could not be run.
 
 ## Evidence floor
 
-Match evidence depth to the selected mode:
-
-- **Draft and Alignment:** inspect explicit maintainer requirements and broad repository evidence, including the top-level tree, existing root and nested `AGENTS.md` guidance, README/contributor docs, manifests, lockfiles, workspace config, package metadata, CI workflows, runner files, and named docs/examples/tests/generated surfaces.
-- **Patch:** inspect the guide being patched, applicable local guidance and maintainer requirements, and evidence for every changed or added command, path, convention, constraint, ownership claim, synchronization rule, or validation claim.
-- **Audit:** inspect enough repository evidence and stated requirements to verify or challenge the artifact's claims. If coverage is incomplete, mark findings evidence-limited.
-- **Checklist:** inspect only the files and requirements needed to check each item. Mark unsupported items `Not checked`.
-- **Platform compatibility:** when a target agent or runtime is named, inspect evidenced platform rules for instruction discovery, local precedence, override behavior, and size limits. Mark uninspected platform behavior as `Not checked`.
-
-For large repositories, inspect every named surface and representative evidence for each claimed workflow category. If full coverage is impractical, state what was inspected, mark remaining areas as not checked, and avoid repository-wide claims for uninspected categories.
+Follow the [minimum evidence for the selected mode](patterns/evidence-and-scope.md#minimum-evidence-by-mode), including its large-repository coverage rule. When a target agent or runtime is named, also apply the [platform compatibility checks](patterns/evidence-and-scope.md#agent-platform-compatibility).
 
 ## Output boundaries
 
@@ -149,13 +139,7 @@ Do not collapse these surfaces into one file type merely because the word “age
 
 ## Standards guidance boundary
 
-Describe standards only when they are repository standards or explicitly requested maintainer requirements:
-
-- **Observed:** directly evidenced by existing files, commands, tests, docs, manifests, CI, local guidance, or an explicit maintainer instruction. An instruction is evidence of intended policy, not proof that code implements it or that a command exists or succeeds.
-- **Inferred:** strongly implied by repeated local practice, workspace structure, or public entry points; state narrowly and do not override explicit requirements with inferred practice.
-- **Recommended:** plausible but not current repository truth or an adopted requirement; keep out of mandatory guide text unless the maintainer explicitly adopts it. A request for suggestions alone is not adoption.
-
-Do not add language-specific rules merely because a language appears in the repository. Include useful evidenced or explicitly requested local conventions for implementation, error handling, testing, compatibility, security, dependencies, and review, even when they do not affect routing, ownership, synchronization, or validation. `AGENTS.md` may itself establish a maintainer's working agreement; it need not repeat a policy already documented elsewhere.
+Use the [claim classes](patterns/evidence-and-scope.md#claim-classes) to distinguish repository truth, inferred practice, and proposals. Apply the [standards inference rules](patterns/standards-inference.md) before turning a practice into guide text.
 
 For detailed code-level advice, use the relevant dedicated skill when available. Do not omit concise repository-specific conventions because another skill covers the language. Point to existing repository guidance or a real `AGENTS.md` path when that avoids duplicating detailed material.
 

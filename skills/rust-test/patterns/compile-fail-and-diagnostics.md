@@ -17,7 +17,7 @@ Prefer the repository's existing harness. If it already uses `trybuild`, add foc
 
 Do not introduce `trybuild` or another harness in a patch unless the user requested it or the repository already standardizes on it. In audits or strategy notes, label the addition as **Recommended**.
 
-Use rustdoc `compile_fail` for documentation examples, not as a replacement for a diagnostic harness when exact stderr wording, proc-macro expansion errors, or many UI fixtures are the real contract.
+Use rustdoc `compile_fail` when a short, focused invalid example belongs in public documentation and does not need exact stderr matching. For exact diagnostics, proc-macro expansion errors, or multiple UI fixtures, prefer the established diagnostic harness.
 
 ## Fixture discipline
 
@@ -43,49 +43,20 @@ When the repository uses `trybuild`:
 - Use `TRYBUILD=overwrite cargo test ...` only when intentionally regenerating expectations.
 - Always review `git diff` for changed `.stderr` files and disclose reviewed paths in the handoff.
 - Keep fixtures independent of rustc wording that is likely to churn unless the wording itself is the public diagnostic contract.
-- Do not add compile-fail fixtures merely to call every public API incorrectly; protect meaningful diagnostics and type-level contracts.
 
 ## Rust 1.99-sensitive compiler contracts
 
-Use Rust 1.99-specific compile-fail guidance only for compiler-facing contracts.
-Review the [release notes](https://doc.rust-lang.org/releases.html#version-1990-2026-10-01)
-and [baseline pattern](rust-1-99-testing-baseline.md) for the relevant delta:
+Use the [baseline compiler and expectation compatibility notes](rust-1-99-testing-baseline.md#compiler-and-expectation-file-compatibility)
+for release-specific acceptance, lints, escaping, and carried-forward compiler
+contracts. Apply [doctest compatibility rules](doctests-and-examples.md#rust-199-compatibility)
+without accepting an unrelated attribute error as proof of the intended invalid
+usage.
 
-- `no_mangle_generic_items` is now a hard error, and runtime-symbol lints cover
-  additional POSIX symbols;
-- `raw_borrows_via_references` is allow-by-default, `unconditional_panic` checks
-  zero-sized chunks/windows calls, and `unreachable_cfg_select_predicates` is
-  part of `unused`;
-- exported macros with trailing semicolons in expression position warn in
-  consumers through `semicolon_in_expressions_from_non_local_macros`; include
-  separate-crate integration coverage rather than testing only in the provider;
-- outlined modules in custom attribute or derive macros and C-variadic
-  definitions are stable, so a fixture that failed only because of its old
-  feature gate may now need to be a compile-pass case;
-- unused `#[path]` on inline modules, invalid doc attributes on macro invocations,
-  inferred `let` pattern types, never-type method resolution, and associated
-  constant lifetimes can change diagnostics or acceptance;
-- unattached doctest attributes are errors, and `doc(cfg(...))` no longer filters
-  doctests; do not accept an unrelated attribute error as proof of the intended
-  invalid usage;
-- legacy integral module deprecations and changed U+FF9E/U+FF9F escaping can affect
-  warnings and rendered expectations.
-
-Keep relevant earlier compatibility cases, without relabeling them as new 1.99
-changes: Rust 1.98 trait-object lifetime elision, ambiguous imports, invalid
-where-bound syntax, repr/transmute and structural-equality checks, auto-traits
-for environment/process iterators, and target-specific contracts still matter
-when exposed by the repository.
-
-Update expectations only when the changed acceptance or diagnostic is relevant to
-the repository's public or type-level contract. If a lower MSRV is explicitly
+Update expectations only when the changed acceptance or diagnostic is relevant
+to the repository's public or type-level contract. If a lower MSRV is explicitly
 supported, keep fixtures and expected diagnostics compatible with that lane or
-use the repository's version-gated UI convention. Regenerate `.stderr` through
-the established harness and review the diff; do not handwrite compiler output.
-
-## Doctest compile-fail boundary
-
-Use rustdoc `compile_fail` when the invalid example belongs in public documentation and does not need exact stderr matching. Keep the visible example short and focused on the public rule. For exact diagnostics, proc-macro output, or multiple UI fixtures, prefer the repository's established diagnostic harness.
+use the repository's version-gated UI convention. Follow the fixture discipline
+and harness workflow above when regenerating expectations.
 
 ## Validation
 

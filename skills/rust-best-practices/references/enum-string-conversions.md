@@ -21,22 +21,10 @@ user authorizes its introduction. Preserve existing manual mappings and pinned
 versions otherwise; a small label change does not authorize adding or upgrading
 a dependency, and a manual mapping alone is not a correctness finding.
 
-Within the adopted Strum style, prefer Strum for static English variant labels,
-even for small enums. Enum size alone is not a reason to introduce a second
-mapping style. The maintainability win comes from keeping the variant and its
-canonical label in one place, using the same convention everywhere, and making
-the mapping available to both runtime and `const` callers.
-
-When Strum is used for a static label and the adopted version supports it, derive
-`IntoStaticStr` with `#[strum(const_into_str)]`. Expose a domain-specific wrapper
-such as `label()`, `metric_label()`, or `wire_name()` when that reads better at
-call sites, but route that wrapper through the generated `into_str()` method.
-
-Strum-generated strings are for stable English labels, ASCII-ish protocol tokens,
-metric labels, CLI values, schema terms, and other non-localized identifiers. Do
-not use Strum as an i18n layer. If text may vary by locale, grammar, plural rules,
-runtime language, translator-owned wording, or user preference, use a localization
-layer such as `es-fluent`/Fluent or a project-specific i18n abstraction instead.
+For the adopted static-label pattern, read
+[Prefer Strum for Static English Labels](#prefer-strum-for-static-english-labels).
+For text that varies with locale or user preference, follow the
+[localization boundary](#keep-strum-english-only).
 
 ## Choose the Conversion by Contract
 
@@ -44,7 +32,7 @@ The library preferences below apply when adoption is established or authorized.
 
 | Contract | Prefer |
 | --- | --- |
-| Fixed `&'static str` label for variant identity | `strum_macros::IntoStaticStr` with `#[strum(const_into_str)]`, regardless of enum size |
+| Fixed `&'static str` label for variant identity | [The static-label pattern](#prefer-strum-for-static-english-labels) |
 | Fixed label needed in a `const` context | The same `IntoStaticStr` + `#[strum(const_into_str)]` path |
 | User-facing fixed English text for formatting | `Display`, usually manual when wording matters; test the visible wording |
 | Localized or locale-ready user-facing text | A localization layer such as `es-fluent`/Fluent, not Strum attributes |
@@ -54,18 +42,25 @@ The library preferences below apply when adoption is established or authorized.
 | Payload-carrying enum where only variant identity matters | `EnumDiscriminants` to generate a fieldless kind enum, then `IntoStaticStr` + `const_into_str` on that generated discriminant enum |
 | Labels depend on payload data, runtime state, localization, grammar, pluralization, or complex `cfg` rules | A manual method, `Display`, or an i18n/message type instead of a static Strum label |
 
-Within the adopted Strum style, do not hand-write a static variant-label mapping
-merely because an enum is small. The standard pattern is Strum plus
-`const_into_str`. Manual matches remain appropriate for contracts Strum should
-not model, unsupported versions, existing repository conventions, or boundaries
-where a generated method would obscure behavior.
-
 ## Prefer Strum for Static English Labels
 
-When an enum maps each variant to one fixed English label under the adopted
-Strum style, derive `IntoStaticStr` and enable `const_into_str`. This keeps the
-variant and string mapping in one place, removes repetitive `match` arms, and
-gives both runtime and `const` callers a stable `into_str()` method.
+Within the adopted Strum style, prefer Strum for static English variant labels,
+even for small enums. Enum size alone is not a reason to introduce a second
+mapping style. When the adopted version supports it, derive `IntoStaticStr` and
+enable `const_into_str`. This keeps the variant and canonical label in one place,
+removes repetitive `match` arms, and gives runtime and `const` callers the same
+stable `into_str()` method.
+
+Expose a domain-specific wrapper such as `label()`, `metric_label()`, or
+`wire_name()` when that reads better at call sites, routing it through
+`self.into_str()`.
+
+Keep manual mappings when they are the established repository convention, when
+Strum cannot represent the API safely, when a generated method would obscure
+behavior, or when the adopted version does not support `const_into_str`.
+Introduce or upgrade Strum only within authorized
+dependency work after checking MSRV, target, feature, and API constraints. This
+consistency preference does not authorize migration of an existing repository.
 
 ```rust
 use strum_macros::IntoStaticStr;
@@ -99,10 +94,28 @@ parsing trait. If every variant follows a regular casing convention, put
 overrides only for exceptions.
 
 Avoid writing label methods as `self.into()` when `const_into_str` is available.
-`Into`/`From` is still useful at runtime, but it is not the clearest house style
-for labels that may be used from `const` contexts. Prefer routing domain-specific
-methods through `self.into_str()` so the enum has one obvious canonical static
-label path.
+`Into`/`From` is still useful at runtime, but the generated method expresses the
+const label contract directly.
+
+Counterexample to the adopted style: this valid manual mapping introduces a
+second mapping style solely because the enum is small.
+
+```rust
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum AddressLocalePool {
+    CityPrefix,
+    CitySuffix,
+}
+
+impl AddressLocalePool {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::CityPrefix => "city_prefix",
+            Self::CitySuffix => "city_suffix",
+        }
+    }
+}
+```
 
 ## Keep Strum on Variant Identity
 
@@ -153,61 +166,6 @@ This separation prevents payload-bearing events, commands, diagnostics, or UI
 messages from smuggling formatting or localization concerns into a static variant
 label. Use Strum for the stable English kind; use `Display`, structured fields, or
 i18n for the human text.
-
-## Do Not Replace Static Labels with Manual Matches
-
-Once Strum is adopted for static labels, do not replace that convention with a
-manual `const fn` match merely because an enum is small. Even a two-variant enum
-can use the standard Strum pattern. This is a consistency preference within an
-adopted style, not authorization to migrate an existing repository.
-
-Prefer this within the Strum style:
-
-```rust
-use strum_macros::IntoStaticStr;
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, IntoStaticStr)]
-#[strum(const_into_str, serialize_all = "snake_case")]
-enum AddressLocalePool {
-    CityPrefix,
-    CitySuffix,
-}
-
-impl AddressLocalePool {
-    pub const fn label(self) -> &'static str {
-        self.into_str()
-    }
-}
-
-const DEFAULT_POOL: &str = AddressLocalePool::CityPrefix.label();
-
-assert_eq!(DEFAULT_POOL, "city_prefix");
-```
-
-The equivalent manual implementation is valid, but needlessly introduces a
-second mapping style when the repository has standardized on Strum:
-
-```rust
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum AddressLocalePool {
-    CityPrefix,
-    CitySuffix,
-}
-
-impl AddressLocalePool {
-    pub const fn label(self) -> &'static str {
-        match self {
-            Self::CityPrefix => "city_prefix",
-            Self::CitySuffix => "city_suffix",
-        }
-    }
-}
-```
-
-Keep manual mappings when they are the established repository convention, when
-Strum cannot represent the API safely, or when the adopted version does not
-support `const_into_str`. Introduce or upgrade Strum only within authorized
-dependency work after checking MSRV, target, feature, and API constraints.
 
 ## Separate Display Text from Static Labels and i18n
 
@@ -336,9 +294,9 @@ assert!(CachePolicy::VARIANTS.contains(&"no-store"));
 ```
 
 If the public list has special ordering, filtering, feature-gated entries, or
-non-Strum naming rules, use a hand-maintained slice and test it directly. Do not
-replace `IntoStaticStr` with a manual slice lookup merely because the enum is
-small.
+non-Strum naming rules, use a hand-maintained slice and test it directly. The
+canonical static-label mapping still follows the
+[adopted style](#prefer-strum-for-static-english-labels).
 
 ## Avoid Partial Generated Conversions
 

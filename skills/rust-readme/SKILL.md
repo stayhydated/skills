@@ -33,9 +33,12 @@ style. Those are separate tasks, not permission to expand a README edit.
 
 ## Usage examples
 
-Choose a short, maintained example that demonstrates the package's purpose.
-Identify the required file, package, features, runtime state, or inputs and show
-the expected result or effect. Keep this context close to the example.
+Choose a short, maintained example that demonstrates the package's purpose with
+its public API or real command names. Prefer an existing tested example. Identify
+the required file, package, features, runtime state, or inputs and show the
+expected result or effect. Keep this context close to the example, separate from
+setup or dependency instructions. Omit the example if making it meaningful would
+require reproducing a tutorial.
 
 Prefer a complete example. When a full host application would overwhelm the
 README, label the code as an excerpt, name the values or initialization supplied
@@ -43,21 +46,10 @@ by its host, and link to the maintained complete example. Verify that the
 excerpt agrees with that source and use its existing harness for validation.
 If no complete source can be verified, use a self-contained example or omit it.
 
-Match the example to the package:
-
-- **Library API:** show the relevant call and its result; identify the context
-  supplying any application-owned state.
-- **CLI:** identify the working directory, required inputs, output, and file or
-  state changes. A compact command table may explain the main operations.
-- **Configuration:** name the file, its location, and the loader or tool that
-  consumes it; show a minimal valid configuration and its effect.
-- **Protocol:** identify the tool, operation, or endpoint, distinguish a payload
-  from a complete message, and explain the expected response or effect.
-
+Match the example to the package using the
+[example forms](references/badges-and-layouts.md#example-forms) table.
 Use the appropriate fenced language for Rust, shell, TOML, JSON, or other actual
-formats. Keep examples focused on usage; the existing installation exclusions
-still apply. See the [example forms](references/badges-and-layouts.md#example-forms)
-for layout guidance.
+formats.
 
 ### Idiomatic Rust requirement
 
@@ -182,7 +174,8 @@ API-reference or user-support links may also provide a distinct useful route.
   the book is absent, undeployed, non-canonical, or inapplicable to the README's
   audience. Never repeat the Book badge or its link in member READMEs, substitute
   an internals book, add chapter links, or expand a README edit into book writing.
-- A single-package or member README has at most its own crates.io badge.
+- A single-package or member README has at most its own crates.io badge. For a
+  member, the image, visible label, and destination must identify that member.
 - At a workspace root, use exactly one crates.io badge for the clear public
   facade or primary consumer package when its publication is verified. Establish
   that role from maintained application guidance, examples, and public API
@@ -233,8 +226,7 @@ Do not create empty headings to satisfy a template.
 
 Describe the package directly, using its real package and command names. Do not
 add a workspace table or separate duplicate READMEs merely because it contains
-multiple binaries, examples, or a library target. Use its published crate badge
-when available and its relevant book badge when deployed.
+multiple binaries, examples, or a library target. Apply the [badge policy](#badge-policy).
 
 ### Workspace root
 
@@ -249,9 +241,7 @@ graphs and inventories of test crates.
 Use the purpose cells to distinguish application entry points, optional
 integrations, and lower-level building blocks. When the project has a recommended
 starting crate, name it and link it near the table using repository evidence.
-The root owns repository-wide CI and Codecov status so that member READMEs do
-not repeat identical badges. It also owns the applicable canonical Book badge
-for the workspace's intended reader audience.
+Apply [workspace badge selection](#workspace-badge-selection) at the root.
 
 A virtual root has no crate page of its own. A workspace with a root package
 may reuse its root README for that package only if the content genuinely serves
@@ -269,13 +259,9 @@ feature; identify the use case for a direct dependency when one exists. Verify
 the re-exports and intended dependency route from source.
 
 Scope examples, capabilities, API links, and version badges to that package.
-Do not repeat workspace-wide CI or Codecov badges, the
-workspace map, or the full project overview. Include CI or Codecov only when its
-linked result is specific to the member rather than a shared workspace run or
-report. A verified Codecov component whose filters isolate the member is the
-preferred coverage evidence. Do not add a Book badge or repeat the workspace
-book link; the root README owns that navigation. Create a member README only when
-publication or a distinct audience needs it.
+Apply [workspace badge selection](#workspace-badge-selection); omit the workspace
+map and full project overview. Create a member README only when publication or a
+distinct audience needs it.
 
 Resolve explicit `package.readme` paths relative to the package manifest;
 resolve inherited `readme.workspace = true` through `workspace.package.readme`
@@ -383,10 +369,6 @@ other than `default`.
   badge, create a book, or silently introduce installation material as fallback.
   Preserve verified, distinct API/source/support routes and report any requested
   onboarding gap in the handoff, not as permanent missing-feature prose.
-- Keep a value-demonstrating example separate from setup. Use public APIs and
-  real command names; mention necessary feature context briefly without adding
-  dependency instructions. Prefer an existing tested example and omit it if
-  making it meaningful would require reproducing a tutorial.
 - Avoid manual release versions, benchmark dumps, contributor commands, and
   manifest dumps. Retain the complete Cargo feature table. Keep other constraints
   concise and verified when they materially change a reader's choice or safe use.

@@ -2,13 +2,6 @@
 
 Use this reference when the correct structure or Markdown element is not obvious.
 
-## en-US language and source integrity
-
-- Write original prose in en-US, using American spelling and punctuation.
-- Preserve commands, identifiers, configuration keys, UI strings, product names, protocol terms, and quotations exactly as they appear in authoritative sources.
-- Reuse established public terminology even when a literal does not match house style; do not rename an interface to normalize its spelling.
-- Leave non-en-US locale trees and translation catalogs unchanged.
-
 ## Select the right element
 
 | Information shape | Prefer | Avoid |
@@ -65,13 +58,7 @@ Do not list speculative causes without a way to distinguish them.
 
 ## The internal-detail relevance test
 
-Use this sequence:
-
-1. Describe the user-visible fact.
-2. Ask whether the reader's action changes without the mechanism.
-3. If no, stop.
-4. If yes, explain the smallest mechanism that enables the action.
-5. Link to internal documentation for implementation depth.
+Apply the [implementation-detail gate](../SKILL.md#4-apply-the-implementation-detail-gate) when deciding whether to explain a mechanism. For example:
 
 Instead of:
 
@@ -146,7 +133,7 @@ Reserve warnings for credible harm, data loss, security exposure, or difficult r
 
 ## Source-backed examples
 
-The built-in `links` preprocessor runs by default unless `[build].use-default-preprocessors = false`. Confirm that it is active before including maintained examples instead of duplicating them:
+Follow the [mdBook feature rules](../SKILL.md#6-use-mdbook-features-safely) before including maintained examples instead of duplicating them:
 
 ````markdown
 ```rust
@@ -154,9 +141,7 @@ The built-in `links` preprocessor runs by default unless `[build].use-default-pr
 ```
 ````
 
-Resolve the include path relative to the chapter that contains the directive. Prefer named anchors to line-number ranges because anchors survive unrelated edits. Keep the included region focused enough to teach one point.
-
-For non-Rust examples, still use a language tag, but validate them with the project's own tooling because `mdbook test` only tests Rust code samples.
+For non-Rust examples, use a language tag and follow the [validation workflow](../SKILL.md#8-validate-and-inspect-the-final-diff).
 
 ## Link and navigation language
 

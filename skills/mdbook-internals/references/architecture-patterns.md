@@ -2,13 +2,6 @@
 
 Use this reference when structuring architecture, component, flow, operational, or decision documentation.
 
-## en-US language and source integrity
-
-- Write original prose in en-US, using American spelling and punctuation.
-- Preserve source symbols, configuration keys, log text, protocol terms, product names, and quotations exactly.
-- Keep established domain terminology even when a literal differs from house style; do not rename a contract while documenting it.
-- Leave non-en-US locale trees and translation catalogs unchanged.
-
 ## Recommended narrative order
 
 For most internal chapters, use this order:
@@ -226,7 +219,7 @@ A section that dominates the chapter often conceals a second maintenance problem
 
 ## Source inclusion
 
-The built-in `links` preprocessor runs by default unless `[build].use-default-preprocessors = false`. Confirm that it is active before including a focused anchored region:
+The built-in `links` and `index` preprocessors run by default unless `[build].use-default-preprocessors = false`. Confirm that `links` is active before including a focused anchored region:
 
 ````markdown
 ```rust
@@ -234,7 +227,7 @@ The built-in `links` preprocessor runs by default unless `[build].use-default-pr
 ```
 ````
 
-Resolve the include path relative to the chapter that contains the directive. A useful anchor should expose a contract or extension pattern, not an arbitrary implementation block. Avoid:
+Resolve the include path relative to the chapter that contains the directive. Prefer named anchors over line ranges and include only enough code to establish the relevant contract or extension pattern. Avoid:
 
 - Whole files.
 - Generated code.

@@ -67,10 +67,8 @@ For a verified workspace-member component, add the exact configured
 [codecov]: https://codecov.io/gh/OWNER/REPO
 ```
 
-Use a verified component-filtered Codecov UI route as the link target when one
-is available. Otherwise the verified project dashboard is an honest target; do
-not construct an undocumented component deep link. Confirm that the component's
-path or flag filters isolate the member and that uploaded coverage populates it.
+Apply [workspace badge selection](../SKILL.md#workspace-badge-selection) to verify
+the component's coverage scope and choose its link target.
 
 ## Single-package layout
 
@@ -103,17 +101,15 @@ ONE-SHORT-MAINTAINED-USAGE-EXAMPLE-WITHOUT-INSTALLATION-STEPS
 EXPECTED-RESULT-OR-EFFECT
 ```
 
-Add only the definitions actually used. Omit Overview or Example when they are
-unnecessary, and Features when the package exposes no Cargo features. Do not add
-a Contributing section or contribution-guide link, including under Support. Do
-not add a Documentation section that repeats the Book badge, or an Installation
-section to fill the gap when there is no book.
+Add only the definitions actually used. Apply the optional-section rules in
+[README structure](../SKILL.md#readme-structure) and the exclusions in
+[Keep documentation single-sourced](../SKILL.md#keep-documentation-single-sourced).
 
 ## Workspace root with an established primary package
 
-Use the same opening and badge paragraph, with exactly one verified crates.io
-badge for the evidenced public facade or primary consumer package. Make its
-visible label and alt text identify that package. For example, after Book:
+Apply [workspace badge selection](../SKILL.md#workspace-badge-selection) to the
+core paragraph. A published primary package uses this named badge, after Book
+when present:
 
 ```markdown
 [![crates.io: PRIMARY-PACKAGE][primary-badge]][primary]
@@ -124,19 +120,14 @@ visible label and alt text identify that package. For example, after Book:
 [primary]: https://crates.io/crates/PRIMARY-PACKAGE
 ```
 
-Describe the overall project, then add a `Crates` table when choosing a member
-needs explanation. Use the two-column `Crate` / `Purpose` layout below, linking
-each crate name to its README or source directory. Other package routes belong
-in that table or their member READMEs. Establish the primary package from actual
-consumer guidance and API routes, never from the repository name or
-`default-members`. If its publication is unverified, omit its badge rather than
-selecting an underlying package's version.
+Use the [workspace-root structure](../SKILL.md#workspace-root) and the two-column
+crate table below for other package routes.
 
 ## Workspace root without a primary package
 
-Keep verified shared CI, Codecov, and applicable Book badges plus relevant
-additional badges. Use zero crates.io badges at the root; the crate table routes
-readers to each member's README and its own package badge:
+[Workspace badge selection](../SKILL.md#workspace-badge-selection) gives this root
+shared and additional badges with no registry badge. The crate table routes
+readers to member READMEs:
 
 ```markdown
 # PROJECT
@@ -197,25 +188,16 @@ When applications normally consume this member through a facade, name and link
 that facade in the opening paragraph, including any required feature. Explain
 the concrete use case for depending on the member directly when one exists.
 
-The member template intentionally omits workspace-wide CI and Codecov. Add a CI
-or Codecov line before crates.io only when its linked backend exposes genuinely
-member-specific status or coverage; a shared workflow or report that happens to
-include the member is insufficient. Never add a Book badge or repeat the
-workspace book link in a member README; the root README owns the workspace book
-route. For Codecov, prefer an
-`individual_components` entry whose paths or flags isolate the package, and use
-its exact `component_id` in the badge query. The crates.io image, visible label,
-and destination must all name this member, not the primary package. A short
-verified API-reference link can provide an additional route without introducing
-a docs.rs badge. Include Features whenever the member exposes Cargo features.
+Apply [workspace badge selection](../SKILL.md#workspace-badge-selection) for any
+member CI or Codecov entries. A short verified API-reference link can provide an
+additional route without introducing a docs.rs badge. Use the
+[Cargo feature rules](../SKILL.md#cargo-feature-documentation) to decide whether
+Features is required.
 
 ## Feature reference layout
 
-Use this layout in the owning package README, with one row for every exposed
-Cargo feature except `default`. Derive all rows and default activation, including
-indirect activation, from the actual package feature graph. Use the `Default`
-column to document defaults; add a short note only when it clarifies the
-configuration.
+Apply [Cargo feature documentation](../SKILL.md#cargo-feature-documentation) to
+populate this table in the owning package README:
 
 ```markdown
 ## Features
@@ -228,11 +210,6 @@ OPTIONAL-DEFAULT-FEATURE-SET-NOTE
 | `FEATURE-B` | YES-OR-NO | VERIFIED-CAPABILITY-OR-EXACT-BUNDLE-MEMBERS. |
 ```
 
-List each individual feature even when an aggregate includes it. Describe
-internal or experimental features with their evidenced intended use. A virtual
-workspace root uses the crate table to route readers to these member inventories;
-a root README serving a root package documents that package's features.
-
 ## Example forms
 
 Choose the form that shows the package's actual use. Use `Example`, `Commands`,
@@ -241,15 +218,13 @@ or `Configuration` as appropriate rather than adding every heading.
 | Package purpose | Example shape | Context and result |
 | --- | --- | --- |
 | Rust library | A short public-API call or declaration with an observable result. | Identify required features, application-owned values, and runtime initialization. |
-| CLI | A representative command or short workflow; optionally a `Command` / `Purpose` table. | State the working directory and input, then describe output and file or state changes. |
+| CLI | A representative command or short workflow; optionally a `Command` / `Purpose` table. | State the working directory and required inputs, then describe output and file or state changes. |
 | Configuration parser or loader | A minimal valid file in its actual format. | Name the file, its location, its consuming API or tool, and its effect. |
-| Protocol or tool integration | A representative request, message, or payload. | Name the operation, distinguish a payload from a complete message, and show or describe the response or effect. |
+| Protocol or tool integration | A representative request, message, or payload. | Name the tool, operation, or endpoint, distinguish a payload from a complete message, and show or describe the response or effect. |
 
-For excerpts, label the missing host context and link a maintained complete
-example. Verify that the excerpt agrees with that example and report what its
-existing harness validates. Keep shared behavior in its owning API reference or
-crate README; retain only the detail needed to understand this example and use
-the package correctly.
+Apply [Usage examples](../SKILL.md#usage-examples) for complete examples and
+excerpts, and [Keep documentation single-sourced](../SKILL.md#keep-documentation-single-sourced)
+for shared behavior. Report what the example's existing harness validates.
 
 ## Acceptance cases
 

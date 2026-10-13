@@ -13,7 +13,7 @@ A repository standard is an explicit working agreement or a repeated or canonica
 - public entry points, exported APIs, examples, docs, schemas, CLI help, or generated outputs;
 - tests that encode expected behavior or review workflow.
 
-A maintainer instruction establishes intended policy, not proof that code already follows it. Verify referenced commands and paths separately. Do not discard a working agreement solely because it is not enforced by tooling or repeated outside `AGENTS.md`.
+Apply the [claim classes and policy-versus-implementation distinction](evidence-and-scope.md#claim-classes) to these sources. Do not discard a working agreement solely because it is not enforced by tooling or repeated outside `AGENTS.md`.
 
 ## Inference rules
 
@@ -22,7 +22,7 @@ A maintainer instruction establishes intended policy, not proof that code alread
 - Infer workspace ownership from manifests, package metadata, README links, exported modules, docs, examples, and directory layout.
 - Infer public contract surfaces from user-facing docs, CLI behavior, schemas, protocols, macro diagnostics, examples, package exports, SDKs, and API docs.
 - Infer synchronization rules only for docs, examples, generated outputs, fixtures, snapshots, and `AGENTS.md` guidance that exist.
-- Include local coding, testing, security, compatibility, dependency, and review conventions when they materially affect correct work; they need not affect routing or synchronization.
+- Include useful evidenced or explicitly requested local conventions for implementation, error handling, testing, compatibility, security, dependencies, and review, even when they do not affect routing, ownership, synchronization, or validation. Do not add language-specific rules merely because a language appears in the repository. `AGENTS.md` may itself establish a maintainer's working agreement; it need not repeat a policy already documented elsewhere.
 - Prefer explicit applicable requirements over inferred practice. Report conflicting code or docs as drift instead of silently weakening the requirement.
 
 ## What not to infer
@@ -37,7 +37,7 @@ Keep these out of mandatory generated guidance unless already evidenced or expli
 - language-specific style rules with no local evidence or explicit requirement;
 - broad modernization advice.
 
-A request for proposals does not authorize presenting a proposed policy as adopted. When a maintainer does adopt a rule, describe it as a requirement without claiming the implementation or tooling already satisfies it.
+Use the [claim classes](evidence-and-scope.md#claim-classes) to distinguish recommendations from adopted requirements. In audits and proposals, identify recommendations separately. In an `AGENTS.md` patch, exclude unsupported recommendations from mandatory guide text and mention them separately only when directly relevant.
 
 ## Evidence ledger shape
 

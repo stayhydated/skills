@@ -13,8 +13,8 @@
 
 - [ ] The chapter names its audience and the maintenance decision it supports.
 - [ ] Contract, invariant, current implementation, rationale, limitation, and proposal are not conflated.
-- [ ] Material claims are verified against code, tests, schemas, configuration, or runtime evidence.
-- [ ] Uncertainty and version dependence are explicit.
+- [ ] Material claims have traceable evidence and are verified against code, tests, schemas, configuration, or runtime evidence.
+- [ ] Conflicts, inference, uncertainty, and version dependence are explicit.
 - [ ] Incidental implementation detail has been removed.
 
 ## Language and source integrity
@@ -23,7 +23,6 @@
 - [ ] Source symbols, configuration keys, log text, protocol terms, product names, and quotations remain exact.
 - [ ] Established domain terminology has not been renamed solely for house style.
 - [ ] Non-en-US locale trees and translation catalogs are unchanged.
-- [ ] Material claims have traceable evidence; conflicts, inference, and uncertainty are explicit.
 - [ ] Examples and source excerpts contain no secrets, credentials, personal data, or unsafe production values.
 
 ## Architecture and behavior
@@ -54,15 +53,14 @@
 - [ ] Procedures longer than ten steps use phases, verification points, and rollback boundaries when the workflow supplies them.
 - [ ] A subsystem, lifecycle, or flow with its own contract, state model, operational signals, failure behavior, or change guide has a focused page when appropriate.
 - [ ] One-sentence sections have a stable anchor, decision-status, or navigation purpose; otherwise, they are merged.
-- [ ] Each table has one comparison dimension, each code sample establishes one primary contract or extension pattern, and each diagram answers one engineering question.
 - [ ] The principal flow remains visible; edge cases and exhaustive detail do not dominate it.
 
 ## Tables, code, and diagrams
 
-- [ ] Tables have a clear comparison dimension and concise cells.
-- [ ] Code snippets establish a contract, invariant, schema, or extension pattern.
+- [ ] Each table has one clear comparison dimension and concise cells.
+- [ ] Each code snippet establishes one primary contract, invariant, schema, or extension pattern.
 - [ ] Source includes use stable anchors when available.
-- [ ] Diagrams answer a specific question and stay at one abstraction level.
+- [ ] Each diagram answers one engineering question and stays at one abstraction level.
 - [ ] Diagram edges, asynchronous boundaries, persistence, and external systems are labeled where material.
 - [ ] Mermaid or other extended syntax is supported by the book configuration, build tooling, dependencies, and renderer version.
 - [ ] Every diagram has a textual conclusion or associated invariants.

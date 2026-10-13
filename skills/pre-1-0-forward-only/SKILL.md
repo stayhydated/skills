@@ -95,12 +95,12 @@ For pre-1.0 crates and workspaces without an explicit compatibility promise:
   documented workflow as the contract, subject to the release boundary above.
 - Apply this as task procedure; do not add a standing pre-1.0 policy sentence to
   durable docs or `AGENTS.md` solely because a manifest version is below `1.0`.
-- Within an authorized change, move implementation, public exports, tests,
+- Within an authorized change, update implementation, public exports, tests,
   examples, generated outputs, README text, crate docs, and `AGENTS.md` guidance
-  to the current shape together when they name the changed surface. Report
-  required follow-up changes that fall outside the requested write scope.
-- Remove obsolete docs, tests, examples, and expectation files once they no
-  longer describe the current behavior, only within the authorized edit scope.
+  to the current shape together when they name the changed surface. Remove
+  obsolete supporting artifacts, including expectation files, that no longer
+  describe current behavior. Keep updates and removals within the requested
+  write scope and report required follow-up changes outside it.
 - Avoid adding legacy aliases, compatibility wrappers, deprecated exports,
   migration layers, old command paths, or "keep the old API" wording solely for
   backward compatibility when an appropriate incompatible release is intended.

@@ -150,49 +150,10 @@ substitute for explicit ownership transfer.
 
 ## Assertion idiom
 
-Use `assert_matches!` when the contract is one structured pattern and seeing the
-mismatched value improves the failure:
-
-```rust
-use std::assert_matches;
-
-#[derive(Debug, PartialEq, Eq)]
-enum ParseError {
-    Empty,
-    MissingSeparator,
-}
-
-fn parse_marker(input: &str) -> Result<&str, ParseError> {
-    if input.is_empty() {
-        return Err(ParseError::Empty);
-    }
-
-    input
-        .split_once(':')
-        .map(|(_, marker)| marker)
-        .ok_or(ParseError::MissingSeparator)
-}
-
-#[test]
-fn empty_marker_is_rejected() {
-    assert_matches!(parse_marker(""), Err(ParseError::Empty));
-}
-```
-
-Use `std::assert_matches` for ordinary tests and doctests, and
-`core::assert_matches` in `no_std` test contexts. If the repository explicitly
-supports a lower MSRV, preserve an assertion idiom that compiles on that lane.
-Do not rewrite clearer assertions merely to use the macro:
-
-- keep `assert_eq!` when equality is the contract;
-- keep `assert!` with a useful message for boolean properties;
-- use structural assertions when several fields matter;
-- use snapshots or goldens for large deterministic output;
-- use compile-fail/UI tests when compiler rejection or diagnostics are the
-  contract.
-
-`debug_assert_matches!` is not an ordinary test assertion. Use it only when the
-contract is intentionally debug-assertion-dependent.
+Follow [assertion guidance](automated-testing.md#prefer-assert_matches-for-variant-checks)
+for the `assert_matches!` rule, imports, example, and alternatives. The macro
+stabilized in Rust 1.96; preserve an idiom that compiles on an explicitly declared
+lower-MSRV lane.
 
 ## Test range provenance, not value search
 
@@ -293,7 +254,8 @@ are usually the wrong test form.
 
 ## Test encoding and typed parsing
 
-For endian-specific UTF-16 constructors, cover:
+Endian-specific UTF-16 decoding is portable; fixtures must state byte order
+explicitly. For those constructors, cover:
 
 - valid little-endian and big-endian byte sequences;
 - surrogate pairs;
@@ -336,47 +298,20 @@ crossing a thread boundary.
 
 ## Cargo 1.99 configuration effects
 
-Inspect `.cargo/config.toml`, manifests, and applicable parent or user
-configuration before interpreting a command:
-
-- edition-2024 members can override an inherited dependency's `default-features`,
-  including disabling defaults enabled in the workspace declaration; test the
-  member in isolation and relevant workspace combinations because other edges
-  can still enable those features through unification;
-- the new built-in `debug` profile currently inherits `dev`; it is not the
-  `debug` debuginfo setting, and its presence does not change ordinary tests
-  from the `test` profile to `debug`;
-- incremental compilation is disabled by default when Cargo detects CI through
-  the `CI` environment variable; inspect explicit settings and
-  `CARGO_INCREMENTAL` before comparing build timings or cache behavior;
-- `build.warnings = "deny"` turns adjustable lint warnings in local packages into
-  command failures; report that as warning-policy evidence, not automatically as
-  a behavioral regression;
-- `resolver.lockfile-path` selects the `Cargo.lock` used by resolution and
-  `--locked`; identify that path instead of assuming the workspace-root lockfile;
-- configuration may come from parent directories or Cargo home, so a repository
-  file is not always the complete active configuration.
-
-See [workspace dependency inheritance](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#inheriting-a-dependency-from-a-workspace)
-and [Cargo profiles](https://doc.rust-lang.org/cargo/reference/profiles.html).
-Do not assume earlier editions or lower-Cargo lanes interpret the new override
-identically. Do not confuse nightly-only Cargo changelog items with stable
-behavior.
+Follow [Cargo's default behavior and configuration boundaries](cargo-test-semantics.md#default-behavior-to-account-for)
+for inherited dependency overrides, profile selection, CI incremental defaults,
+warning policy, lockfile selection, and lower-Cargo lanes. Inspect
+[active configuration sources](cargo-test-semantics.md#working-directories-configuration-and-environment)
+before interpreting a command. `build.warnings` and `resolver.lockfile-path`
+stabilized in Cargo 1.97 and are carried forward on this baseline.
 
 ## Doctest and rustdoc effects
 
-On Rust 1.99, attributes that do not apply to anything in a doctest are errors.
-Fix the example or hidden setup; do not add `ignore` to hide an unattached
-attribute. `doc(cfg(...))` is no longer considered when filtering doctests:
-inspect actual `cfg` gates and run the applicable feature/target combinations
-rather than treating documentation annotations as execution guards.
-
-The new `rustdoc::unused_footnote_definition` lint affects documentation checks.
-Run the repository's documentation lint/build command when that surface changes;
-a successful doctest run alone does not establish warning-free rendered docs.
-
-When a doctest uses `assert_matches!`, hide the import so the rendered example
-stays focused:
+Use [doctest compatibility guidance](doctests-and-examples.md#rust-199-compatibility)
+for unattached attributes, `doc(cfg(...))`, and the
+`rustdoc::unused_footnote_definition` lint. Follow
+[rustdoc mechanics](doctests-and-examples.md#rustdoc-mechanics) for hidden setup.
+Hidden assertion imports keep the rendered example focused:
 
 ````rust
 /// # Examples
@@ -389,11 +324,8 @@ stays focused:
 # fn _example() {}
 ````
 
-Preserve repository rustdoc commands that use `--emit`,
-`--remap-path-prefix`, or cfg-specific `rustdocflags`. Emitted artifact paths and
-remapped paths can be part of generated-output review. A plain
-`cargo test --doc` does not necessarily reproduce a custom rustdoc pipeline.
-`cargo-nextest` does not replace a separate doctest run.
+Follow [doctest validation](doctests-and-examples.md#validation) for custom rustdoc
+pipelines, emitted/remapped artifacts, and separate execution alongside nextest.
 
 ## Compiler and expectation-file compatibility
 
@@ -415,6 +347,7 @@ behavioral source change. Review the relevant new surfaces:
   invocations can add diagnostics;
 - inferred `let` pattern types, never-type method resolution, and associated
   constant lifetimes can change typechecking or diagnostics;
+- legacy integral module deprecations can add warnings in compiler-facing fixtures;
 - debug escaping no longer escapes U+FF9E and U+FF9F, which can change string,
   stderr, or golden output;
 - `transmute_copy` accepts `?Sized` input and uses a non-unwinding panic for its

@@ -9,20 +9,11 @@
 * [Keep macro emitters syntactic](#make-macro-emitters-own-syntax-only)
 * [Test generator contracts](#test-the-generator-contract)
 * [Synchronize generated output](#keep-generated-output-and-sources-in-sync)
-* [Adopt templates selectively](#use-templates-when-they-improve-maintenance)
 
-Use a template engine for generated Rust files when correctness and reviewability
-depend on seeing the emitted file shape clearly. Templates are most useful for
-checked-in or human-reviewed `.rs` files with nested modules, repeated item
-groups, exact indentation, generated documentation, or several generated files
-with shared structure.
-
-Do **not** use text templates for procedural macros. Derive macros, attribute
-macros, function-like macros, and other token-stream-oriented Rust generation
-should be implemented with `syn`, `quote`, and `proc_macro2`. Askama, Jinja,
-Handlebars, and similar text-template engines must never be considered for macro
-expansion code. A macro emitter should be Rust code that parses Rust syntax,
-builds a typed semantic model, and emits tokens.
+Choose a renderer for the generated surface using
+[Choose the Smallest Renderer](#choose-the-smallest-renderer). File generation
+and procedural macro expansion share an explicit pipeline but use different
+rendering surfaces.
 
 Keep the generator pipeline explicit.
 
@@ -71,6 +62,9 @@ Prefer the renderer that matches the generated surface:
 Do not introduce a template engine only to replace a short direct renderer. Do
 not introduce a second code-generation style into a repository that already has a
 clear renderer unless the generated output has become hard to audit or maintain.
+Templates can improve reviewability for nested modules, repeated item groups,
+exact indentation, generated documentation, or files with shared structure.
+Typed template engines can also catch missing view-model fields at compile time.
 
 Never introduce Askama, Jinja, Handlebars, or another text-template engine into a
 proc-macro expansion path. A macro that is becoming too large should be split into
@@ -523,16 +517,3 @@ For proc macros, validate through the repository's macro test workflow. Prefer
 focused expansion tests plus compile-pass or compile-fail tests over manually
 inspecting token strings. When macro output is part of a public API, compile at
 least one representative downstream use or fixture crate.
-
-## Use Templates When They Improve Maintenance
-
-Prefer a template when it reduces dense `writeln!` blocks, makes checked-in
-generated file structure easier to review, or lets compile-time checks catch
-missing fields. Keep direct rendering when the output is only a few lines, the
-output is naturally a token stream, or adding a template engine would create a
-second pattern in a codebase with a settled renderer style.
-
-Do not use templates for procedural macros. When the task is a derive macro,
-attribute macro, function-like macro, or any other macro-generated Rust surface,
-use `syn` to parse, a typed semantic model to validate, and `quote` /
-`proc_macro2` to emit tokens.

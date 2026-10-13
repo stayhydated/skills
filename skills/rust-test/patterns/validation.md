@@ -14,7 +14,8 @@
 
 Use the narrowest command that proves the affected behavior. Do not invent repository-specific commands; inspect manifests, CI, runner files, and docs first. Generic `cargo` commands are appropriate only when they are directly runnable in the repository and match the affected package, target, feature, or test surface.
 
-Before reporting validation, account for Cargo test semantics: package selection, target selection, feature selection, doctests, examples, integration test targets, test filters, arguments after `--`, build parallelism, runtime test parallelism, package `rust-version`, MSRV, and applicable Cargo configuration. Use `patterns/cargo-test-semantics.md` for command interpretation.
+Before reporting validation, use [Cargo test semantics](cargo-test-semantics.md)
+to establish the selected contracts and active configuration.
 
 ## Command selection
 
@@ -37,12 +38,6 @@ Use only when evidenced or directly runnable in the repository:
 - `cargo test -p <crate> --test <integration_test>` for a specific integration test target.
 - `cargo test -p <crate> --example <example_name>` when an example target has tests or must compile.
 - `cargo test -p <crate>` for one crate.
-- `cargo test -p <crate> --no-default-features` for behavior or compilation with default features disabled.
-- `cargo test -p <crate> --all-features` for all compatible feature flags.
-- `cargo test -p <crate> --features <feature>` for a specific feature-gated contract.
-- `cargo test -p <crate> --features <feature_a>,<feature_b>` for a specific compatible feature combination.
-- `cargo check -p <crate> --target <target>` for target-specific compilation when the target cannot run in the current environment.
-- `cargo test -p <crate> --target <target>` when the target can run in the environment.
 - `cargo test --doc -p <crate>` for doctests.
 - `cargo test -p <crate> -- --test-threads=1` only when serial runtime execution is required by repository policy or the test contract.
 - `cargo insta test` and `cargo insta review` when `cargo-insta` is part of the workflow.
@@ -55,27 +50,14 @@ Use only when evidenced or directly runnable in the repository:
 
 ## Cargo argument and configuration boundaries
 
-Do not confuse Cargo arguments with test harness arguments:
-
-- Cargo/package/feature/target arguments go before `--`.
-- Libtest/test-harness arguments go after `--`.
-- `-j <n>` controls Cargo build parallelism.
-- `-- --test-threads=<n>` controls libtest runtime test parallelism.
-
-On Cargo 1.99, also inspect applicable configuration:
-
-- `build.warnings = "deny"` can turn local-package lint warnings into command failures;
-- `resolver.lockfile-path` changes the lockfile used by resolution and `--locked`;
-- edition-2024 members can override inherited dependency `default-features`, but other dependency edges may still enable those features through unification;
-- the new built-in `debug` profile currently inherits `dev`, while ordinary `cargo test` still uses `test`; distinguish an explicitly selected profile from the `debug` debuginfo setting;
-- incremental compilation is disabled by default when the `CI` environment variable indicates CI; inspect explicit configuration and `CARGO_INCREMENTAL` before interpreting cache or build-time differences;
-- configuration may come from parent directories or the user's Cargo home, not only the repository.
-
-See [Cargo test semantics](cargo-test-semantics.md) for release references and
-lower-Cargo boundaries. `build.warnings` and `resolver.lockfile-path` stabilized
-in Cargo 1.97; they are carried-forward configuration, not new 1.99 features.
-
-Do not claim a command validates doctests, examples, all packages, all targets, all features, a particular lockfile, or binary behavior unless those surfaces were selected and the applicable configuration was verified. Check reported counts and ignored tests: a green command that ran zero matching tests is not behavioral validation. Report compile-only checks separately from execution.
+Use [Cargo argument and configuration semantics](cargo-test-semantics.md#default-behavior-to-account-for)
+for Cargo versus libtest arguments, build versus runtime parallelism, profiles,
+feature inheritance, warning policy, CI incremental defaults, and lockfile
+selection. Check [active configuration sources](cargo-test-semantics.md#working-directories-configuration-and-environment)
+and the [target-selection limits](cargo-test-semantics.md#test-target-selection)
+before claiming what a command proves. Report compile-only checks separately
+from execution, and verify reported counts and ignored tests rather than treating
+zero matching tests as behavioral validation.
 
 ## cargo-nextest guidance
 
@@ -89,80 +71,44 @@ When the repository uses cargo-nextest:
 
 ## Feature, target, and MSRV validation
 
-Treat feature flags, `cfg` gates, target triples, `no_std`, WASM, embedded support, Rust 1.99-sensitive compiler, doctest, formatting, and target behavior, and MSRV as part of the test contract when affected. Useful evidence includes manifests, package `rust-version`, CI matrices, `.cargo/config.toml`, `rust-toolchain.toml`, README support claims, package metadata, and existing target-specific tests.
+Use the [feature, target, and MSRV pattern](feature-msrv-matrix.md) to identify the
+affected axes, choose [focused matrix commands](feature-msrv-matrix.md#focused-matrix-commands),
+and apply [cargo-hack guidance](feature-msrv-matrix.md#cargo-hack-guidance) within
+the skill's dependency boundary.
 
-Validation examples, only when applicable:
+For target-specific doctests, follow the
+[doctest execution and compilation boundary](doctests-and-examples.md#validation):
+a target check does not prove doctests. Report an existing verified
+snippet-compilation workflow separately from execution, or mark those doctests
+not run.
 
-- `cargo test -p <crate> --no-default-features` for disabled-default support.
-- `cargo test -p <crate> --all-features` when features are compatible.
-- `cargo test -p <crate> --features <feature_a>,<feature_b>` for specific feature combinations.
-- `cargo check -p <crate> --target <target>` for cross-target compilation.
-- `cargo test -p <crate> --target <target>` when the target can run locally or in the configured environment.
-- Repository-specific MSRV commands only when documented or present in CI.
-- `cargo test --doc -p <crate> --target <target>` when target-specific doctests are part of the contract and the target can compile and execute locally or through a working runner.
-
-For targets that cannot execute, follow the compilation-only boundary in
-`patterns/doctests-and-examples.md`. A successful target check does not prove
-doctests; report any verified snippet-compilation workflow separately from
-execution, or mark those doctests not run.
-
-Use `cargo hack` only when the repository already uses it or the recommendation is clearly labeled as **Recommended**. Common recommended shapes include:
-
-- `cargo hack --each-feature --no-dev-deps check`
-- `cargo hack --feature-powerset --no-dev-deps check`
-- `cargo hack --feature-powerset --depth 2 --no-dev-deps check`
-- `cargo hack --version-range <min>..=<max> check`
-
-Disclose mutually exclusive features, missing target toolchains, unavailable linkers, MSRV toolchain gaps, Rust 1.99-only APIs or configuration that were not safe for an explicitly declared lower MSRV, or target tests that could be checked but not executed.
+Disclose mutually exclusive features, missing target toolchains, unavailable
+linkers, MSRV toolchain gaps, baseline APIs or configuration unavailable on an
+explicitly declared lower-MSRV lane, and target tests checked but not executed.
 
 ## Rust 1.99-specific validation
 
-Use `patterns/rust-1-99-testing-baseline.md` when a patch or recommendation
-depends on Rust 1.99. Apply these rules narrowly:
+Use the [baseline pattern](rust-1-99-testing-baseline.md) for detailed API edge
+cases, compiler/expectation compatibility, and target contracts. Select validation
+that proves the affected contract:
 
-- For owned lossy UTF-8 conversion and error recovery, test valid, empty,
-  invalid, and truncated input without replacing a strict-decoding contract or
-  assuming allocation reuse.
-- For `VecDeque::retain_back(n)`, cover retained order, zero, empty input, and
-  lengths equal to or above the current length. Test boxed-array iteration for
-  the public ownership and borrowing contract.
-- For `assert_matches!` changes, run the smallest package/test-target command that
-  exercises the assertion; run doctests separately when the macro appears there.
-- For `substr_range` or `subslice_range`, test source-derived repeated and empty
-  views; cover zero-sized slice elements only when the panic is part of the
-  contract.
-- For `strip_circumfix`, cover both matches, each missing side, and overlap.
-- For `NumBuffer`/`format_into`, run correctness tests and use the repository's
-  benchmark only when allocation or throughput is claimed.
-- For `algebraic_*` floats, validate documented tolerances and invariants in the
-  relevant optimization profile; exact bits and evaluation order are not a
-  stable oracle.
-- For endian-specific UTF-16 and non-zero radix parsing, cover strict and lossy
-  behavior, invalid input, byte order, zero, radix, and range boundaries.
-- For atomic views, run target-aware compile/tests under the applicable
-  `target_has_atomic` and `target_has_atomic_primitive_alignment` cfgs, plus the
-  configured concurrency evidence; host support does not prove every target.
-- For non-null ownership transfer, raw layout queries, pinning, C variadics, or
-  filesystem timestamps, select safe-wrapper, ABI, and platform tests that
-  exercise the documented invariants; host functional tests do not prove
-  soundness, cross-target calling conventions, or filesystem precision.
-- When `build.warnings = "deny"` is active, distinguish lint-policy failures from
-  test failures. When `resolver.lockfile-path` is active, identify the selected
-  lockfile before claiming `--locked` validation.
-- For inherited default-feature overrides, test the affected edition-2024 member
-  and relevant workspace combinations, and verify behavior on any lower-Cargo
-  lane instead of assuming feature unification or configuration support.
-- For doctests, fix unattached attributes and validate actual feature/target
-  gates rather than relying on `doc(cfg(...))`; use the documentation build/lint
-  command separately for `rustdoc::unused_footnote_definition`.
-- For compiler diagnostics, auto-traits, repr/transmute checks, escaping,
-  temporary scopes, rustfmt `cfg_select!` discovery, or target compatibility,
-  update expectations only through the repository workflow and review the diff.
-  Cover exported-macro diagnostics through a separate-crate integration test.
-- For exhausted `RangeInclusive`, assert yielded values and exhaustion rather
-  than unspecified endpoints. Do not use `catch_unwind` or ordinary
-  `#[should_panic]` to recover from a `transmute_copy` size-check failure, which
-  uses a non-unwinding panic on 1.99.
+- Run the smallest package/test-target command for an assertion change, with a
+  separate doctest run when the assertion appears there.
+- Validate algebraic floating-point tolerances in the relevant optimization
+  profile. Use the repository's benchmark workflow when allocation, throughput,
+  or vectorization is the claim.
+- Pair target-aware compilation with the configured runtime, concurrency,
+  safe-wrapper, ABI, or platform evidence when the contract requires it. Host
+  functional tests alone do not prove soundness, cross-target calling
+  conventions, or filesystem precision.
+- Apply [Cargo configuration boundaries](cargo-test-semantics.md#default-behavior-to-account-for)
+  and [matrix discipline](feature-msrv-matrix.md#rust-199-specific-matrix-notes)
+  before reporting selected features, profiles, warning policy, or lockfiles.
+- Apply [doctest compatibility guidance](doctests-and-examples.md#rust-199-compatibility)
+  to actual feature/target gates; run the documentation build/lint command
+  separately when rustdoc lint behavior is affected.
+- Regenerate expectations through the repository workflow and review the diff
+  using [baseline compatibility notes](rust-1-99-testing-baseline.md#compiler-and-expectation-file-compatibility).
 
 ## Expectation-file handoff
 
@@ -192,9 +138,6 @@ Use coverage or mutation-testing results only as supporting evidence. Do not int
 
 ## Validation wording
 
-Use exact validation wording:
-
-- `Validated with: <command>` only when the command ran successfully.
-- `Attempted validation with: <command>` when the command ran but failed; include the relevant failure summary and whether the failure appears related to the change.
-- `Reviewed only; not executed because: <reason>` for static review without execution.
-- `Not validated; missing repo access / command unavailable / outside requested scope: <reason>` when validation was not possible or not attempted.
+Use the exact [validation status templates](../SKILL.md#final-response-format)
+from the skill entrypoint, including failure summaries and whether attempted
+validation failures appear related to the change.

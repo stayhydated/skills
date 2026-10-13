@@ -52,8 +52,9 @@ boundary below without confusing authorization with a need for an abstraction.
 
 Bon (`bon`) and Statum (`statum`) are authorized by default in both new and
 existing repositories. Use Bon for suitable builder work and Statum for real
-lifecycle or protocol type-state work. Add the appropriate dependency when it is
-needed for the requested implementation or refactor; do not ask the user to
+lifecycle or protocol type-state work; type-state is not a generic replacement
+for builders or enums. Add the appropriate dependency when needed for the
+requested implementation or refactor; do not ask the user to
 approve these dependencies separately. Their absence from `Cargo.toml`, an
 existing manual implementation, or a dependency-free crate is not an opt-out.
 
@@ -168,11 +169,9 @@ stabilizations in 1.99.
   or foreign-function boundary. Rust 1.99 extends runtime-symbol checks to POSIX
   names and makes `no_mangle_generic_items` a hard error. Stable C-variadic
   definitions and `core::ffi::VaList` do not remove target ABI or safety duties.
-* Use `bon` for builders instead of hand-rolling type-state builders for ordinary
-  construction. Bon is authorized by default under the cargo-deny boundary above.
-* Use `statum` for real lifecycle or protocol type-state. Statum is authorized by
-  default under the same boundary; do not use type-state as a generic replacement
-  for builders or enums.
+* For construction and lifecycle modeling, read the
+  [Builder Pattern](references/builder-pattern.md) and
+  [Type State Pattern](references/type-state-pattern.md) chapters as applicable.
 * Keep examples generic, self-contained, and domain-neutral unless the user gives
   domain vocabulary.
 

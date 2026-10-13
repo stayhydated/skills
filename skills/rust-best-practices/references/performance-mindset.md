@@ -116,25 +116,9 @@ assert!(fan_out(&table, 0).is_empty());
 
 ## Static Dispatch First
 
-Generic functions are monomorphized, which allows inlining and optimization at the
-cost of compile time and possible binary growth.
-
-```rust
-trait Score {
-    fn score(&self) -> u64;
-}
-
-fn best_score<T>(items: &[T]) -> Option<u64>
-where
-    T: Score,
-{
-    items.iter().map(Score::score).max()
-}
-```
-
-Use `dyn Trait` for runtime heterogeneity or deliberate type erasure, including
-measured compile-time or code-size improvements. Compare the relevant costs
-rather than treating either dispatch choice as universally faster.
+Measure runtime dispatch, compile time, and binary size together; neither static
+nor dynamic dispatch is universally faster. For API choices and examples, use
+[Generics, Static Dispatch, and Dynamic Dispatch](generics-static-and-dynamic-dispatch.md).
 
 ## Use Layout-Aware Types
 

@@ -11,17 +11,18 @@ Use this pattern before selecting validation commands or explaining what a Rust 
 - Target selection changes both compilation and executability. Ordinary doctests also execute target binaries and need a working runner when they cannot run locally. Cross-target validation may be limited to `cargo check` when the target cannot run in the current environment; that check does not validate doctests.
 - Arguments before `--` are Cargo arguments. Arguments after `--` are test harness arguments, such as a libtest filter option or `--test-threads=1`.
 - `-j <n>` controls Cargo build parallelism. `-- --test-threads=<n>` controls libtest runtime test parallelism.
-- On Cargo 1.99, `build.warnings = "deny"` can turn adjustable lint warnings in local packages into command failures.
+- On Cargo 1.99, `build.warnings = "deny"` can turn adjustable lint warnings in local packages into command failures. Report this as warning-policy evidence, not automatically as a behavioral regression.
 - On Cargo 1.99, `resolver.lockfile-path` can select a non-default `Cargo.lock`; `--locked` applies to that configured lockfile. These two settings were stabilized in Cargo 1.97, not 1.99.
-- Cargo 1.99 lets edition-2024 members override inherited dependency `default-features`. Inspect both workspace and member declarations, then check feature unification: disabling defaults on one edge does not turn off features enabled by another edge.
+- Cargo 1.99 lets edition-2024 members override inherited dependency `default-features`, including disabling defaults enabled in the workspace declaration. Inspect both workspace and member declarations, then test the affected member in isolation and relevant workspace combinations: disabling defaults on one edge does not turn off features enabled by another edge.
 - Cargo 1.99 adds a built-in `debug` profile that currently inherits `dev`. Ordinary `cargo test` still uses the `test` profile; record an explicitly selected profile instead of confusing it with the `debug` debuginfo setting.
 - Cargo 1.99 disables incremental compilation by default when the `CI` environment variable indicates CI. Inspect explicit configuration and `CARGO_INCREMENTAL` when interpreting build-time or cache differences; this does not change libtest runtime parallelism.
 
 See [workspace dependency inheritance](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#inheriting-a-dependency-from-a-workspace),
 [Cargo profiles](https://doc.rust-lang.org/cargo/reference/profiles.html), and the
 [Rust 1.99 release notes](https://doc.rust-lang.org/releases.html#version-1990-2026-10-01).
-Validate lower-Cargo lanes separately, especially when member overrides depend on
-the new edition-2024 behavior.
+Validate lower-Cargo lanes separately; do not assume earlier editions or older
+Cargo interpret the new edition-2024 override identically. Distinguish stable
+behavior from nightly-only Cargo changelog items.
 
 ## Test target selection
 

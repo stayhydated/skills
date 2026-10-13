@@ -20,7 +20,7 @@ Before adding project-specific instructions, classify each claim:
 | Class | Meaning | Can become mandatory guide text? |
 | --- | --- | --- |
 | **Observed** | Directly found in repository files or explicit maintainer instructions, including working agreements established in the current request. | Yes; distinguish intended policy from implementation facts. |
-| **Inferred** | Strongly implied by repeated local practice, manifests, imports, layout, generated files, examples, tests, or CI. | Yes, when stated narrowly and consistent with explicit requirements. |
+| **Inferred** | Strongly implied by repeated local practice, workspace structure, public entry points, manifests, imports, layout, generated files, examples, tests, or CI. | Yes, when stated narrowly and consistent with explicit requirements. |
 | **Recommended** | Plausible or useful, but neither current repository truth nor an adopted maintainer requirement. | No, unless the maintainer explicitly adopts it; asking for proposals is not adoption. |
 
 An explicit maintainer instruction or existing `AGENTS.md` rule can establish intended policy without matching code, CI enforcement, or another document. It does not prove that a referenced path or command exists, that implementation follows the policy, or that a check succeeds. Verify factual details separately and report discrepancies without silently replacing the requirement with observed behavior.
@@ -31,7 +31,7 @@ Keep a brief evidence ledger while drafting or patching. It may stay internal un
 
 ### Draft
 
-Inspect explicit maintainer requirements, the top-level tree, existing root or nested `AGENTS.md`, README or contributor docs, repository manifests, CI workflows, runner files when present, and the docs/examples/tests/generated outputs that may be named. Look for useful coding conventions, constraints, pitfalls, and completion requirements as well as routing information.
+Inspect explicit maintainer requirements, the top-level tree, existing root or nested `AGENTS.md`, README or contributor docs, repository manifests, lockfiles, workspace configuration, package metadata, CI workflows, runner files when present, and the docs/examples/tests/generated outputs that may be named. Look for useful coding conventions, constraints, pitfalls, and completion requirements as well as routing information.
 
 ### Patch
 
@@ -43,11 +43,13 @@ Inspect the `AGENTS.md` guide and enough repository evidence and stated requirem
 
 ### Alignment
 
-Compare the guide against explicit requirements, CI, runner files, manifests, lockfiles, README/contributor docs, relevant code conventions, generated-output sources, examples, tests, and scoped `AGENTS.md` guidance. Distinguish stale factual claims from implementation that does not yet satisfy intended policy. Report drift without applying corrections.
+Compare the guide against explicit requirements, the top-level tree, CI, runner files, manifests, lockfiles, workspace configuration, package metadata, README/contributor docs, relevant code conventions, generated-output sources, examples, tests, and scoped `AGENTS.md` guidance. Distinguish stale factual claims from implementation that does not yet satisfy intended policy. Report drift without applying corrections.
 
 ### Checklist
 
 Inspect the `AGENTS.md` guide and every file or requirement needed for checked items. Mark unsupported items `Not checked` instead of guessing. Report failures without applying corrections.
+
+For large repositories, inspect every named surface and representative evidence for each claimed workflow category. If full coverage is impractical, state what was inspected, mark remaining areas as not checked, and avoid repository-wide claims for uninspected categories.
 
 ## Repository inspection playbook
 
@@ -148,10 +150,8 @@ Before handoff, search the output for:
 
 ## Recommendation boundary
 
-Recommendations are useful in audits and proposals, but are not adopted working agreements. Do not present a preferred tool, dependency, framework, package manager, test library, type checker, linter, formatter, or workflow as current policy unless repository evidence or explicit maintainer adoption supports it. A request for suggestions alone is not adoption.
-
-When the user asks for an `AGENTS.md` patch, exclude unsupported recommendations from mandatory guide text and mention them separately only when they are directly relevant.
+Apply the [standards adoption boundary](standards-inference.md#what-not-to-infer) when handling recommendations in audits, proposals, or patched guides.
 
 ## Other languages and tools
 
-Include language or tool guidance when it materially helps an agent work correctly in the repository. Local implementation conventions and working agreements are valid even when they are unrelated to routing or synchronization. Use observed evidence, explicit requirements, and narrowly inferred local practices; do not invent language-specific rules from ecosystem preferences.
+Use the [local-standards inference rules](standards-inference.md#inference-rules) for language and tool guidance.

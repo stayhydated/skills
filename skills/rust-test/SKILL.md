@@ -45,49 +45,16 @@ Assume **Rust 1.99 stable** and **edition 2024** unless the repository explicitl
 declares a lower MSRV or the user gives a different target. Respect existing
 `rust-toolchain.toml`, CI, `Cargo.toml`, workspace lints, target support, and
 public API stability before introducing an API that exceeds the declared MSRV.
-Keep version-specific guidance test-scoped:
+Read [the baseline pattern](patterns/rust-1-99-testing-baseline.md) for API edge
+cases, compiler/expectation compatibility, and target-specific contracts. It
+distinguishes the [Rust 1.99 release delta](https://doc.rust-lang.org/releases.html#version-1990-2026-10-01)
+from carried-forward behavior; earlier stabilization dates are not reset by this
+baseline update.
 
-- use stable `assert_matches!` for a single structured pattern when it improves
-  mismatch output; import `std::assert_matches` in ordinary tests and doctests or
-  `core::assert_matches` in `no_std` contexts;
-- keep `assert_eq!`, boolean assertions with useful messages, structural field
-  assertions, snapshots, goldens, and UI tests when those better express the
-  contract;
-- test owned lossy UTF-8 decoding with valid, empty, invalid, and truncated bytes;
-  test recovery through `FromUtf8Error::into_utf8_lossy` separately from strict
-  rejection, without assuming allocation reuse;
-- test `VecDeque::retain_back(n)` for retained order, zero, and lengths at or
-  above the current length; test boxed-array iteration according to whether the
-  public API moves or borrows elements;
-- test `str::substr_range` and `[T]::subslice_range` as provenance-based range
-  recovery, including source-derived empty views and the slice method's
-  zero-sized-type panic where relevant; do not test them as value search;
-- test `strip_circumfix` for both-boundaries-present, one-boundary-missing, and
-  overlap cases;
-- test integer `format_into` with buffer reuse and immediate consumption of the
-  returned borrow; use benchmarks only when allocation reduction is the claim;
-- test `algebraic_*` floating-point code with documented tolerances and
-  invariants, not exact bit patterns or deterministic evaluation order;
-- cover valid, invalid, odd-length, and lossy behavior for endian-specific UTF-16
-  decoding, and cover zero rejection for `NonZero*::from_str_radix`;
-- for atomic primitive views, test the synchronization contract and the
-  applicable atomic/alignment cfgs; do not mix atomic and non-atomic access while
-  a view is live;
-- inspect Cargo 1.99 inherited `default-features` overrides, profile selection,
-  CI incremental defaults, `build.warnings`, and `resolver.lockfile-path` before
-  interpreting failures or claiming which features, profile, or lockfile a test
-  used;
-- fix unattached attributes in doctests and do not treat `doc(cfg(...))` as a
-  doctest execution guard; run the applicable feature and target combinations;
-- treat Rust 1.99 compiler lints, compatibility changes, escaping changes,
-  exhausted inclusive-range behavior, and target behavior as inputs to test
-  selection and expectation review, not as permission for unrelated production
-  refactors.
-
-Use [the baseline pattern](patterns/rust-1-99-testing-baseline.md) for the
-[Rust 1.99 release delta](https://doc.rust-lang.org/releases.html#version-1990-2026-10-01)
-and carried-forward behavior. Earlier API stabilization dates are not reset by
-this baseline update.
+Use [assertion guidance](patterns/automated-testing.md#prefer-assert_matches-for-variant-checks),
+[Cargo semantics](patterns/cargo-test-semantics.md#default-behavior-to-account-for),
+and [doctest compatibility guidance](patterns/doctests-and-examples.md#rust-199-compatibility)
+when those surfaces change. Keep all version-specific guidance test-scoped.
 
 ## When to use this skill
 

@@ -98,7 +98,7 @@ Omit incidental detail that a maintainer can discover faster with symbol search 
 - Open with a short scope statement and the main conclusion.
 - Use American spelling and punctuation in original prose, including `behavior`, `modeling`, and `acknowledgment`.
 - Preserve identifiers, source symbols, configuration keys, log text, protocol terms, product names, and quotations exactly.
-- Use the same component and event names as the implementation. Define acronyms and domain terms at first use.
+- Use the same component and event names as the implementation. Keep established domain terminology even when a literal differs from house style; define acronyms and domain terms at first use.
 - Organize by responsibility and behavior, not repository traversal or project chronology.
 - Keep one primary engineering claim per paragraph. Support material or non-obvious claims with the relevant code, test, schema, configuration, metric, trace, or accepted decision record.
 - State constraints near the behavior they constrain and label implementation-specific details as current behavior.
@@ -107,8 +107,7 @@ Omit incidental detail that a maintainer can discover faster with symbol search 
 ### 7. Use source, tables, diagrams, and mdBook features safely
 
 - Link to stable files, symbols, schemas, tests, or generated references when the renderer and hosting setup support those links.
-- The built-in `links` and `index` preprocessors run by default unless `[build].use-default-preprocessors = false`. Confirm that `links` is active before using `{{#include ...}}`.
-- Resolve include paths relative to the chapter that contains the include. Prefer named anchors over line ranges and include only enough code to establish the relevant contract.
+- Before using `{{#include ...}}`, read the [source-inclusion requirements](references/architecture-patterns.md#source-inclusion) for preprocessors, paths, and excerpt selection.
 - Inspect `book.toml`, build wrappers, dependency files, and CI before using Mermaid or other version-sensitive syntax. Do not add a renderer or preprocessor dependency unless the project already supports it or the user requested the configuration change.
 - Use tables for compact contracts and comparisons. Keep one comparison dimension per table and move nuanced rationale to prose.
 - Use diagrams as models, not decoration. Keep one abstraction level and one engineering question per diagram; label material boundaries and follow the diagram with its invariants or implications.

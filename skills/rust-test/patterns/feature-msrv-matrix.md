@@ -22,12 +22,13 @@ Before recommending matrix validation, inspect the relevant subset of:
 - Prefer targeted feature combinations over exhaustive powersets when features are numerous or expensive.
 - Include doctests or examples separately when public docs or examples are feature-gated.
 - `assert_matches!` is available on the Rust 1.99 baseline, but do not introduce it or another current API when an explicitly declared lower-MSRV lane cannot compile it.
-- Treat owned lossy UTF-8 decoding, deque tail retention, boxed-array iteration, `substr_range`, `subslice_range`, `strip_circumfix`, `NumBuffer`/`format_into`, algebraic floats, endian-specific UTF-16 constructors, non-zero radix parsing, and atomic view methods as matrix-sensitive only when the affected feature or target exposes them.
+- Consult the [baseline API contracts](rust-1-99-testing-baseline.md) only when
+  the affected feature or target exposes those APIs.
 
 ## Target and MSRV validation discipline
 
 - Use `cargo check --target <target>` when the target is compile-only in the current environment.
-- Use `cargo test --target <target>`, including `--doc`, only when the target can execute locally or in a working configured runner. Follow `patterns/doctests-and-examples.md` when only snippet compilation can be checked.
+- Use `cargo test --target <target>`, including `--doc`, only when the target can execute locally or in a working configured runner. Follow [doctest validation](doctests-and-examples.md#validation) when only snippet compilation can be checked.
 - For `no_std`, WASM, or embedded contracts, prefer the repository's documented check recipe over invented commands.
 - For WASM contracts on the Rust 1.99 baseline, treat linker and ABI failures as target-validation evidence; do not assume a host test run proves the WASM boundary.
 - For MSRV, use the repository's documented toolchain or CI job. Do not claim MSRV validation unless the command actually ran under the minimum supported toolchain.
@@ -36,8 +37,8 @@ Before recommending matrix validation, inspect the relevant subset of:
 
 ## Rust 1.99-specific matrix notes
 
-Use `patterns/rust-1-99-testing-baseline.md` when a test change depends on Rust
-1.99. Keep matrix guidance narrow:
+Use the [baseline pattern](rust-1-99-testing-baseline.md) when a test change
+depends on Rust 1.99. Keep matrix guidance narrow:
 
 - Cargo 1.99 permits edition-2024 members to override inherited
   `default-features`, including disabling workspace defaults. Test affected
@@ -52,14 +53,10 @@ Use `patterns/rust-1-99-testing-baseline.md` when a test change depends on Rust
 - Cargo `build.warnings` and `resolver.lockfile-path` can make otherwise identical
   commands use different failure policy or dependency state. These settings
   stabilized in Cargo 1.97, not 1.99.
-- `str::substr_range` and `[T]::subslice_range` need provenance-focused tests;
-  target-independent value-search tests are the wrong oracle.
 - `Atomic*` view APIs can depend on target atomic support and primitive alignment;
   include the relevant `cfg` and compile target.
 - Algebraic floating-point tests must tolerate optimization-dependent results and
   may need release-mode or benchmark evidence where vectorization is the claim.
-- Endian-specific UTF-16 decoding is portable, but fixtures must state byte order
-  explicitly.
 - C-variadic ABI behavior, filesystem timestamp resolution, symlink handling,
   Emscripten exception handling, Solaris file locking, Thumb support, and other
   target claims require the repository's target job rather than host inference.
@@ -74,6 +71,22 @@ Use `patterns/rust-1-99-testing-baseline.md` when a test change depends on Rust
 
 See the [Rust 1.99 release notes](https://doc.rust-lang.org/releases.html#version-1990-2026-10-01)
 and [workspace dependency inheritance](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#inheriting-a-dependency-from-a-workspace).
+
+## Focused matrix commands
+
+Use only commands supported by repository evidence:
+
+- `cargo test -p <crate> --no-default-features` for disabled-default support.
+- `cargo test -p <crate> --all-features` when features are compatible.
+- `cargo test -p <crate> --features <feature>` for one feature-gated contract.
+- `cargo test -p <crate> --features <feature_a>,<feature_b>` for a specific
+  compatible feature combination.
+- `cargo check -p <crate> --target <target>` for compile-only target validation.
+- `cargo test -p <crate> --target <target>` when the target can execute.
+- `cargo test --doc -p <crate> --target <target>` for affected target-specific
+  doctests when a working execution environment is available.
+- The repository's documented MSRV toolchain command or CI job for its minimum
+  supported version.
 
 ## cargo-hack guidance
 
