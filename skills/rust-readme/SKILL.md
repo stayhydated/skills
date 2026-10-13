@@ -218,8 +218,9 @@ Do not create empty headings to satisfy a template.
 6. **Crates** for a multi-package workspace whose members need explanation:
    a two-column `Crate` / `Purpose` table with each crate name linked to its
    owning README or source directory.
-7. **Features** for a package with Cargo features: a complete table of feature
-   names, default activation, and purpose in the README that owns that package.
+7. **Features** for a package with Cargo features: a complete table of exposed
+   features other than `default`, with default activation and purpose in the
+   README that owns that package.
 8. **Example** when a short API, CLI, configuration, or protocol example
    communicates the project's value with its context and expected result.
    Use `Commands` or `Configuration` when that heading better describes the
@@ -311,12 +312,13 @@ distinction between declared support and a selected toolchain.
 ## Cargo feature documentation
 
 For each single-package or workspace-member README, add a `Features` section
-when the package exposes Cargo features. List every feature in a compact
-`Feature` / `Default` / `Purpose` table, using exact Cargo names. Include the
-declared `default` feature, individual integrations, aggregate features such as
-`full`, and internal or experimental flags. Label restricted audiences or
-stability expectations from repository evidence. An overview of selected
-features or a bundle name alone is insufficient.
+when the package exposes Cargo features other than `default`. List every such
+feature in a compact `Feature` / `Default` / `Purpose` table, using exact Cargo
+names. Omit a separate `default` row; the `Default` column documents default
+activation. Include individual integrations, aggregate features such as `full`,
+and internal or experimental flags. Label restricted audiences or stability
+expectations from repository evidence. An overview of selected features or a
+bundle name alone is insufficient.
 
 Build the inventory from the package's `[features]` table and any implicit
 features exposed by optional dependencies. Honor `dep:` suppression of implicit
@@ -326,17 +328,18 @@ each purpose against feature-gated code or maintained documentation. Explain
 which features each aggregate enables, using its actual membership rather than
 assuming `full` means every feature.
 
-State the default feature set and mark each row according to activation through
-the package's default feature graph, including indirect activation. When no
-features are enabled by default, say so in the section. Keep descriptions short
-and include prerequisites, platform limits, or conflicts when evidenced. This
-table is the crate's feature reference; setup commands and dependency snippets
-remain outside the README layout.
+Mark each row according to activation through the package's default feature
+graph, including indirect activation. Add a short default-set note only when it
+clarifies the configuration. When no features are enabled by default, say so in
+the section. Keep descriptions short and include prerequisites, platform limits,
+or conflicts when evidenced. This table is the crate's feature reference; setup
+commands and dependency snippets remain outside the README layout.
 
 A virtual workspace root routes readers to member READMEs through the crate
 table. Keep each member's feature inventory in its owning README. If the root
 README also serves a root package, include that package's complete feature table
-and identify its scope. Omit the section for a package with no exposed features.
+and identify its scope. Omit the section for a package with no exposed features
+other than `default`.
 
 ## Keep documentation single-sourced
 

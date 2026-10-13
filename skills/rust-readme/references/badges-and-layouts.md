@@ -212,17 +212,18 @@ a docs.rs badge. Include Features whenever the member exposes Cargo features.
 ## Feature reference layout
 
 Use this layout in the owning package README, with one row for every exposed
-Cargo feature. Keep the `default` row only when that feature is declared; derive
-all rows and default activation from the actual package feature graph.
+Cargo feature except `default`. Derive all rows and default activation, including
+indirect activation, from the actual package feature graph. Use the `Default`
+column to document defaults; add a short note only when it clarifies the
+configuration.
 
 ```markdown
 ## Features
 
-DEFAULT-FEATURE-SET-SUMMARY
+OPTIONAL-DEFAULT-FEATURE-SET-NOTE
 
 | Feature | Default | Purpose |
 | --- | --- | --- |
-| `default` | Yes | Enables EXACT-DEFAULT-MEMBERS. |
 | `FEATURE-A` | YES-OR-NO | VERIFIED-CAPABILITY-AND-RELEVANT-CONSTRAINTS. |
 | `FEATURE-B` | YES-OR-NO | VERIFIED-CAPABILITY-OR-EXACT-BUNDLE-MEMBERS. |
 ```
@@ -270,9 +271,10 @@ They describe expected behavior, not permission to create external services.
 | Clear primary package has no verified publication | Omit its root registry badge; do not substitute a published underlying member. |
 | Workspace root needs a crate map, with or without a primary package | Use `Crate` and `Purpose` columns. Link each crate name to its existing README or source directory; omit a redundant `Source` or `README` column. |
 | Package has `fmt`, `full`, `full-fluent`, and individual integration features | List every feature, including each integration, with its purpose and default activation; describe the exact aggregate members. |
+| Package declares `default = ["fmt"]` | Mark `fmt` as `Yes` in the `Default` column and omit a separate `default` row; add a default-set note only when useful. |
 | Package exposes an internal or experimental feature | Include its row and label its intended use from repository evidence. |
 | Optional dependencies expose implicit features; others use `dep:` | Include actual implicit features; explain suppressed dependency activations under their owning features. |
-| Default features enable other features indirectly | Mark every feature enabled through the default graph and explain the default set. |
+| Default features enable other features indirectly | Mark every feature enabled through the default graph; add a default-set note when it clarifies the configuration. |
 | Package exposes no Cargo features | Omit Features; keep the remaining README layout concise. |
 | Virtual workspace with feature-rich members | Keep complete feature tables in the member READMEs linked from the root crate table. |
 | Member `alpha`; workspace-wide CI/coverage and Book | Use `alpha`'s own crates.io badge; keep shared status and Book badges at the workspace root. Other relevant badges must have verified member scope. |
