@@ -63,11 +63,13 @@ Start here:
   Sync: keep `SKILL.md` and `agents/openai.yaml` aligned when activation text,
   display text, or default prompts change.
 
-- `skills/rust-best-practices/`
-  Role: Rust implementation, review, optimization, API, and documentation
-  guidance.
+- `skills/rust-best-practices-extra/`
+  Role: Bon/Statum preferences, dependency policy, focused Rust additions, and
+  explicit overrides for BeautifulRust's external `rust-best-practices` core.
   Sync: keep `SKILL.md`, `references/`, and `agents/openai.yaml` aligned when
   the Rust baseline, referenced chapters, or visible skill description changes.
+  Validation: the matching snippet dependency setup is
+  `xtask/src/commands/check_skill_snippets/setups/rust-best-practices-extra.toml`.
 
 - `skills/rust-readme/`
   Role: concise Rust README authoring and review for single-package repositories,

@@ -60,12 +60,27 @@ explicit `fn main()` around executable statements so rustdoc does not wrap the
 declarations in its implicit function; Statum's generated modules refer to those
 declarations through `super`.
 
+When deriving `Debug` on a machine, also derive it on the `#[state]` enum and
+ensure state payloads implement it. For fallible transitions, use the canonical
+`::core::result::Result<Machine<NextState>, E>` return shape. Statum 0.9 validates
+these paths syntactically; a bare `Result` can be rejected even when Rust would
+resolve it to the same type. Optional transitions similarly use
+`::core::option::Option<Machine<NextState>>`. See
+[Statum's supported transition shapes](https://docs.rs/statum/0.9.0/statum/#machine-introspection).
+
+When a fallible transition consumes a machine and an owned payload, return both
+in the error's recovery API. This preserves the core's consumed-input contract,
+including an empty payload's existing allocation. Validation must not silently
+discard either input. Keep generated transition helpers behind the intended
+public transition surface so callers cannot bypass validation.
+
 ## Example: Upload Session
 
 ```rust
 use statum::{machine, state, transition};
 
 #[state]
+#[derive(Debug)]
 enum UploadState {
     Empty,
     Buffered(BufferInfo),
@@ -78,14 +93,41 @@ struct BufferInfo {
 }
 
 #[machine]
+#[derive(Debug)]
 struct UploadSession<UploadState> {
     id: String,
 }
 
+#[derive(Debug)]
+struct BufferError {
+    session: UploadSession<Empty>,
+    bytes: usize,
+}
+
+impl BufferError {
+    fn into_parts(self) -> (UploadSession<Empty>, usize) {
+        (self.session, self.bytes)
+    }
+}
+
+impl std::fmt::Display for BufferError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("buffer must be nonempty")
+    }
+}
+
+impl std::error::Error for BufferError {}
+
 #[transition]
 impl UploadSession<Empty> {
-    fn buffer(self, bytes: usize) -> UploadSession<Buffered> {
-        self.transition_with(BufferInfo { bytes })
+    fn buffer(
+        self,
+        bytes: usize,
+    ) -> ::core::result::Result<UploadSession<Buffered>, BufferError> {
+        if bytes == 0 {
+            return Err(BufferError { session: self, bytes });
+        }
+        Ok(self.transition_with(BufferInfo { bytes }))
     }
 }
 
@@ -101,10 +143,18 @@ fn main() {
         .id("upload-1".to_owned())
         .build();
 
-    let buffered = session.buffer(4096);
+    let buffered = session.buffer(4096).expect("nonempty buffer");
     assert_eq!(buffered.state_data.bytes, 4096);
 
     let _stored = buffered.store();
+
+    let empty = UploadSession::<Empty>::builder()
+        .id("empty-upload".to_owned())
+        .build();
+    let error = empty.buffer(0).expect_err("empty buffer is rejected");
+    let (recovered, bytes) = error.into_parts();
+    assert_eq!(recovered.id, "empty-upload");
+    assert_eq!(bytes, 0);
 }
 ```
 

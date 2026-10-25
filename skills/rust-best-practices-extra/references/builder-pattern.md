@@ -187,6 +187,12 @@ workflow.
 * Prefer private fields plus a builder when invariants matter.
 * Put runtime validation in the constructor or function body that the builder
   calls.
+* Bon does not automatically return consumed arguments when that validation
+  fails. Follow the core's input-recovery contract: carry the owned construction
+  inputs in the error and expose recovery through `into_parts()` or
+  `into_inputs()` so callers can correct and retry without cloning. Apply the
+  same contract to a permitted manual builder fallback, and test recovery of the
+  supplied inputs rather than only the error's kind or message.
 * Do not expose generated builder internals as part of a public API unless callers
   truly need to name those types.
 * Use Bon's required-field construction instead of adding custom type-state

@@ -21,7 +21,7 @@
 Use this pattern when a Rust test, doctest, compile-fail/UI expectation, target
 check, or validation command depends on the Rust 1.99 baseline. Keep the guidance
 limited to testing. General implementation idioms belong in
-`rust-best-practices`.
+BeautifulRust's `rust-best-practices` core and `rust-best-practices-extra`.
 
 ## Scope boundary
 

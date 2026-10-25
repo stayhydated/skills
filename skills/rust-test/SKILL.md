@@ -35,9 +35,9 @@ Rust for the repository's edition and MSRV, not merely compile.
 Mock-free testing is this skill's explicit policy, not a definition of Rust
 idiomaticity. Keep the policy and the language-level guidance distinct.
 
-## Boundary with rust-best-practices
+## Boundary with the Rust core and extra skills
 
-Keep this skill test-scoped. Use it for assertion choice, test harness shape, doctest behavior, UI/diagnostic expectations, snapshot/golden review, fuzz/property/benchmark harnesses, async/concurrency validation, unsafe-code evidence, and Cargo validation semantics. Do not use it to give broad implementation style guidance such as API ownership, generic dispatch, error type design, builder/type-state selection, comment policy, lint policy, or production performance refactors unless those choices are the explicit test contract. When the user asks for overall Rust code patterns, route that work to `rust-best-practices`; when the user asks whether tests prove the behavior, stay here.
+Keep this skill test-scoped. Use it for assertion choice, test harness shape, doctest behavior, UI/diagnostic expectations, snapshot/golden review, fuzz/property/benchmark harnesses, async/concurrency validation, unsafe-code evidence, and Cargo validation semantics. Do not use it to give broad implementation style guidance such as API ownership, generic dispatch, error type design, builder/type-state selection, comment policy, lint policy, or production performance refactors unless those choices are the explicit test contract. For overall Rust code patterns, use BeautifulRust's `rust-best-practices` core alongside `rust-best-practices-extra` for our preferences and explicit overrides. This skill owns mock-free test strategy when the core suggests mock-object infrastructure. When the user asks whether tests prove the behavior, stay here.
 
 ## Rust 1.99 test-specific baseline
 
@@ -94,7 +94,7 @@ Do not use it for non-Rust testing unless the repository explicitly routes that 
 15. For async, concurrent, time-sensitive, or background-task behavior, prefer deterministic synchronization, fake or paused time, joined tasks, and repository-standard runtime patterns over sleeps and timing assumptions.
 16. For unsafe, FFI, atomics, custom allocators, or memory-invariant changes, pair public functional tests with invariant-focused regressions and use Miri, sanitizers, loom, or fuzzing only when configured, requested, or clearly labeled as recommended.
 17. Prefer structural assertions for typed errors, variants, spans, exit codes, and machine-readable fields. On the Rust 1.99 baseline, use `assert_matches!` for a single-pattern assertion when the mismatched value should be printed. Assert exact text only when wording is part of the public contract.
-18. Keep Rust 1.99 guidance test-specific. Do not drift into broad implementation style choices covered by `rust-best-practices` unless the code pattern itself is being tested.
+18. Keep Rust 1.99 guidance test-specific. General implementation guidance belongs to BeautifulRust's `rust-best-practices` core and our `rust-best-practices-extra` additions unless the code pattern itself is being tested.
 19. In workspaces, identify the affected package graph before selecting validation. Prefer package-scoped commands first, then dependent package tests when public APIs or shared fixtures changed.
 20. Account for Cargo test semantics before claiming what a command proves: package selection, target selection, doctests, examples, feature flags, test filters, and libtest arguments all matter.
 21. Treat retries and serial execution as flake triage tools, not correctness fixes. Prefer root-cause repairs such as deterministic synchronization, isolated temp resources, explicit task joins, and stable ordering.

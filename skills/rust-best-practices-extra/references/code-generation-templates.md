@@ -185,6 +185,15 @@ Deduplicate equivalent rows only when the contract allows it, and reject
 conflicting rows before rendering. Resolve feature flags, `cfg` choices,
 namespace choices, facade-crate paths, and generated identifiers before emission.
 
+For source-derived Rust names, detect collisions using the identifier's semantic
+identity: remove an explicit raw-identifier prefix and account for Rust's
+[NFC normalization](https://doc.rust-lang.org/reference/identifiers.html#normalization).
+For example, precomposed `CAFÉ` and `CAFE` followed by a combining acute accent
+name the same Rust item. Parsing each spelling successfully does not prove that
+both can coexist. Test a canonically equivalent pair as well as ordinary and raw
+aliases. This normalization applies to identifier identity; preserve string data
+and meaningful input order according to their own contracts.
+
 ## Prepare Rust Fragments Before Rendering
 
 For generated Rust files, a text template should usually run with source-code

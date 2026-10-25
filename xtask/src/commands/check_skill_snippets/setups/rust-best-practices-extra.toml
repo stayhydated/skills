@@ -1,8 +1,7 @@
-# Dependencies used by rust-best-practices Markdown examples.
+# Dependencies used by rust-best-practices-extra Markdown examples.
 rust-version = "1.99"
 
 [dependencies]
-anyhow = "1"
 askama = "=0.16.1"
 bon = { features = [ "experimental-overwritable" ], version = "3.10" }
 genco = "0.19"
@@ -12,6 +11,4 @@ statum = "0.9"
 strum = "0.28"
 strum_macros = "0.28"
 syn = { features = [ "full" ], version = "3" }
-thiserror = "2"
-tracing = "0.1"
 trybuild = "=1.0.121"

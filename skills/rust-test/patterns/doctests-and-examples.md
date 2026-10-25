@@ -24,7 +24,8 @@ Prefer ordinary unit, integration, or compile-fail/UI tests for:
 
 - Keep visible examples focused on what a user should learn. Doctests link
   against public crate items; use unit tests for private logic. Broader public
-  documentation style belongs to `rust-best-practices` unless the example is
+  documentation style belongs to BeautifulRust's `rust-best-practices` core,
+  with our additions in `rust-best-practices-extra`, unless the example is
   being tested.
 - Unmarked Rust code fences in public docs are usually treated as Rust doctests.
 - Ordinary doctests pass when they compile and run without panicking.

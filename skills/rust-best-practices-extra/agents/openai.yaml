@@ -1,0 +1,4 @@
+interface:
+  display_name: "Rust Best Practices Extra"
+  short_description: "Bon, Statum, and house style alongside BeautifulRust"
+  default_prompt: "Use $rust-best-practices-extra alongside BeautifulRust's $rust-best-practices for this Rust task, applying our Bon/Statum preferences, dependency boundaries, and explicit overrides within the repository's constraints."

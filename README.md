@@ -15,9 +15,16 @@ guidance. Choose the skill that matches the task below.
 | [`mdbook-internals`][mdbook-internals] | Maintainer-facing architecture, operations, and design documentation in mdBook. |
 | [`mdbook-user-docs`][mdbook-user-docs] | User-facing tutorials, guides, concepts, references, and troubleshooting in mdBook. |
 | [`pre-1-0-forward-only`][pre-1-0-forward-only] | Forward-only API and documentation work in pre-1.0 Rust projects. |
-| [`rust-best-practices`][rust-best-practices] | Idiomatic Rust implementation, refactoring, review, optimization, and documentation. |
+| [`rust-best-practices-extra`][rust-best-practices-extra] | Bon, Statum, dependency policy, and focused additions to BeautifulRust's Rust guidance. |
 | [`rust-readme`][rust-readme] | Concise, evidence-backed Rust README creation and review. |
 | [`rust-test`][rust-test] | Rust test design, implementation, audit, and validation strategy. |
+
+Use [`rust-best-practices` from BeautifulRust][beautiful-rust] as the general Rust
+core alongside this repository's `rust-best-practices-extra`. The extra skill
+defines our preferences and resolves conflicts while preserving user and
+repository constraints.
+
+`rust-best-practices-extra` is a stable companion skill.
 
 [ci-badge]: https://github.com/stayhydated/skills/actions/workflows/ci.yml/badge.svg?branch=master
 [ci]: https://github.com/stayhydated/skills/actions/workflows/ci.yml
@@ -27,6 +34,7 @@ guidance. Choose the skill that matches the task below.
 [mdbook-internals]: skills/mdbook-internals/SKILL.md
 [mdbook-user-docs]: skills/mdbook-user-docs/SKILL.md
 [pre-1-0-forward-only]: skills/pre-1-0-forward-only/SKILL.md
-[rust-best-practices]: skills/rust-best-practices/SKILL.md
+[rust-best-practices-extra]: skills/rust-best-practices-extra/SKILL.md
+[beautiful-rust]: https://github.com/morganlinton/BeautifulRust/tree/main/skills/rust-best-practices
 [rust-readme]: skills/rust-readme/SKILL.md
 [rust-test]: skills/rust-test/SKILL.md

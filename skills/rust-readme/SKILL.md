@@ -28,8 +28,9 @@ an installation guide, a book contents page, or a copy of registry metadata.
 
 This skill owns README presentation and routing. Use `mdbook-user-docs` for
 user-guide chapters, `mdbook-internals` for maintainer architecture, `rust-test`
-for example validation, and `rust-best-practices` for implementation or API
-style. Those are separate tasks, not permission to expand a README edit.
+for example validation, and BeautifulRust's `rust-best-practices` core alongside
+`rust-best-practices-extra` for implementation or API style. Those are separate
+tasks, not permission to expand a README edit.
 
 ## Usage examples
 
@@ -70,8 +71,9 @@ rather than treating compilation as proof of idiomaticity.
   Do not add dependencies, raise the MSRV, or refactor production APIs solely to
   make README code look more idiomatic.
 
-Use `rust-best-practices` for example-level implementation guidance and
-`rust-test` for validation without expanding the README write boundary. Report
+Use BeautifulRust's `rust-best-practices` core alongside `rust-best-practices-extra`
+for example-level implementation guidance and `rust-test` for validation without
+expanding the README write boundary. Report
 an API limitation that needs a separate change instead of inventing a better API.
 
 ## Required evidence
