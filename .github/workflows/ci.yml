@@ -64,7 +64,7 @@ jobs:
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.11
         with:
-          version: "v0.16.0"
+          version: "v0.20.0"
 
       - name: Setup mold
         if: runner.os == 'Linux'
@@ -156,7 +156,7 @@ jobs:
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.11
         with:
-          version: "v0.16.0"
+          version: "v0.20.0"
 
       - name: Setup mold
         uses: rui314/setup-mold@v1
@@ -175,7 +175,7 @@ jobs:
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.11
         with:
-          version: "v0.16.0"
+          version: "v0.20.0"
 
       - uses: cargo-bins/cargo-binstall@v1.25.3
         with:
@@ -198,7 +198,7 @@ jobs:
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.11
         with:
-          version: "v0.16.0"
+          version: "v0.20.0"
 
       - name: Setup mold
         uses: rui314/setup-mold@v1
