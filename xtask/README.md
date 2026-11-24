@@ -6,7 +6,7 @@
 skill documentation aligned. It checks tracked Rust versions against the stable
 channel and validates executable Rust snippets embedded in skill Markdown.
 
-Requires Rust 1.99 or newer.
+Requires Rust 1.100 or newer.
 
 ## Commands
 

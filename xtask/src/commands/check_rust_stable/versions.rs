@@ -91,6 +91,7 @@ mod tests {
     #[test]
     fn compares_minor_versions() {
         assert!("1.98.0".parse::<RustMinorVersion>().unwrap() > "1.97".parse().unwrap());
+        assert!("1.100.0".parse::<RustMinorVersion>().unwrap() > "1.99".parse().unwrap());
         assert_eq!(
             "1.97.1".parse::<RustMinorVersion>().unwrap().to_string(),
             "1.97"
@@ -115,11 +116,16 @@ mod tests {
         fs::create_dir(&skills).unwrap();
         fs::write(skills.join("one.md"), "Assume Rust 1.97 stable.").unwrap();
         fs::write(skills.join("two.md"), "use rust 1.98 guidance").unwrap();
+        fs::write(skills.join("three.md"), "Assume Rust 1.100 stable.").unwrap();
 
         let tracked_versions = scan_tracked_rust_versions(&skills).unwrap();
 
         assert!(tracked_versions.contains_key(&"1.97".parse().unwrap()));
         assert!(tracked_versions.contains_key(&"1.98".parse().unwrap()));
+        assert_eq!(
+            tracked_versions.last_key_value().unwrap().0,
+            &"1.100".parse().unwrap()
+        );
     }
 
     #[test]

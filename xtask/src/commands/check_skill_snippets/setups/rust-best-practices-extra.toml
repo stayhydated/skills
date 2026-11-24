@@ -1,7 +1,7 @@
 # Dependencies used by rust-best-practices-extra Markdown examples.
-rust-version = "1.99"
+rust-version = "1.100"
 
-[dependencies]
+[dev-dependencies]
 askama = "=0.16.1"
 bon = { features = [ "experimental-overwritable" ], version = "3.10" }
 genco = "0.19"
