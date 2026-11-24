@@ -44,11 +44,11 @@ When the repository uses `trybuild`:
 - Always review `git diff` for changed `.stderr` files and disclose reviewed paths in the handoff.
 - Keep fixtures independent of rustc wording that is likely to churn unless the wording itself is the public diagnostic contract.
 
-## Rust 1.99-sensitive compiler contracts
+## Rust 1.100-sensitive compiler contracts
 
-Use the [baseline compiler and expectation compatibility notes](rust-1-99-testing-baseline.md#compiler-and-expectation-file-compatibility)
+Use the [baseline compiler and expectation compatibility notes](rust-1-100-testing-baseline.md#compiler-and-expectation-file-compatibility)
 for release-specific acceptance, lints, escaping, and carried-forward compiler
-contracts. Apply [doctest compatibility rules](doctests-and-examples.md#rust-199-compatibility)
+contracts. Apply [doctest compatibility rules](doctests-and-examples.md#rust-1100-compatibility)
 without accepting an unrelated attribute error as proof of the intended invalid
 usage.
 

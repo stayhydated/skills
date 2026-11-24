@@ -9,7 +9,7 @@ Before recommending matrix validation, inspect the relevant subset of:
 - workspace and package `Cargo.toml` feature definitions, optional dependencies, and mutually exclusive feature notes;
 - README support claims, crate docs, package metadata, and release policy;
 - `rust-toolchain.toml`, package `rust-version`, CI MSRV jobs, and documented minimum supported Rust version;
-- `.cargo/config.toml`, Cargo 1.99 inherited `default-features`, profile selection, CI incremental defaults, `build.warnings` and `resolver.lockfile-path`, target-specific linker/config settings, cfg-specific rustdoc flags, and platform-specific `cfg`s;
+- `.cargo/config.toml`, Cargo lints, dependency cooldowns, inherited `default-features`, profile selection, CI incremental defaults, `build.warnings` and `resolver.lockfile-path`, target-specific linker/config settings, cfg-specific rustdoc flags, and platform-specific `cfg`s;
 - existing CI matrices, `cargo hack` usage, target check jobs, `no_std` checks, WASM checks, and embedded recipes.
 
 ## Feature validation discipline
@@ -21,8 +21,8 @@ Before recommending matrix validation, inspect the relevant subset of:
 - For mutually exclusive features, use documented combinations rather than forcing `--all-features`.
 - Prefer targeted feature combinations over exhaustive powersets when features are numerous or expensive.
 - Include doctests or examples separately when public docs or examples are feature-gated.
-- `assert_matches!` is available on the Rust 1.99 baseline, but do not introduce it or another current API when an explicitly declared lower-MSRV lane cannot compile it.
-- Consult the [baseline API contracts](rust-1-99-testing-baseline.md) only when
+- `assert_matches!` is available on the Rust 1.100 baseline, but do not introduce it or another current API when an explicitly declared lower-MSRV lane cannot compile it.
+- Consult the [baseline API contracts](rust-1-100-testing-baseline.md) only when
   the affected feature or target exposes those APIs.
 
 ## Target and MSRV validation discipline
@@ -30,17 +30,30 @@ Before recommending matrix validation, inspect the relevant subset of:
 - Use `cargo check --target <target>` when the target is compile-only in the current environment.
 - Use `cargo test --target <target>`, including `--doc`, only when the target can execute locally or in a working configured runner. Follow [doctest validation](doctests-and-examples.md#validation) when only snippet compilation can be checked.
 - For `no_std`, WASM, or embedded contracts, prefer the repository's documented check recipe over invented commands.
-- For WASM contracts on the Rust 1.99 baseline, treat linker and ABI failures as target-validation evidence; do not assume a host test run proves the WASM boundary.
+- For WASM contracts on the Rust 1.100 baseline, treat linker and ABI failures as target-validation evidence; do not assume a host test run proves the WASM boundary.
 - For MSRV, use the repository's documented toolchain or CI job. Do not claim MSRV validation unless the command actually ran under the minimum supported toolchain.
 - If `resolver.lockfile-path` is configured, identify the selected `Cargo.lock` for each toolchain lane and verify that every claimed toolchain lane supports the active configuration.
 - If `build.warnings = "deny"` is configured, report warning-policy failures separately from behavioral test failures and verify whether older toolchain lanes honor the setting.
 
-## Rust 1.99-specific matrix notes
+## Rust 1.100-specific matrix notes
 
-Use the [baseline pattern](rust-1-99-testing-baseline.md) when a test change
-depends on Rust 1.99. Keep matrix guidance narrow:
+Use the [baseline pattern](rust-1-100-testing-baseline.md) when a test change
+depends on Rust 1.100. Keep matrix guidance narrow:
 
-- Cargo 1.99 permits edition-2024 members to override inherited
+- Allocator-generic code needs coverage with `Global` and each allocator the
+  repository claims to support; never-type and `Infallible` changes need a lane
+  for every declared lower MSRV, because `!` in type position is not available
+  there.
+- A configured minimum publish age can make lockfile-free or minimal-version
+  lanes resolve differently from local runs; record it per lane.
+- `cargo::unused_dependencies` and `cargo::missing_lints_inheritance` are Cargo
+  1.100 lints. Older Cargo lanes do not report them, and `build.warnings` policy
+  can turn them into failures only on lanes that emit them.
+- `wasm32-wasip3` is Tier 2 and `i686-pc-windows-gnu` is Tier 2 without host
+  tools on 1.100; neither change adds the target to the repository's supported
+  matrix. ARM ABI-altering target features are hard errors, so matrix flags that
+  previously warned now fail.
+- Since Cargo 1.99, edition-2024 members can override inherited
   `default-features`, including disabling workspace defaults. Test affected
   members in isolation and relevant workspace combinations: features enabled by
   other dependency edges are still unified. A root-package
@@ -48,11 +61,11 @@ depends on Rust 1.99. Keep matrix guidance narrow:
 - Validate inherited overrides on lower-Cargo lanes separately; do not silently
   raise the repository's MSRV to match the skill baseline.
 - Record explicit profile selection and CI incremental settings when comparing
-  build behavior. The new `debug` profile currently inherits `dev`; ordinary
+  build behavior. The 1.99 `debug` profile currently inherits `dev`; ordinary
   tests still use `test`.
 - Cargo `build.warnings` and `resolver.lockfile-path` can make otherwise identical
   commands use different failure policy or dependency state. These settings
-  stabilized in Cargo 1.97, not 1.99.
+  stabilized in Cargo 1.97.
 - `Atomic*` view APIs can depend on target atomic support and primitive alignment;
   include the relevant `cfg` and compile target.
 - Algebraic floating-point tests must tolerate optimization-dependent results and
@@ -60,16 +73,18 @@ depends on Rust 1.99. Keep matrix guidance narrow:
 - C-variadic ABI behavior, filesystem timestamp resolution, symlink handling,
   Emscripten exception handling, Solaris file locking, Thumb support, and other
   target claims require the repository's target job rather than host inference.
-- `riscv64-unknown-linux-musl` is Tier 2 with host tools on 1.99; this does not
-  automatically add it to the repository's supported target matrix.
-- `doc(cfg(...))` no longer filters doctests. Validate actual feature and target
+- `riscv64gc-unknown-linux-musl` has been Tier 2 with host tools since 1.99 (the
+  release notes spell it `riscv64-unknown-linux-musl`); this
+  does not automatically add it to the repository's supported target matrix.
+- Since 1.99, `doc(cfg(...))` does not filter doctests. Validate actual feature and target
   gates; cfg-specific `rustdocflags`, `--emit`, and `--remap-path-prefix` can also
   affect doctest compilation or generated documentation.
-- v0 symbols, version-specific escaping, and rustfmt module discovery can change
+- v0 symbols, version-specific escaping, Unicode 18 data, `!` type names, and
+  rustfmt module discovery can change
   expectations without changing runtime behavior; normalize or review them
   intentionally.
 
-See the [Rust 1.99 release notes](https://doc.rust-lang.org/releases.html#version-1990-2026-10-01)
+See the [Rust 1.100 release notes](https://doc.rust-lang.org/releases.html#version-11000-2026-11-12)
 and [workspace dependency inheritance](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#inheriting-a-dependency-from-a-workspace).
 
 ## Focused matrix commands

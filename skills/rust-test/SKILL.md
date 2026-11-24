@@ -1,6 +1,6 @@
 ---
 name: rust-test
-description: Design, patch, audit, or align idiomatic Rust tests with evidence-based, mock-free guidance for unit tests, integration/e2e tests, doctests, insta snapshots, compile-fail/UI tests, golden files, fixtures, property tests, fuzz tests, async/concurrency tests, unsafe-code validation, Criterion benchmarks, Cargo test semantics, Rust 1.99 test idioms, feature/target/MSRV matrices, flaky-test triage, coverage/mutation evidence, and focused validation.
+description: Design, patch, audit, or align idiomatic Rust tests with evidence-based, mock-free guidance for unit tests, integration/e2e tests, doctests, insta snapshots, compile-fail/UI tests, golden files, fixtures, property tests, fuzz tests, async/concurrency tests, unsafe-code validation, Criterion benchmarks, Cargo test semantics, Rust 1.100 test idioms, feature/target/MSRV matrices, flaky-test triage, coverage/mutation evidence, and focused validation.
 ---
 
 # rust-test
@@ -39,21 +39,21 @@ idiomaticity. Keep the policy and the language-level guidance distinct.
 
 Keep this skill test-scoped. Use it for assertion choice, test harness shape, doctest behavior, UI/diagnostic expectations, snapshot/golden review, fuzz/property/benchmark harnesses, async/concurrency validation, unsafe-code evidence, and Cargo validation semantics. Do not use it to give broad implementation style guidance such as API ownership, generic dispatch, error type design, builder/type-state selection, comment policy, lint policy, or production performance refactors unless those choices are the explicit test contract. For overall Rust code patterns, use BeautifulRust's `rust-best-practices` core alongside `rust-best-practices-extra` for our preferences and explicit overrides. This skill owns mock-free test strategy when the core suggests mock-object infrastructure. When the user asks whether tests prove the behavior, stay here.
 
-## Rust 1.99 test-specific baseline
+## Rust 1.100 test-specific baseline
 
-Assume **Rust 1.99 stable** and **edition 2024** unless the repository explicitly
+Assume **Rust 1.100 stable** and **edition 2024** unless the repository explicitly
 declares a lower MSRV or the user gives a different target. Respect existing
 `rust-toolchain.toml`, CI, `Cargo.toml`, workspace lints, target support, and
 public API stability before introducing an API that exceeds the declared MSRV.
-Read [the baseline pattern](patterns/rust-1-99-testing-baseline.md) for API edge
+Read [the baseline pattern](patterns/rust-1-100-testing-baseline.md) for API edge
 cases, compiler/expectation compatibility, and target-specific contracts. It
-distinguishes the [Rust 1.99 release delta](https://doc.rust-lang.org/releases.html#version-1990-2026-10-01)
+distinguishes the [Rust 1.100 release delta](https://doc.rust-lang.org/releases.html#version-11000-2026-11-12)
 from carried-forward behavior; earlier stabilization dates are not reset by this
 baseline update.
 
 Use [assertion guidance](patterns/automated-testing.md#prefer-assert_matches-for-variant-checks),
 [Cargo semantics](patterns/cargo-test-semantics.md#default-behavior-to-account-for),
-and [doctest compatibility guidance](patterns/doctests-and-examples.md#rust-199-compatibility)
+and [doctest compatibility guidance](patterns/doctests-and-examples.md#rust-1100-compatibility)
 when those surfaces change. Keep all version-specific guidance test-scoped.
 
 ## When to use this skill
@@ -93,8 +93,8 @@ Do not use it for non-Rust testing unless the repository explicitly routes that 
 14. Treat feature flags, mutually exclusive features, `cfg` gates, target triples, MSRV, and `no_std`/WASM/embedded constraints as part of the tested contract when they affect behavior or compilation.
 15. For async, concurrent, time-sensitive, or background-task behavior, prefer deterministic synchronization, fake or paused time, joined tasks, and repository-standard runtime patterns over sleeps and timing assumptions.
 16. For unsafe, FFI, atomics, custom allocators, or memory-invariant changes, pair public functional tests with invariant-focused regressions and use Miri, sanitizers, loom, or fuzzing only when configured, requested, or clearly labeled as recommended.
-17. Prefer structural assertions for typed errors, variants, spans, exit codes, and machine-readable fields. On the Rust 1.99 baseline, use `assert_matches!` for a single-pattern assertion when the mismatched value should be printed. Assert exact text only when wording is part of the public contract.
-18. Keep Rust 1.99 guidance test-specific. General implementation guidance belongs to BeautifulRust's `rust-best-practices` core and our `rust-best-practices-extra` additions unless the code pattern itself is being tested.
+17. Prefer structural assertions for typed errors, variants, spans, exit codes, and machine-readable fields. On the Rust 1.100 baseline, use `assert_matches!` for a single-pattern assertion when the mismatched value should be printed. Assert exact text only when wording is part of the public contract.
+18. Keep Rust 1.100 guidance test-specific. General implementation guidance belongs to BeautifulRust's `rust-best-practices` core and our `rust-best-practices-extra` additions unless the code pattern itself is being tested.
 19. In workspaces, identify the affected package graph before selecting validation. Prefer package-scoped commands first, then dependent package tests when public APIs or shared fixtures changed.
 20. Account for Cargo test semantics before claiming what a command proves: package selection, target selection, doctests, examples, feature flags, test filters, and libtest arguments all matter.
 21. Treat retries and serial execution as flake triage tools, not correctness fixes. Prefer root-cause repairs such as deterministic synchronization, isolated temp resources, explicit task joins, and stable ordering.
@@ -104,7 +104,7 @@ Do not use it for non-Rust testing unless the repository explicitly routes that 
 Before patching or recommending test changes, inspect the relevant subset of:
 
 - `Cargo.toml`, workspace manifests, dev-dependencies, feature flags, feature matrices, bench targets, fuzz manifests, and workspace dependency policy;
-- `rust-toolchain.toml`, package `rust-version`, `.cargo/config.toml`, Cargo 1.99 inherited `default-features`, profiles, CI incremental behavior, `build.warnings` or `resolver.lockfile-path`, MSRV policy, target matrix, `no_std`/WASM/embedded support, platform-specific `cfg`s, Rust 1.99-sensitive compiler, doctest, formatting, or target configuration, and feature-combination expectations affected by the change;
+- `rust-toolchain.toml`, package `rust-version`, `.cargo/config.toml`, Cargo lints such as `unused_dependencies`, dependency cooldowns, inherited `default-features`, profiles, CI incremental behavior, `build.warnings` or `resolver.lockfile-path`, MSRV policy, target matrix, `no_std`/WASM/embedded support, platform-specific `cfg`s, Rust 1.100-sensitive compiler, doctest, formatting, or target configuration, and feature-combination expectations affected by the change;
 - existing `tests/`, `src/**/tests`, `benches/`, `examples/`, `fixtures/`, `snapshots/`, `fuzz/`, corpus directories, UI-test directories, generated outputs, and e2e harnesses;
 - CI workflows, `justfile`, `Makefile`, `cargo-nextest` config, `cargo-insta` config, benchmark scripts, fuzz scripts, target-specific jobs, feature-matrix jobs, MSRV jobs, coverage/mutation jobs, or other runner files;
 - existing `insta`, `trybuild`, UI-test, golden-file, fixture, property-test, fuzz, doctest, Criterion, `cargo bench`, `cargo-fuzz`, `nextest`, `cargo hack`, async-runtime, fake-time, concurrency, Miri, sanitizer, loom, coverage, mutation-testing, e2e, mocking-framework, or test-double usage;
@@ -150,7 +150,7 @@ In read-only modes, propose fixes without modifying tests, fixtures, snapshots, 
 Use these support files as source material, not default output. Summarize only the relevant pattern unless the user asks for a full checklist or patch:
 
 - `patterns/automated-testing.md`: core unit, integration, doctest, assertion, parameterized, and snapshot test shape.
-- `patterns/rust-1-99-testing-baseline.md`: Rust 1.99 test-specific assertion, library-API, Cargo/rustdoc, compiler, target, and expectation-compatibility guidance without broad code-style overlap.
+- `patterns/rust-1-100-testing-baseline.md`: Rust 1.100 test-specific assertion, library-API, Cargo/rustdoc, compiler, target, and expectation-compatibility guidance without broad code-style overlap.
 - `patterns/cargo-test-semantics.md`: Cargo package/target/feature/doctest/libtest command semantics and what a validation command proves.
 - `patterns/boundary-and-e2e.md`: public seams, integration/e2e tests, CLI binary integration, refusing mock-object tests, and choosing contract-focused substitutes.
 - `patterns/doctests-and-examples.md`: doctests, README examples, rustdoc mechanics, `no_run`, `compile_fail`, and public API samples.

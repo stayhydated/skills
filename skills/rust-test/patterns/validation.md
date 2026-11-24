@@ -7,7 +7,7 @@
 - [Cargo configuration boundaries](#cargo-argument-and-configuration-boundaries)
 - [Nextest](#cargo-nextest-guidance)
 - [Feature, target, and MSRV validation](#feature-target-and-msrv-validation)
-- [Rust 1.99 validation](#rust-199-specific-validation)
+- [Rust 1.100 validation](#rust-1100-specific-validation)
 - [Expectation-file handoff](#expectation-file-handoff)
 - [Coverage and mutation evidence](#coverage-and-mutation-evidence)
 - [Validation wording](#validation-wording)
@@ -86,14 +86,19 @@ Disclose mutually exclusive features, missing target toolchains, unavailable
 linkers, MSRV toolchain gaps, baseline APIs or configuration unavailable on an
 explicitly declared lower-MSRV lane, and target tests checked but not executed.
 
-## Rust 1.99-specific validation
+## Rust 1.100-specific validation
 
-Use the [baseline pattern](rust-1-99-testing-baseline.md) for detailed API edge
+Use the [baseline pattern](rust-1-100-testing-baseline.md) for detailed API edge
 cases, compiler/expectation compatibility, and target contracts. Select validation
 that proves the affected contract:
 
 - Run the smallest package/test-target command for an assertion change, with a
   separate doctest run when the assertion appears there.
+- Run allocator-generic tests with each supported allocator, and pair
+  `Allocator` implementations or `UnsafeCell` wrappers with the repository's
+  Miri or sanitizer job when one exists.
+- Run cleanup-guard tests under the profile's panic strategy; an unwinding test
+  proves nothing under `panic = "abort"`.
 - Validate algebraic floating-point tolerances in the relevant optimization
   profile. Use the repository's benchmark workflow when allocation, throughput,
   or vectorization is the claim.
@@ -102,13 +107,13 @@ that proves the affected contract:
   functional tests alone do not prove soundness, cross-target calling
   conventions, or filesystem precision.
 - Apply [Cargo configuration boundaries](cargo-test-semantics.md#default-behavior-to-account-for)
-  and [matrix discipline](feature-msrv-matrix.md#rust-199-specific-matrix-notes)
+  and [matrix discipline](feature-msrv-matrix.md#rust-1100-specific-matrix-notes)
   before reporting selected features, profiles, warning policy, or lockfiles.
-- Apply [doctest compatibility guidance](doctests-and-examples.md#rust-199-compatibility)
+- Apply [doctest compatibility guidance](doctests-and-examples.md#rust-1100-compatibility)
   to actual feature/target gates; run the documentation build/lint command
   separately when rustdoc lint behavior is affected.
 - Regenerate expectations through the repository workflow and review the diff
-  using [baseline compatibility notes](rust-1-99-testing-baseline.md#compiler-and-expectation-file-compatibility).
+  using [baseline compatibility notes](rust-1-100-testing-baseline.md#compiler-and-expectation-file-compatibility).
 
 ## Expectation-file handoff
 

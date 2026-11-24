@@ -2,7 +2,7 @@
 name: rust-best-practices-extra
 description: >
   Add Bon builders, Statum lifecycles, dependency adoption policy, Strum/i18n
-  boundaries, code generation, and Rust 1.99 guidance to BeautifulRust's
+  boundaries, code generation, and Rust 1.100 guidance to BeautifulRust's
   rust-best-practices. Use alongside that core when writing, refactoring,
   reviewing, optimizing, or documenting Rust; apply these explicit preferences
   and overrides within the requested scope.
@@ -25,7 +25,7 @@ constraints, the additions and explicit overrides below take precedence over
 conflicting advice in the core or its source digests. Core guidance owns the
 remaining general Rust idioms; keep house style distinct from correctness.
 
-Assume **Rust 1.99 stable** and **edition 2024** unless the repository or user
+Assume **Rust 1.100 stable** and **edition 2024** unless the repository or user
 specifies another target. Respect toolchain files, MSRV, features, targets,
 `no_std`, workspace lints, and release policy.
 
