@@ -73,7 +73,8 @@ depends on Rust 1.100. Keep matrix guidance narrow:
 - C-variadic ABI behavior, filesystem timestamp resolution, symlink handling,
   Emscripten exception handling, Solaris file locking, Thumb support, and other
   target claims require the repository's target job rather than host inference.
-- `riscv64-unknown-linux-musl` has been Tier 2 with host tools since 1.99; this
+- `riscv64gc-unknown-linux-musl` has been Tier 2 with host tools since 1.99 (the
+  release notes spell it `riscv64-unknown-linux-musl`); this
   does not automatically add it to the repository's supported target matrix.
 - Since 1.99, `doc(cfg(...))` does not filter doctests. Validate actual feature and target
   gates; cfg-specific `rustdocflags`, `--emit`, and `--remap-path-prefix` can also

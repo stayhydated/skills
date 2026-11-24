@@ -52,7 +52,7 @@
 ## Determinism and hygiene
 
 - [ ] Incidental paths, timestamps, random IDs, map order, environment-specific data, hostnames, process IDs, platform-specific separators, scheduling artifacts, runtime timing, version-specific character escaping, v0 symbols, rustfmt module discovery, and path-remapping differences are normalized or intentionally reviewed without hiding contractual ordering, values, or diagnostics.
-- [ ] Rust 1.100 grapheme-extender escaping, `!` type names, and Unicode 18 data changes, plus Rust 1.99 U+FF9E/U+FF9F escaping changes, are reviewed when relevant; exhausted `RangeInclusive` endpoints are not asserted as stable output, and non-unwinding `transmute_copy` size-check failures are not treated as recoverable in-process panics.
+- [ ] Rust 1.100 `str::escape_debug` grapheme-extender escaping, `!` type names, and Unicode 18 data changes, plus Rust 1.99 U+FF9E/U+FF9F escaping changes, are reviewed when relevant; exhausted `RangeInclusive` endpoints are not asserted as stable output, and `transmute_copy` size-check failures are not tested as a contract, because they abort only under debug assertions and are undefined behavior in release builds.
 - [ ] Per-test temporary resources and child-specific environment/working directories avoid process-global mutation; tasks and child processes are joined or waited on and cleaned up.
 - [ ] Snapshots, golden files, corpora, benchmark fixtures, generated outputs, and minimized regressions avoid credentials, tokens, private URLs, personal data, secrets, and machine-local paths.
 - [ ] Property strategies and fuzz targets are bounded, reproducible when failing, and free from uncontrolled network/time/environment dependencies.

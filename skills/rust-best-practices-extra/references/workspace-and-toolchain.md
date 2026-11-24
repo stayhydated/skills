@@ -108,7 +108,7 @@ rename existing profiles mechanically. Incremental compilation is disabled by
 default when Cargo detects CI through the `CI` environment variable; inspect
 explicit configuration and `CARGO_INCREMENTAL` before comparing build timings.
 See [Cargo profiles](https://doc.rust-lang.org/cargo/reference/profiles.html)
-and the [Rust 1.99 Cargo changes](https://doc.rust-lang.org/releases.html#cargo).
+and the [Rust 1.99 Cargo changes](https://doc.rust-lang.org/releases.html#1.99.0-Cargo).
 
 Use `debug = "limited"` instead of full debug info when stack traces and module
 context are enough. Optimize non-workspace dependencies in dev profiles for UI,

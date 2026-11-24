@@ -44,8 +44,10 @@ Prefer ordinary unit, integration, or compile-fail/UI tests for:
 
 ## Rust 1.100 compatibility
 
-Rust 1.100 adds the `rustdoc::invalid_markdown_table` lint for malformed Markdown
-tables in documentation. Fix the table rather than allowing the lint. As with
+Rust 1.100 adds the `rustdoc::invalid_markdown_table` lint for unescaped `|` in
+documentation table rows, such as `a || b` in inline code, where rustdoc
+silently discards the content after the extra column divider. Escape the pipe as
+`\|` or restructure the table rather than allowing the lint. As with
 other rustdoc lints, run the repository's rustdoc build or lint command when
 tables or warning policy change. Passing doctests alone does not prove the
 rendered docs are warning-free. Doctests that print type names or debug-escaped

@@ -40,7 +40,8 @@ dependency cooldowns.
 Adopt these APIs where they make the changed code clearer or safer. Do not sweep
 unrelated code or raise a declared lower MSRV solely for a stylistic cleanup.
 Sections after [Cargo lints](#cargo-lints-and-dependency-cooldowns) carry forward
-Rust 1.98 and 1.99 guidance; their stabilization dates are unchanged.
+guidance for APIs stabilized from Rust 1.97 through 1.99; their stabilization
+dates are unchanged.
 
 ## Trim Optional Affixes Without an `Option`
 
@@ -126,10 +127,12 @@ assert_eq!(label, "ready");
 
 Two 1.100 compatibility changes need review in existing code:
 
-- Never-type fallback now resolves to `!` on all editions. Code whose inference
-  silently picked `()` for a diverging expression, such as a generic call whose
-  only constraint is `return`, `panic!`, or `todo!`, can fail to compile or change
-  behavior. Annotate the intended type instead of relying on fallback.
+- Never-type fallback now resolves to `!` on all editions. Edition-2024 crates
+  already used this fallback, so the change affects crates on earlier editions.
+  There, code whose inference picked `()` for a diverging expression, such as a
+  generic call whose only constraint is `return`, `panic!`, or `todo!`, can fail
+  to compile or change behavior. Annotate the intended type instead of relying
+  on fallback.
 - Separate trait implementations for `Infallible` and `!` now overlap. Remove the
   duplicate; do not add a wrapper type solely to keep both.
 
@@ -535,8 +538,11 @@ round trip; use the explicit ownership-transfer APIs and their safety contracts.
   methods. A type whose `Ord`, `PartialOrd`, and `PartialEq` disagree can return
   different elements; fix the inconsistent implementation instead of depending on
   the old choice.
-- `ENOTSUP` now maps to `io::ErrorKind::Unsupported`. Match that kind
-  instead of `Other` or raw OS codes in error handling.
+- On Unix targets, `ENOTSUP` now maps to `io::ErrorKind::Unsupported` alongside
+  `EOPNOTSUPP`. Linux was unaffected because the two codes are equal there; on
+  targets where they differ, such as macOS and the BSDs, `ENOTSUP` previously fell
+  through to a less specific kind. Match `Unsupported` instead of `Other` or raw
+  OS codes in error handling.
 - `extern "custom"` is stable for naked functions with a nonstandard calling
   convention. Such functions cannot be called from Rust; keep them behind an
   assembly boundary and document the convention.

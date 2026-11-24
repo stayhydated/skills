@@ -169,8 +169,9 @@ Expectation changes to review:
 - `type_name::<Infallible>()` and compiler diagnostics now render `!`. Review
   snapshots, goldens, and `.stderr` files that print type names rather than
   normalizing the difference away.
-- Never-type fallback now resolves to `!` on every edition. Test helpers whose
-  inference depended on `()` fallback can fail to compile or change type; add an
+- Never-type fallback now resolves to `!` on every edition. Edition-2024 crates
+  already used this fallback; in crates on earlier editions, test helpers whose
+  inference depended on `()` fallback can fail to compile or change type. Add an
   explicit annotation in the helper.
 - Compile-fail fixtures that only proved `!` was feature-gated now compile.
   Replace them with valid usage or a fixture for the real contract.
@@ -222,8 +223,11 @@ annotations, not test-only wrapper types.
 - For safe wrappers over `UnsafeCell::replace`, `as_ref_unchecked`, or
   `as_mut_unchecked`, test the public invariant and run Miri where configured.
   Never create overlapping references to exercise the unsafe methods.
-- `ENOTSUP` now maps to `io::ErrorKind::Unsupported`. Update platform tests that
-  asserted `Other` or raw OS codes, and keep the assertion structural.
+- On Unix targets where `ENOTSUP` differs from `EOPNOTSUPP`, such as macOS and
+  the BSDs, `ENOTSUP` now maps to `io::ErrorKind::Unsupported`. Linux already
+  returned `Unsupported` because the codes are equal there. Update affected
+  platform tests that asserted another kind or a raw OS code, and keep the
+  assertion structural.
 - For types with hand-written `Ord`, `PartialOrd`, and `PartialEq`, test their
   consistency directly. `Iterator::min`, `max`, `min_by_key`, and `max_by_key` use
   different `Ord` methods on 1.100, so tests that depended on an inconsistent
@@ -531,7 +535,8 @@ Rust 1.100 can change compile-pass/UI outcomes and rendered expectations without
 a behavioral source change. Review the relevant new surfaces:
 
 - the never type is stable, `Infallible` is an alias for `!`, and never-type
-  fallback is `!` on all editions; feature-gate fixtures for `!` now compile, and
+  fallback is `!` on all editions, which changes pre-2024-edition fixtures;
+  feature-gate fixtures for `!` now compile, and
   diagnostics print `!` where they printed `Infallible`;
 - `extern "custom"` is stable for naked functions; reconsider fixtures that only
   proved it was feature-gated;
@@ -551,9 +556,10 @@ a behavioral source change. Review the relevant new surfaces:
 - enum layout computations with explicit discriminants can report query-cycle
   errors in more cases;
 - allocator-generic `Box` implementations can add type-inference errors;
-- `str::escape_debug` and `char` debug output always escape grapheme extenders,
-  so a combining mark after a base character is now escaped: debug output for
-  `e` followed by U+0301 contains `\u{301}` rather than the raw mark;
+- `str::escape_debug` always escapes grapheme extenders, so a combining mark
+  after a base character is now escaped: `escape_debug` of `e` followed by
+  U+0301 yields `e\u{301}` instead of keeping the raw mark. `{:?}` formatting and
+  `char::escape_debug` already escaped them and are unchanged;
 - Unicode 18.0.0 can change `char` property results, case mapping, and
   derived goldens.
 
@@ -578,10 +584,13 @@ new in 1.100:
 - legacy integral module deprecations can add warnings in compiler-facing fixtures;
 - debug escaping does not escape U+FF9E and U+FF9F, which can change string,
   stderr, or golden output;
-- `transmute_copy` accepts `?Sized` input and uses a non-unwinding panic for its
-  size check; do not expect `catch_unwind` or an ordinary `#[should_panic]` test
-  to recover from that failure. Exercise a justified process-failure contract in
-  a subprocess rather than aborting the test runner.
+- `transmute_copy` accepts `?Sized` input, and its size check is an unsafe
+  precondition checked only when debug assertions are enabled. In those builds a
+  violation aborts the process, so `catch_unwind` and `#[should_panic]` cannot
+  observe it; in release builds the check is absent and the call is undefined
+  behavior. Do not test a size-check failure as a contract, even in a subprocess.
+  Test that the safe wrapper rejects mismatched sizes before calling
+  `transmute_copy`.
 
 Also retain relevant coverage carried forward from Rust 1.98:
 
@@ -625,8 +634,8 @@ In particular:
   windowed ABI;
 - the x86 Rust ABI uses SSE registers when the target always provides them,
   which can change assembly, codegen, or ABI expectations without a source change;
-- carried forward from 1.99: `riscv64-unknown-linux-musl` is Tier 2 with host
-  tools, Emscripten uses the WASM exception-handling ABI unconditionally, Solaris
+- carried forward from 1.99: `riscv64gc-unknown-linux-musl` is Tier 2 with host
+  tools (the 1.99 release notes spell it `riscv64-unknown-linux-musl`), Emscripten uses the WASM exception-handling ABI unconditionally, Solaris
   `File::lock` reports unsupported, and promoted Thumb targets justify matrix
   changes only when the repository claims them;
 - atomic view methods wider than a byte can depend on target atomic support and
