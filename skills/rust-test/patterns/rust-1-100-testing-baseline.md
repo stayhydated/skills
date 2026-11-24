@@ -1,9 +1,14 @@
-# Rust 1.99 testing baseline
+# Rust 1.100 testing baseline
 
 ## Contents
 
 - [Scope boundary](#scope-boundary)
-- [Rust 1.99 release delta](#rust-199-release-delta)
+- [Rust 1.100 release delta](#rust-1100-release-delta)
+- [Optional affix trimming](#test-optional-affix-trimming)
+- [Scoped cleanup guards](#test-scoped-cleanup-on-every-exit-path)
+- [Never type and `Infallible`](#test-never-type-and-infallible-contracts)
+- [Custom allocators](#test-allocator-generic-code-and-allocator-implementations)
+- [Smart-pointer, cell, and I/O contracts](#test-smart-pointer-cell-and-io-contracts)
 - [Owned UTF-8 decoding](#test-owned-utf-8-decoding)
 - [Deque tail retention](#test-deque-tail-retention)
 - [Ownership and filesystem contracts](#test-ownership-and-filesystem-contracts)
@@ -13,47 +18,217 @@
 - [Formatting and numeric contracts](#test-formatting-and-numeric-contracts)
 - [Encoding and typed parsing](#test-encoding-and-typed-parsing)
 - [Atomic and iterator contracts](#test-atomic-and-iterator-contracts)
-- [Cargo configuration](#cargo-199-configuration-effects)
+- [Cargo and libtest](#cargo-and-libtest-effects)
 - [Doctest and rustdoc effects](#doctest-and-rustdoc-effects)
 - [Compiler and expectation compatibility](#compiler-and-expectation-file-compatibility)
 - [Target-specific validation](#target-specific-validation)
 
 Use this pattern when a Rust test, doctest, compile-fail/UI expectation, target
-check, or validation command depends on the Rust 1.99 baseline. Keep the guidance
+check, or validation command depends on the Rust 1.100 baseline. Keep the guidance
 limited to testing. General implementation idioms belong in
 BeautifulRust's `rust-best-practices` core and `rust-best-practices-extra`.
 
 ## Scope boundary
 
-Apply Rust 1.99 guidance here only to:
+Apply Rust 1.100 guidance here only to:
 
 - assertion choice and failure diagnostics;
 - doctest imports, doctest attributes, and rustdoc validation commands;
-- compile-fail/UI expectations whose acceptance or diagnostics change on 1.99;
+- compile-fail/UI expectations whose acceptance or diagnostics change on 1.100;
 - Cargo command semantics, configuration, feature matrices, target checks, and
   lower-MSRV validation;
 - tests for public APIs that expose library behavior available on this baseline;
-- snapshots, goldens, and generated output affected by escaping, symbols,
-  temporary scopes, formatting discovery, or target-specific behavior.
+- snapshots, goldens, and generated output affected by escaping, type names,
+  symbols, temporary scopes, formatting discovery, or target-specific behavior.
 
 Do not turn a test patch into a general production-code modernization. Ownership,
 API design, lint policy, builders, type-state, documentation style, and production
 performance changes remain outside this skill unless they are the explicit tested
 contract.
 
-## Rust 1.99 release delta
+## Rust 1.100 release delta
 
-Review the [Rust 1.99 release notes](https://doc.rust-lang.org/releases.html#version-1990-2026-10-01)
-for newly stable owned UTF-8 decoding, deque tail retention, boxed-array
-iteration, non-null ownership transfer, raw layout queries, C variadics, and
-filesystem timestamps. Select tests only for APIs exposed by the changed code.
+Review the [Rust 1.100 release notes](https://doc.rust-lang.org/releases.html#version-11000-2026-11-12)
+for the newly stable never type, `Allocator` trait and allocator-aware `Box`/`Vec`
+constructors, `mem::DropGuard`, `trim_prefix`/`trim_suffix`, `Box`/`Rc`/`Arc::map`,
+`Box::take`, `Vec::from_fn`, `bool::toggle`, `UnsafeCell` access methods, Cargo
+lints, dependency cooldowns, and repeated libtest arguments. Select tests only for
+APIs exposed by the changed code.
 
-The assertion, range-provenance, paired-stripping, numeric, UTF-16, and atomic
-examples carried forward below are not new 1.99 stabilizations. In particular,
-`assert_matches!` stabilized in 1.96; `build.warnings` and
+The sections after [smart-pointer contracts](#test-smart-pointer-cell-and-io-contracts)
+carry forward earlier guidance and are not new 1.100 stabilizations. In
+particular, `assert_matches!` stabilized in 1.96; `build.warnings` and
 `resolver.lockfile-path` stabilized in Cargo 1.97; the range-recovery, buffer,
-algebraic-float, UTF-16, and atomic-view APIs shown here stabilized in 1.98.
-Respect a declared lower MSRV instead of assuming every baseline API is allowed.
+algebraic-float, UTF-16, and atomic-view APIs stabilized in 1.98; and owned UTF-8
+decoding, deque tail retention, and non-null ownership transfer stabilized in
+1.99. Respect a declared lower MSRV instead of assuming every baseline API is
+allowed.
+
+## Test optional affix trimming
+
+`trim_prefix` and `trim_suffix` remove at most one occurrence and return the input
+unchanged when the affix is absent. Cover present, absent, repeated, and empty
+input. Do not substitute them for a `strip_prefix` contract that must report
+whether the affix was present:
+
+```rust
+fn normalize_tag(raw: &str) -> &str {
+    raw.trim_prefix("refs/tags/").trim_prefix('v')
+}
+
+#[test]
+fn tag_normalization_trims_each_optional_prefix_once() {
+    for (input, expected) in [
+        ("refs/tags/v1.2.0", "1.2.0"),
+        ("v1.2.0", "1.2.0"),
+        ("1.2.0", "1.2.0"),
+        ("vv1", "v1"),
+        ("", ""),
+    ] {
+        assert_eq!(normalize_tag(input), expected, "input: {input:?}");
+    }
+}
+```
+
+`Path::trim_prefix` matches whole components. Include a partial-component case
+such as `/srv/app` against `/srv/application` when path prefixes are the contract.
+
+## Test scoped cleanup on every exit path
+
+When code uses `mem::DropGuard` for rollback or cleanup, test the observable state
+after the success path, an early error return, and, when the crate unwinds, a
+panic. The dismissed guard must leave committed state in place:
+
+```rust
+use std::mem::DropGuard;
+use std::panic::{self, AssertUnwindSafe};
+
+fn apply_batch(
+    log: &mut Vec<u32>,
+    batch: &[u32],
+    check: impl Fn(u32) -> Result<(), String>,
+) -> Result<(), String> {
+    let committed = log.len();
+    let mut log = DropGuard::new(log, move |log| log.truncate(committed));
+    for &value in batch {
+        check(value)?;
+        log.push(value);
+    }
+    DropGuard::dismiss(log);
+    Ok(())
+}
+
+#[test]
+fn failed_batches_roll_back_and_successful_batches_commit() {
+    let mut log = vec![1];
+
+    let rejected = apply_batch(&mut log, &[2, 0, 3], |value| {
+        if value == 0 { Err("zero".to_owned()) } else { Ok(()) }
+    });
+    assert_eq!(rejected, Err("zero".to_owned()));
+    assert_eq!(log, [1]);
+
+    let panicked = panic::catch_unwind(AssertUnwindSafe(|| {
+        apply_batch(&mut log, &[2, 3], |value| {
+            assert_ne!(value, 3, "checker rejects 3");
+            Ok(())
+        })
+    }));
+    assert!(panicked.is_err());
+    assert_eq!(log, [1]);
+
+    apply_batch(&mut log, &[2, 3], |_| Ok(())).unwrap();
+    assert_eq!(log, [1, 2, 3]);
+}
+```
+
+Gate or omit the unwinding case when the tested profile uses `panic = "abort"`.
+Do not assert that a guard closure ran by recording calls into a spy; assert the
+resource or state it restores.
+
+## Test never-type and `Infallible` contracts
+
+`!` is stable and `Infallible` is now an alias for it. For a `Result<T, !>` or
+`Result<T, Infallible>` API, bind the success value with an irrefutable pattern.
+Do not write an `is_err()` assertion or an unreachable error-handling test:
+
+```rust
+fn parse_label(raw: &str) -> Result<String, !> {
+    Ok(raw.trim().to_owned())
+}
+
+#[test]
+fn label_parsing_trims_without_an_error_path() {
+    let Ok(label) = parse_label("  ready  ");
+    assert_eq!(label, "ready");
+}
+```
+
+Expectation changes to review:
+
+- `type_name::<Infallible>()` and compiler diagnostics now render `!`. Review
+  snapshots, goldens, and `.stderr` files that print type names rather than
+  normalizing the difference away.
+- Never-type fallback now resolves to `!` on every edition. Test helpers whose
+  inference depended on `()` fallback can fail to compile or change type; add an
+  explicit annotation in the helper.
+- Compile-fail fixtures that only proved `!` was feature-gated now compile.
+  Replace them with valid usage or a fixture for the real contract.
+
+## Test allocator-generic code and allocator implementations
+
+For code generic over `A: Allocator`, exercise the public behavior with at least
+`Global` and one other real allocator, such as `System` or the repository's arena.
+Assert outputs, not allocation calls:
+
+```rust
+use std::alloc::{Allocator, Global, System};
+
+fn encode_frame<A: Allocator>(payload: &[u8], allocator: A) -> Vec<u8, A> {
+    let mut frame = Vec::with_capacity_in(payload.len() + 1, allocator);
+    frame.push(u8::try_from(payload.len()).expect("payload fits a one-byte length"));
+    frame.extend_from_slice(payload);
+    frame
+}
+
+#[test]
+fn framing_is_independent_of_the_allocator() {
+    assert_eq!(encode_frame(b"hi", Global), [2, b'h', b'i']);
+    assert_eq!(encode_frame(b"hi", System), [2, b'h', b'i']);
+    assert_eq!(encode_frame(b"", System), [0]);
+}
+```
+
+When the change implements `Allocator`, test its documented contract directly:
+returned blocks satisfy the requested size and alignment, zero-sized layouts
+are handled, `grow` and `shrink` preserve the retained prefix, and
+deallocation accepts only blocks from the same allocator or its clones. Pair those
+tests with Miri or sanitizers when the repository uses them. Count allocations only
+when an allocation bound is the public contract, and measure it through a real
+allocator wrapper rather than a mock. Some `Box` implementations are now
+allocator-generic; new inference failures in test code need explicit
+annotations, not test-only wrapper types.
+
+## Test smart-pointer, cell, and I/O contracts
+
+- For `Box::map`, `Rc::map`, and `Arc::map`, assert the mapped value and, for
+  shared pointers, behavior with other live clones. Do not assert pointer identity
+  or allocation reuse; neither is guaranteed.
+- For `Box::take`, assert the moved-out value and any reuse of the returned
+  `Box<MaybeUninit<T>>` through `Box::write`. Avoid reading the uninitialized
+  allocation.
+- For `Vec::from_fn`, cover length zero and confirm that elements are produced in
+  index order when the closure has side effects that the contract exposes.
+- For safe wrappers over `UnsafeCell::replace`, `as_ref_unchecked`, or
+  `as_mut_unchecked`, test the public invariant and run Miri where configured.
+  Never create overlapping references to exercise the unsafe methods.
+- `ENOTSUP` now maps to `io::ErrorKind::Unsupported`. Update platform tests that
+  asserted `Other` or raw OS codes, and keep the assertion structural.
+- For types with hand-written `Ord`, `PartialOrd`, and `PartialEq`, test their
+  consistency directly. `Iterator::min`, `max`, `min_by_key`, and `max_by_key` use
+  different `Ord` methods on 1.100, so tests that depended on an inconsistent
+  implementation can change outcome. Ties still return the first minimum and the
+  last maximum.
 
 ## Test owned UTF-8 decoding
 
@@ -121,7 +296,7 @@ layout. See the [`retain_back` contract](https://doc.rust-lang.org/std/collectio
 
 ## Test ownership and filesystem contracts
 
-When the changed code exposes these 1.99 APIs:
+When the changed code exposes these APIs stabilized in 1.99:
 
 - For owned and borrowed `IntoIterator` on `Box<[T; N]>`, test element order,
   empty arrays, moves of non-`Copy` elements, or mutation through borrowed
@@ -130,7 +305,10 @@ When the changed code exposes these 1.99 APIs:
 - For `Box::into_non_null`/`from_non_null` or `Vec::into_parts`/`from_parts`,
   test the safe wrapper's ownership round trip and exactly-once cleanup with real
   values. Keep allocator, layout, initialized length, capacity, and aliasing
-  invariants explicit. A non-null pointer is not proof of validity.
+  invariants explicit. A non-null pointer is not proof of validity. For a
+  non-global allocator, test the 1.100 allocator-carrying variants, such as
+  `Box::into_non_null_with_allocator`/`from_non_null_in`, with the same
+  allocator on both sides.
 - For `size_of_val_raw`, `align_of_val_raw`, and `Layout::for_value_raw`,
   satisfy the documented metadata preconditions. Never manufacture invalid
   pointers merely to test rejection by an unsafe API. Pair safe-wrapper tests
@@ -143,7 +321,7 @@ When the changed code exposes these 1.99 APIs:
   FFI boundary with the target's ABI and promoted argument types. A host-only
   compile check does not prove cross-platform calling conventions.
 
-Re-audit existing unsafe wrappers against the updated `Pin::new_unchecked`
+Re-audit existing unsafe wrappers against the 1.99 `Pin::new_unchecked`
 safety requirements when relevant. Functional tests alone do not prove pinning
 soundness, and `Box::leak` followed by assumed-safe reconstruction is not a
 substitute for explicit ownership transfer.
@@ -190,7 +368,7 @@ views can produce an endpoint false positive. Add a `#[should_panic]` case for
 `subslice_range` on a zero-sized element type only when that panic is part of the
 exposed contract.
 
-Separately, Rust 1.99 changes implementation details of exhausted
+Separately, Rust 1.99 changed implementation details of exhausted
 `core::ops::RangeInclusive` iterators. Assert the yielded sequence and exhaustion,
 not the later `start()`/`end()` values or slice-index behavior of an exhausted
 range. Those details are not stable guarantees; keep original bounds separately
@@ -296,20 +474,40 @@ repository's UI harness only when those auto-traits are part of a public generic
 contract. For ordinary worker code, collect owned environment pairs before
 crossing a thread boundary.
 
-## Cargo 1.99 configuration effects
+## Cargo and libtest effects
 
 Follow [Cargo's default behavior and configuration boundaries](cargo-test-semantics.md#default-behavior-to-account-for)
-for inherited dependency overrides, profile selection, CI incremental defaults,
-warning policy, lockfile selection, and lower-Cargo lanes. Inspect
+for Cargo lints, dependency cooldowns, build-directory layout, inherited
+dependency overrides, profile selection, CI incremental defaults, warning policy,
+lockfile selection, and lower-Cargo lanes. Inspect
 [active configuration sources](cargo-test-semantics.md#working-directories-configuration-and-environment)
-before interpreting a command. `build.warnings` and `resolver.lockfile-path`
-stabilized in Cargo 1.97 and are carried forward on this baseline.
+before interpreting a command. Test-relevant 1.100 changes:
+
+- `cargo::unused_dependencies` does not check `[dev-dependencies]`. Put
+  test-only crates there, and do not treat a clean lint run as proof that
+  dev-dependencies are used.
+- Cargo's intermediate build-directory layout changed and is not a stable
+  interface. E2E tests should locate binaries through `CARGO_BIN_EXE_<name>`, and
+  scripts should use Cargo's JSON messages instead of hard-coded
+  `target/<profile>/deps` paths.
+- A configured `registry.global-min-publish-age` or per-registry
+  `min-publish-age` can make fresh resolution select older versions than an
+  unconfigured lane. Record it when comparing lockfile-free or minimal-version
+  jobs.
+- libtest accepts repeated `--test-threads` and `--color` arguments, and the last
+  one wins. When runner scripts append harness arguments, report the effective
+  value rather than the first one.
+
+`build.warnings` and `resolver.lockfile-path` stabilized in Cargo 1.97, and the
+inherited `default-features` override and built-in `debug` profile arrived in
+Cargo 1.99. All are carried forward on this baseline.
 
 ## Doctest and rustdoc effects
 
-Use [doctest compatibility guidance](doctests-and-examples.md#rust-199-compatibility)
-for unattached attributes, `doc(cfg(...))`, and the
-`rustdoc::unused_footnote_definition` lint. Follow
+Use [doctest compatibility guidance](doctests-and-examples.md#rust-1100-compatibility)
+for the `rustdoc::invalid_markdown_table` lint and the carried-forward
+unattached-attribute, `doc(cfg(...))`, and `rustdoc::unused_footnote_definition`
+rules. Follow
 [rustdoc mechanics](doctests-and-examples.md#rustdoc-mechanics) for hidden setup.
 Hidden assertion imports keep the rendered example focused:
 
@@ -329,34 +527,63 @@ pipelines, emitted/remapped artifacts, and separate execution alongside nextest.
 
 ## Compiler and expectation-file compatibility
 
-Rust 1.99 can change compile-pass/UI outcomes and rendered expectations without a
-behavioral source change. Review the relevant new surfaces:
+Rust 1.100 can change compile-pass/UI outcomes and rendered expectations without
+a behavioral source change. Review the relevant new surfaces:
+
+- the never type is stable, `Infallible` is an alias for `!`, and never-type
+  fallback is `!` on all editions; feature-gate fixtures for `!` now compile, and
+  diagnostics print `!` where they printed `Infallible`;
+- `extern "custom"` is stable for naked functions; reconsider fixtures that only
+  proved it was feature-gated;
+- `aligned_fields_in_packed` is now a deny-by-default lint rather than a hard
+  error, so its `.stderr` shape changes;
+- new or extended lints cover repeated `#[repr(..)]` attributes and
+  `ptr::drop_in_place` calls under `dropping_references`, `dropping_copy_types`,
+  and `undropped_manually_drops`;
+- `unfulfilled_lint_expectations` no longer fires for `#[expect(dead_code)]`
+  inside code already reported as dead, which can remove an expected diagnostic;
+- closures capture variables used in `if let` more precisely, which can add
+  borrow errors;
+- dyn-compatibility is checked in more places, the next trait solver drives
+  orphan checking, and `ambiguous_glob_imported_traits` fires in more cases;
+- `box` patterns are no longer accepted syntactically, and `let`-`else` respects
+  `macro_rules` `expr` metavariable grouping;
+- enum layout computations with explicit discriminants can report query-cycle
+  errors in more cases;
+- allocator-generic `Box` implementations can add type-inference errors;
+- `str::escape_debug` and `char` debug output always escape grapheme extenders,
+  so a combining mark after a base character is now escaped: debug output for
+  `e` followed by U+0301 contains `\u{301}` rather than the raw mark;
+- Unicode 18.0.0 can change `char` property results, case mapping, and
+  derived goldens.
+
+Retain relevant compatibility coverage from Rust 1.99 without relabeling it as
+new in 1.100:
 
 - `no_mangle_generic_items` is a hard error, and runtime-symbol lints cover
   additional POSIX names;
 - `raw_borrows_via_references` is allow-by-default; `unconditional_panic` also
   checks zero-sized chunks/windows calls; `unreachable_cfg_select_predicates`
   is included in `unused`;
-- exported macros with trailing semicolons in expression position now produce
+- exported macros with trailing semicolons in expression position produce
   `semicolon_in_expressions_from_non_local_macros` in consumers; use integration
   tests to exercise the separate-crate boundary and fix the provider;
 - outlined modules in custom attribute or derive macros and C-variadic
-  definitions are now stable; reconsider compile-fail fixtures that depended
-  only on the previous feature gate and add valid usage where appropriate;
+  definitions are stable; fixtures that depended only on the previous feature
+  gate need valid usage instead;
 - unused `#[path]` on inline modules and invalid doc attributes on macro
   invocations can add diagnostics;
 - inferred `let` pattern types, never-type method resolution, and associated
   constant lifetimes can change typechecking or diagnostics;
 - legacy integral module deprecations can add warnings in compiler-facing fixtures;
-- debug escaping no longer escapes U+FF9E and U+FF9F, which can change string,
+- debug escaping does not escape U+FF9E and U+FF9F, which can change string,
   stderr, or golden output;
 - `transmute_copy` accepts `?Sized` input and uses a non-unwinding panic for its
   size check; do not expect `catch_unwind` or an ordinary `#[should_panic]` test
   to recover from that failure. Exercise a justified process-failure contract in
   a subprocess rather than aborting the test runner.
 
-Retain relevant compatibility coverage from Rust 1.98 without relabeling it as
-new in 1.99:
+Also retain relevant coverage carried forward from Rust 1.98:
 
 - fully elided trait-object lifetime bounds can resolve differently;
 - additional ambiguous imports are errors, and some `ambiguous_glob_imports`
@@ -387,12 +614,21 @@ Use the repository's target commands for `no_std`, WASM, embedded, custom target
 and platform contracts. Host tests do not prove target linking or ABI behavior.
 In particular:
 
-- Rust 1.99 promotes `riscv64-unknown-linux-musl` to Tier 2 with host tools; add a
-  matrix lane only when the repository actually claims that target;
-- Emscripten uses the WASM exception-handling ABI unconditionally;
-- Solaris `File::lock` reports unsupported;
-- promoted Thumb targets may justify matrix changes only when the repository
-  claims support for them;
+- Rust 1.100 promotes `wasm32-wasip3` to Tier 2 and makes `i686-pc-windows-gnu`
+  Tier 2 without host tools; add a matrix lane only when the repository actually
+  claims that target;
+- the WASI SDK moved from 33 to 34, and `windows-gnullvm` always links libunwind
+  statically; treat linker or runtime differences as target evidence;
+- on ARM targets, ABI-altering `-Ctarget-feature` or `-Ctarget-cpu` values are
+  hard errors, and ARMv7-A hardfloat targets no longer assume `d32`; enabling
+  SSE or AVX on x86 softfloat targets is an error, and Xtensa requires the
+  windowed ABI;
+- the x86 Rust ABI uses SSE registers when the target always provides them,
+  which can change assembly, codegen, or ABI expectations without a source change;
+- carried forward from 1.99: `riscv64-unknown-linux-musl` is Tier 2 with host
+  tools, Emscripten uses the WASM exception-handling ABI unconditionally, Solaris
+  `File::lock` reports unsupported, and promoted Thumb targets justify matrix
+  changes only when the repository claims them;
 - atomic view methods wider than a byte can depend on target atomic support and
   primitive alignment;
 - symbol/backtrace tools must understand v0 mangling when expectations include

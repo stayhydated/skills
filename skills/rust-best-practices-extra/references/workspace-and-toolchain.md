@@ -21,14 +21,28 @@ semver-incompatible versions.
 Account for resolver failures and crates whose native `links` declarations
 prevent multiple versions from coexisting.
 
-On Cargo 1.99, edition-2024 members can override inherited `default-features`,
+Since Cargo 1.99, edition-2024 members can override inherited `default-features`,
 including `{ workspace = true, default-features = false }` when the workspace
 enables defaults. This does not disable features enabled by other dependency
 edges. Inspect feature unification and validate lower-Cargo lanes before using
 this form; earlier editions and toolchains do not provide the same override.
 See [inheriting workspace dependencies](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#inheriting-a-dependency-from-a-workspace).
 
-## Cargo 1.99 Warning Policy
+## Cargo Lints
+
+Prefer sharing Cargo lint levels through `[workspace.lints.cargo]` alongside the
+`rust`, `rustdoc`, and `clippy` tables when the repository centralizes lints.
+Every member that should inherit them needs `[lints] workspace = true`; Cargo
+1.100 reports `cargo::missing_lints_inheritance` otherwise.
+
+Treat the warn-by-default `cargo::unused_dependencies` lint as manifest feedback.
+Put test-, example-, and benchmark-only dependencies in `[dev-dependencies]`,
+remove unused ones, and allow the lint only narrowly for a documented
+feature-pinning false positive. The lint checks only the dependency tables for
+the selected packages and targets, so a clean `cargo check -p <crate>` does not
+prove that other members or `[dev-dependencies]` are clean.
+
+## Warning Policy
 
 When a repository intentionally requires every ordinary Cargo build, check, or
 test of local packages to reject lint warnings, use Cargo's `build.warnings`
@@ -39,9 +53,8 @@ configuration instead of a global `RUSTFLAGS=-Dwarnings` override:
 warnings = "deny"
 ```
 
-Use this when Rust 1.99 is the effective toolchain baseline and the repository has
-adopted warning-free builds as policy. The setting was stabilized in Cargo 1.97;
-it is not new in 1.99. Keep an explicit
+Use this when the repository has adopted warning-free builds as policy. The
+setting was stabilized in Cargo 1.97. Keep an explicit
 `cargo clippy ... -- -D warnings` command for Clippy-specific review. When a
 separate lower-MSRV lane exists, validate its behavior independently instead of
 assuming it interprets the active Cargo configuration identically.
@@ -70,7 +83,7 @@ requirement.
 
 Profile tuning is workload-specific, not an idiomatic-Rust requirement. Preserve
 the repository's profiles unless tuning is in scope. For a runtime-heavy
-workspace targeting Rust 1.99, this is one candidate to measure against Cargo's
+workspace targeting Rust 1.100, this is one candidate to measure against Cargo's
 defaults, not a universal build-speed or runtime improvement:
 
 ```toml
@@ -89,7 +102,7 @@ lto = "thin"
 opt-level = 3
 ```
 
-Cargo 1.99 adds a built-in `debug` profile, which currently inherits `dev`.
+Cargo 1.99 added a built-in `debug` profile, which currently inherits `dev`.
 The profile name is distinct from the `debug` debuginfo setting above. Do not
 rename existing profiles mechanically. Incremental compilation is disabled by
 default when Cargo detects CI through the `CI` environment variable; inspect

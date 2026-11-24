@@ -86,12 +86,12 @@ fn sample_batch() -> Batch {
 
 ## Prefer `assert_matches!` for Variant Checks
 
-On the Rust 1.99 baseline, prefer `assert_matches!` when the test contract is a
+On the Rust 1.100 baseline, prefer `assert_matches!` when the test contract is a
 single structured pattern: enum variants, typed errors, state-machine phases,
 parse outcomes, or other values where the mismatched debug shape should appear in
 the failure. Import the macro explicitly from `std` in ordinary tests and doctests
-or from `core` in `no_std` test contexts. The macro stabilized in Rust 1.96, not 1.99;
-see the [baseline pattern](rust-1-99-testing-baseline.md) for release-specific
+or from `core` in `no_std` test contexts. The macro stabilized in Rust 1.96;
+see the [baseline pattern](rust-1-100-testing-baseline.md) for release-specific
 behavior and lower-MSRV boundaries.
 
 ```rust
@@ -201,7 +201,7 @@ pub fn normalize_marker(input: &str) -> String {
 
 For execution and custom rustdoc pipelines, follow
 [doctest validation](doctests-and-examples.md#validation). Use
-[compatibility guidance](doctests-and-examples.md#rust-199-compatibility) when the
+[compatibility guidance](doctests-and-examples.md#rust-1100-compatibility) when the
 Rust baseline changes.
 
 ## Integration Tests

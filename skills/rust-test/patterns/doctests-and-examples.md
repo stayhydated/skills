@@ -6,7 +6,7 @@ Use doctests when documentation examples are part of the public contract.
 
 - public API examples in rustdoc comments;
 - README examples included by crate docs or validated by the repository's existing workflow;
-- small examples that demonstrate user-facing behavior with `assert!`, `assert_eq!`, or `assert_matches!` on the Rust 1.99 baseline when a public enum/error variant is the documented contract;
+- small examples that demonstrate user-facing behavior with `assert!`, `assert_eq!`, or `assert_matches!` on the Rust 1.100 baseline when a public enum/error variant is the documented contract;
 - public invalid-usage examples where `compile_fail` communicates a type-level contract;
 - examples that should compile but should not run in CI, using `no_run`.
 
@@ -42,22 +42,27 @@ Prefer ordinary unit, integration, or compile-fail/UI tests for:
 - Account for feature flags that affect public documentation examples. A doctest
   command without the required feature does not prove feature-gated examples.
 
-## Rust 1.99 compatibility
+## Rust 1.100 compatibility
+
+Rust 1.100 adds the `rustdoc::invalid_markdown_table` lint for malformed Markdown
+tables in documentation. Fix the table rather than allowing the lint. As with
+other rustdoc lints, run the repository's rustdoc build or lint command when
+tables or warning policy change. Passing doctests alone does not prove the
+rendered docs are warning-free. Doctests that print type names or debug-escaped
+text can also change with the [`!` and escaping updates](rust-1-100-testing-baseline.md#compiler-and-expectation-file-compatibility).
 
 The [Rust 1.99 compatibility notes](https://doc.rust-lang.org/releases.html#version-1990-2026-10-01)
-change two doctest assumptions:
+changed two doctest assumptions that remain in force:
 
-- Attributes that do not apply to anything are now errors in documentation code
+- Attributes that do not apply to anything are errors in documentation code
   blocks. Attach the attribute to its intended item or remove the stray
   attribute. Do not hide the failure with `ignore`.
-- `doc(cfg(...))` is no longer considered when filtering doctests. It describes
+- `doc(cfg(...))` is not considered when filtering doctests. It describes
   documentation availability, not an execution guard. Inspect actual `cfg`
   conditions and run the relevant feature/target combinations.
 
-The new `rustdoc::unused_footnote_definition` lint belongs to documentation
-validation. Run the repository's rustdoc lint/build command when footnotes or
-warning policy change; passing doctests alone does not prove rendered docs are
-warning-free. Follow [assertion guidance](automated-testing.md#prefer-assert_matches-for-variant-checks)
+The 1.99 `rustdoc::unused_footnote_definition` lint likewise belongs to
+documentation validation. Follow [assertion guidance](automated-testing.md#prefer-assert_matches-for-variant-checks)
 for macro stabilization and lower-MSRV boundaries.
 
 ## Validation
